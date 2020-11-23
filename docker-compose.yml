@@ -6,6 +6,8 @@ services:
     build: .
     ports:
       - "5005:5005"
+#    volumes:
+#      - ./app:/app
     networks:
       - db_network
       - web_network

@@ -26,6 +26,9 @@ def route_default():
 def route_errors(error):
     return render_template('errors/{}.html'.format(error))
 
+@blueprint.route('/feedback')
+def feedback():
+    return render_template('feedback.html')
 ## Login & Registration
 
 @blueprint.route('/login', methods=['GET', 'POST'])
