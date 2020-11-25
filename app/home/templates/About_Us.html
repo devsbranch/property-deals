@@ -1,0 +1,102 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Page Blank {% endblock %} 
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+    <div class="pcoded-content">
+        <div class="pcoded-inner-content">
+            <!-- [ breadcrumb ] start -->
+            <div class="page-header">
+                <div class="page-block">
+                    <div class="row align-items-center">
+                        <div class="col-md-12">
+                            <div class="page-header-title">
+                                <h5 class="m-b-10">About Us</h5>
+                            </div>
+                            <ul class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="/"><i class="feather icon-home"></i></a></li>
+                                <li class="breadcrumb-item"><a href="javascript:">Property Consultants</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- [ breadcrumb ] end -->
+            <div class="main-body">
+                <div class="page-wrapper">
+                    <!-- [ Main Content ] start -->
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><b>Our Profile</b></h5>
+                                </div>
+                                <div class="card-block">
+                                    <h5>Our Passion</h5>
+                                    <p style="color:green">To bring property management to your finger tips; whether landlords or tenants
+                                        house buyers and sellers, farms, plots, car traders and car hires. It's all now
+                                        in one place<br><br>
+                                    </p>
+                                    <h5>Our Mission</h5>
+                                    <p style="color:green">Our goal is to bring to one platform all that an individual or company needs to
+                                        locate or advertise a property. We deal in
+                                    </p>
+                                        <ul>
+                                            <li>Plots</li>
+                                            <li>Farms</li>
+                                            <li>Houses</li>
+                                            <li>Lease</li>
+                                            <li>Rent</li>
+                                            <li>Car Hire</li>
+                                            <li>Car Trading</li>
+                                        </ul>
+
+                                </div>
+
+
+                                <div class="card-header">
+                                        <h5><b>Send Us a Message</b></h5>
+                                </div>
+                                <div class="col-md-6">
+                                        <form role="form" method="post" action="">
+                                            <div class="form-group">
+                                                <label>Name</label>
+                                                <input type="text" class="form-control" placeholder="Enter Your Name Here">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="choosecategory">Category</label>
+                                                <select class="form-control" id="choosecategory">
+                                                    <option>Choose category</option>
+                                                    <option>House for sale</option>
+                                                    <option>Plot for Sale</option>
+                                                    <option>Car for sale</option>
+                                                    <option>Car for hire</option>
+                                                    <option>Others</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="message">Message</label>
+                                                <textarea class="form-control" id="message" rows="3">
+                                                </textarea>
+                                            </div>
+                                            <button type="submit" name="submit" class="btn btn-primary shadow-2 mb-4">Send Message</button>
+                                        </form>
+                                    </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <!-- [ Main Content ] end -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}
