@@ -35,15 +35,19 @@ class User(db.Model, UserMixin):
 
 
 class Property(db.Model):
-    __tablename__ = 'Properties'
     id = Column(Integer, primary_key=True)
-    property_name = Column(String(50))
-    property_desc = Column(String(350))
-    location = Column(String(30))
-    price = Column(Integer)
+    property_name = Column(String(50), nullable=False)
+    property_desc = Column(String(350), nullable=False)
+    location = Column(String(30), nullable=False)
+    price = Column(Integer, nullable=False)
+
+    # user_id = db.Column(db.Integer, db.ForeignKey('user.id'),
+    #                         nullable=False)
+    # user = db.relationship('User',
+    #                            backref=db.backref('posts', lazy=True))
 
     def __repr__(self):
-        return str(self.username)
+        return str(self.property_name)
 
 
 @login_manager.user_loader

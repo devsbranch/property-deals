@@ -13,7 +13,7 @@ from flask_login import (
 
 from app import db, login_manager
 from app.base import blueprint
-from app.base.forms import LoginForm, CreateAccountForm, CreateListing
+from app.base.forms import LoginForm, CreateAccountForm, CreateListingForm
 from app.base.models import User
 
 from app.base.util import verify_pass
@@ -24,9 +24,9 @@ def route_default():
     return redirect(url_for('base_blueprint.login'))
 
 
-@blueprint.route('/list_property', methods=['GET', 'POST'])
+@blueprint.route('/list-property', methods=['GET', 'POST'])
 def create_form():
-    form = CreateListing()
+    form = CreateListingForm()
     name = request.form
     for k, v in name.items():
         print(k, v)
