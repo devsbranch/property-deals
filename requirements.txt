@@ -1,4 +1,4 @@
-flask
+flask~=1.1.2
 flask_login
 flask_migrate
 flask_wtf
@@ -6,3 +6,8 @@ flask_sqlalchemy==2.*
 email_validator
 python-decouple
 gunicorn
+
+WTForms~=2.3.3
+SQLAlchemy~=1.3.22
+Jinja2~=2.11.2
+alembic~=1.4.3
