@@ -69,23 +69,24 @@ def create_listing():
         db.session.add(prop_info)
         db.session.commit()
 
-        # get the id of the property added above and used it to link the image files to the property.
-        get_prop_id = db.session.query(Property).order_by(Property.date.desc())
-        photos = form.prop_photos.data
-
-        for photo in photos:
-            prop_pictures = PropertyImage(image_name=secure_filename(photo.filename),
-                                          property_id=get_prop_id[0].id)
-            db.session.add(prop_pictures)
-            db.session.commit()
-
         # gets image files as a list uploaded by user in the form
         img_files = request.files.getlist('prop_photos')
+
+        # get the id of the recently added property by current_user and use
+        # it to link the image files that the property.
+        get_prop_id = db.session.query(Property).order_by(Property.date.desc())
+
         # saves image files uploaded to app/base/static/property_images/
         for img_file in img_files:
             filename = secure_filename(img_file.filename)
+
+            prop_images = PropertyImage(image_name=secure_filename(filename),
+                                        property_id=get_prop_id[0].id)
+            db.session.add(prop_images)
+            db.session.commit()
+
             file_path = os.path.join(current_app.root_path, 'base/static/property_images', filename)
             img_file.save(file_path)
-    
+
         return redirect(url_for('base_blueprint.route_default'))
     return render_template('create_listing.html', form=form)
