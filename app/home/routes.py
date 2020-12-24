@@ -80,7 +80,7 @@ def create_listing():
         for img_file in img_files:
             filename = secure_filename(img_file.filename)
 
-            # replace whitespaces in filename with underscore
+            # replace spaces in filename with underscore
             clean_filename = filename.replace(' ', '_')
             prop_images = PropertyImage(image_name=clean_filename,
                                         property_id=get_prop_id[0].id)
