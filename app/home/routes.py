@@ -8,7 +8,7 @@ from flask import render_template, redirect, url_for, request, current_app
 from flask_login import login_required, current_user
 from app import login_manager
 from jinja2 import TemplateNotFound
-from app.base.forms import ListPropertyForm
+from app.base.forms import PropertyForm
 from app.base.models import Property, PropertyImage
 from app import db
 from werkzeug.utils import secure_filename
@@ -56,9 +56,9 @@ def get_segment(request):
         return None
 
 
-@blueprint.route('/list-property', methods=['GET', 'POST'])
-def create_listing():
-    form = ListPropertyForm()
+@blueprint.route('/create-property', methods=['GET', 'POST'])
+def create_property():
+    form = PropertyForm()
     if request.method == 'POST':
         prop_info = Property(property_name=form.prop_name.data,
                              property_desc=form.prop_desc.data,

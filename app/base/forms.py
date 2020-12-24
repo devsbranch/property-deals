@@ -22,7 +22,7 @@ class CreateAccountForm(FlaskForm):
     password = PasswordField('Password', id='pwd_create', validators=[DataRequired()])
 
 
-class ListPropertyForm(FlaskForm):
+class PropertyForm(FlaskForm):
     prop_name = StringField('Property Name', validators=[DataRequired()])
     prop_desc = TextAreaField('Property Description', validators=[DataRequired(), Length(min=10, max=256)])
     prop_photos = MultipleFileField('Upload photos of your property', validators=[FileAllowed(['jpg', 'png'])])

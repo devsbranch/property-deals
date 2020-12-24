@@ -41,7 +41,7 @@ class User(db.Model, UserMixin):
 
 class Property(db.Model):
 
-    __tablename__ = 'property_listing'
+    __tablename__ = 'property'
 
     id = db.Column(db.Integer, primary_key=True)
     property_name = db.Column(db.Text(64), nullable=False)
