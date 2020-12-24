@@ -4,7 +4,7 @@ Copyright (c) 2020 - DevsBranch
 """
 from datetime import datetime
 from flask_login import UserMixin
-from sqlalchemy import Binary, Column, Integer, String
+from flask_sqlalchemy import SQLAlchemy
 
 from app import db, login_manager
 
@@ -14,11 +14,11 @@ from app.base.util import hash_pass
 class User(db.Model, UserMixin):
     __tablename__ = 'User'
 
-    id = Column(Integer, primary_key=True)
-    username = Column(String, unique=True, nullable=False)
-    email = Column(String, unique=True, nullable=False)
-    password = Column(Binary)
-    profile_image = Column(String(64), nullable=True, default='default_profile_img.png')
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String, unique=True, nullable=False)
+    email = db.Column(db.String, unique=True, nullable=False)
+    password = db.Column(db.Binary)
+    profile_image = db.Column(db.String(64), nullable=True, default='default_profile_img.png')
     user_prop = db.relationship('Property', backref='prop_owner', lazy=True)
 
     def __init__(self, **kwargs):

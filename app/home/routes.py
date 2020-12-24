@@ -73,19 +73,21 @@ def create_listing():
         img_files = request.files.getlist('prop_photos')
 
         # get the id of the recently added property by current_user and use
-        # it to link the image files that the property.
+        # it to link the image files to that property.
         get_prop_id = db.session.query(Property).order_by(Property.date.desc())
 
         # saves image files uploaded to app/base/static/property_images/
         for img_file in img_files:
             filename = secure_filename(img_file.filename)
 
-            prop_images = PropertyImage(image_name=secure_filename(filename),
+            # replace whitespaces in filename with underscore
+            clean_filename = filename.replace(' ', '_')
+            prop_images = PropertyImage(image_name=clean_filename,
                                         property_id=get_prop_id[0].id)
             db.session.add(prop_images)
             db.session.commit()
 
-            file_path = os.path.join(current_app.root_path, 'base/static/property_images', filename)
+            file_path = os.path.join(current_app.root_path, 'base/static/property_images', clean_filename)
             img_file.save(file_path)
 
         return redirect(url_for('base_blueprint.route_default'))
