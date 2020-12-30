@@ -1,0 +1,79 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+
+<div class="pcoded-content">
+    <div class="pcoded-inner-content">
+        <!-- [ breadcrumb ] start -->
+
+        <!-- [ breadcrumb ] end -->
+        <div class="main-body">
+            <div class="page-wrapper">
+                <!-- [ Main Content ] start -->
+                <div class="container">
+                    <div class="jumbotron" style="background-color: #00303f;">
+                        <div align='center'>
+                            <h1 style="color: white;">{{ prop_info.property_name}}</h1>
+                        </div>
+                    </div>
+                </div>
+
+                    <!--            Property Card-->
+
+
+                <div class="row">
+                    <div class="card">
+                        <div align="center" class="card-body">
+                            <h4 class="font-weight-bold">{{ prop_info.property_name }}</h4>
+                            <p class="card-text" style="font-size: 1.5rem;">{{ prop_info.property_desc }}</p>
+                            <p class="card-text font-weight-bold">{{ prop_info.price }}</p>
+                            <p class="card-text font-weight-bold">Location: {{ prop_info.property_location }}</p>
+                            <p class="card-text font-weight-bold">Date posted: {{ prop_info.date.strftime('%d-%m-%y') }}</p>
+
+                            {% if prop_info.user_id == current_user.id %}
+                                 <div align="center">
+                                     <a class="btn btn-secondary" href="#">Update</a>
+                                     <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#del_modal">Delete</button>
+                                 </div>
+                            <!-- Modal for Pop Up-->
+                                {# https://getbootstrap.com/docs/4.1/components/modal/ #}
+                                {# Notice how the link with the id to the button above! #}
+                                <div class="modal" tabindex="-1" role="dialog" id="del_modal">
+                                    <div class="modal-dialog" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Delete Property</h5>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Are you sure you want to delete this listed property?</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+
+                                                <form action="{{ url_for('home_blueprint.delete', prop_id=prop_info.id) }}" method="POST">
+                                                    <input class="btn btn-danger" type="submit" value="Delete">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="row">
+                            {% for image in prop_images %}
+                            <div class="col-md-4" style="margin-top: 10px; margin-right: -10px">
+                                <img src="{{ url_for('static', filename='property_images/' + image.image_name) }}" width="100%" height="auto" alt="...">
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

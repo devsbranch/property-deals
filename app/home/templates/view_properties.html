@@ -1,0 +1,63 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+
+<div class="pcoded-content">
+    <div class="pcoded-inner-content">
+        <!-- [ breadcrumb ] start -->
+
+        <!-- [ breadcrumb ] end -->
+        <div class="main-body">
+            <div class="page-wrapper">
+                <!-- [ Main Content ] start -->
+                <div class="container">
+                    <div class="jumbotron">
+                        <div align='center'>
+                            <h1 >Properties on Sale</h1>
+                        </div>
+                    </div>
+                </div>
+<!--                Search bar-->
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="card">
+                            <div class="card-block">
+                                <div class="row justify-content-center">
+                                    <div class="col-sm-6">
+                                        <input type="text" id="icon-search" class="form-control mb-4" placeholder="search for a property of choice . . ">
+                                    </div>
+                                </div>
+                                <div class="i-main" id="icon-wrapper"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                    <!--            Property Card-->
+
+                <div class="row">
+                    {% for property in properties %}
+                    <div class="col-sm-4">
+                        <div class="card">
+                        {% for key, image_name in pictures.items() %}
+                            {% if key == property.id %}
+                            <img src="{{ url_for('static', filename='property_images/' + image_name) }}" width="100%" height="auto" alt="...">
+                            {% endif %}
+                        {% endfor %}
+                            <div class="card-body">
+                                <h3><a class="card-title" href="{{ url_for('home_blueprint.prop_details', prop_id=property.id) }}">{{ property.property_name }}</a></h3>
+                                <p class="card-text">{{ property.property_desc }}</p>
+                                <p class="card-text">{{ property.price }}</p>
+                                <p class="card-text">{{ property.location }}</p>
+                                <p class="card-text">Date posted: {{ property.date.strftime('%d-%m-%y') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -4,7 +4,7 @@ Copyright (c) 2020 - DevsBranch
 """
 import os
 from app.home import blueprint
-from flask import render_template, redirect, url_for, request, current_app
+from flask import render_template, redirect, url_for, request, current_app, flash
 from flask_login import login_required, current_user
 from app import login_manager
 from jinja2 import TemplateNotFound
@@ -91,4 +91,57 @@ def create_property():
             img_file.save(file_path)
 
         return redirect(url_for('base_blueprint.route_default'))
-    return render_template('create_listing.html', form=form)
+    return render_template('create_property.html', form=form)
+
+
+@blueprint.route('/view-properties')
+def view_properties():
+    """
+    This function returns the view_properties.html the properties and images from the database.
+    Only one picture for each property is needed to be displayed on each property in the view_properties.html page.
+    So a dictionary is used to return each id(property_id) as a key and property image(image_name) as value.
+    """
+    properties = db.session.query(Property).order_by(Property.date.desc())
+    property_images = db.session.query(PropertyImage).order_by(PropertyImage.id.asc())
+
+    pictures = {}
+    for property_img in property_images:
+        pictures[property_img.property_id] = property_img.image_name
+
+    return render_template('view_properties.html',
+                           properties=properties,
+                           property_images=property_images,
+                           pictures=pictures)
+
+
+@blueprint.route('/<int:prop_id>/details')
+def prop_details(prop_id):
+
+    prop_info = Property.query.filter_by(id=prop_id).first()
+    prop_images = PropertyImage.query.filter_by(property_id=prop_info.id).order_by(PropertyImage.id.desc())
+
+    return render_template('property.html', prop_info=prop_info, prop_images=prop_images)
+
+
+@blueprint.route('/<int:prop_id>/delete', methods=['POST'])
+@login_required
+def delete(prop_id):
+    """
+    This function is called when the delete button is clicked, the id of the property
+    is used to query the property to delete including images related to the property from the database.
+    The os.remove() function is also used to delete the images in the file system
+    """
+    property_to_del = Property.query.get_or_404(prop_id)
+    images_to_del = PropertyImage.query.filter_by(property_id=property_to_del.id)
+
+    db.session.delete(property_to_del)
+
+    for img in images_to_del:
+        db.session.delete(img)
+        file_path = os.path.join(current_app.root_path, 'base/static/property_images', img.image_name)
+        os.remove(file_path)
+
+    db.session.commit()
+
+    flash('Proper deleted')
+    return redirect(url_for('home_blueprint.view_properties'))

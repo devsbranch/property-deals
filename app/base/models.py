@@ -59,7 +59,7 @@ class PropertyImage(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     image_name = db.Column(db.String(64), nullable=False)
-    property_id = db.Column(db.ForeignKey('property_listing.id'), nullable=False)  # specifies which property the image belongs to.
+    property_id = db.Column(db.ForeignKey('property.id'), nullable=False)  # specifies which property the image belongs to.
     property = db.relationship(Property)
 
 
