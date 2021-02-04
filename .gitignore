@@ -27,3 +27,8 @@ _templates
 # javascript
 package-lock.json
 .vscode/symbols.json
+
+# image files
+.jpeg
+.jpg
+.png

@@ -18,7 +18,7 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String, unique=True, nullable=False)
     email = db.Column(db.String, unique=True, nullable=False)
     password = db.Column(db.Binary)
-    profile_image = db.Column(db.String(64), nullable=True, default='default_profile_img.png')
+    profile_image = db.Column(db.String(64), nullable=True, default='/profile_pictures/default.png')
     user_prop = db.relationship('Property', backref='prop_owner', lazy=True)
 
     def __init__(self, **kwargs):
@@ -44,23 +44,28 @@ class Property(db.Model):
     __tablename__ = 'property'
 
     id = db.Column(db.Integer, primary_key=True)
-    property_name = db.Column(db.Text(64), nullable=False)
-    property_desc = db.Column(db.Text(256), nullable=False)
+    name = db.Column(db.Text(64), nullable=False)
+    desc = db.Column(db.Text(256), nullable=False)
     date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    property_price = db.Column(db.Integer, nullable=False)
-    property_location = db.Column(db.Text(64), nullable=False)
+    price = db.Column(db.Integer, nullable=False)
+    location = db.Column(db.Text(64), nullable=False)
+    image_folder = db.Column(db.Text, nullable=False)
+    photos = db.Column(db.Text)
     user_id = db.Column(db.ForeignKey('User.id'), nullable=False)
     users = db.relationship(User)
 
+#
+# class PropertyImage(db.Model):
+#
+#     __tablename__ = 'property_image'
+#
+#     id = db.Column(db.Integer, primary_key=True)
+#     photos = db.Column(db.Text, nullable=False)
+#     property_id = db.Column(db.ForeignKey('property.id'), nullable=False) # specifies which property the image belongs to.
+#     property = db.relationship(Property)
 
-class PropertyImage(db.Model):
-    
-    __tablename__ = 'property_image'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    image_name = db.Column(db.String(64), nullable=False)
-    property_id = db.Column(db.ForeignKey('property_listing.id'), nullable=False)  # specifies which property the image belongs to.
-    property = db.relationship(Property)
+    #def __repr__(self):
+    #   return f'Property Image ID: {self.id} -- name: {self.image_path} -- {self.property_id}'7
 
 
 @login_manager.user_loader

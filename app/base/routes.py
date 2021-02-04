@@ -3,7 +3,8 @@
 Copyright (c) 2020 - DevsBranch
 """
 
-from flask import jsonify, render_template, redirect, request, url_for
+import os, random, string
+from flask import jsonify, render_template, redirect, request, url_for, current_app
 from flask_login import (
     current_user,
     login_required,
@@ -17,6 +18,19 @@ from app.base.forms import LoginForm, CreateAccountForm
 from app.base.models import User
 
 from app.base.util import verify_pass
+
+
+# def create_user_folder(user):
+#     """
+#     Generates a random string which will be used as a folder name for storing image files
+#     uploaded by user.
+#     """
+#     s = string.ascii_letters
+#     output_str = ''.join(random.choice(s) for i in range(25))
+#     user_folder = f"user_images/{user}{output_str}"
+#     path = f"/base/static/{user_folder}"
+#     os.mkdir(f'{current_app.root_path}{path}')
+#     return user_folder
 
 
 @blueprint.route('/')

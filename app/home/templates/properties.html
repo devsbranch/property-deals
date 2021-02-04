@@ -1,0 +1,36 @@
+{% extends 'layouts/base.html' %}
+{% block content %}
+
+<div class="container-fluid">
+  <div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">
+          <h3 class="text-center">{{ message }}</h3>
+        </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+  <div class="row">
+    {% for property in properties %}
+      <div class="col-md-4">
+          <div class="card m-1" style="width: 18rem;">
+            {% for photo_obj in photos %}
+              {% if photo_obj['photos'][0] == property.image_folder %}
+                <img class="card-img-top" src="{{ url_for('static', filename='/' + property.image_folder + '/' + photo_obj['photos'][-1]) }}" alt="Card image cap">
+              {% endif %}
+            {% endfor %}
+            <div class="card-body">
+              <h4><a href="{{url_for('home_blueprint.details', property_id=property.id) }}" class="card-title link">{{ property.name }}</a></h4>
+              <h5 class="card-text">K{{ property.price }}</h5>
+              <p class="card-text">Location: {{ property.location }}</p>
+              <p class="card-text">Posted on {{ property.date.strftime("%m/%d/%Y") }} at {{ property.date.strftime("%H:%M:%S")  }}</p>
+            </div>
+          </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock content %}
