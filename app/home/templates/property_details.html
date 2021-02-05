@@ -1,0 +1,64 @@
+{% extends 'layouts/base.html' %}
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col">
+      <div class="card m-3">
+        <div class="card-body text-center">
+          <h2>{{ prop_data.name }}</h2>
+          <p>{{ prop_data.desc }}</p>
+          <h5 class="card-text">K{{ prop_data.price }}</h5>
+          <h5 class="card-text">{{ prop_data.location }}</h5>
+          <h6 class="card-text">Date Posted - {{ prop_data.date.strftime("%m/%d/%Y") }} at {{ prop_data.date.strftime("%H:%M:%S") }}</h6>
+          {% if prop_data.user_id == current_user.id %}
+            <a  class="btn btn-secondary" href="{{ url_for('home_blueprint.update_property', property_id=prop_data.id) }}">Update Property</a>
+            <button type="button" class="btn btn-danger btn-sm m-1" data-toggle="modal" data-target="#deleteModal">Delete Property</button>
+          {% endif %}
+        </div>
+        <br>
+
+        <div class="row">
+           {% for photo in photos_list[1:] %}
+            <div class="col-3 col-sm-3" style="width: 50%;">
+                <img class="card-img-top mb-3" src="{{ url_for('static', filename='/'+ prop_data.image_folder+ '/'+ photo) }}" alt="Card image cap">
+            </div>
+         {% endfor %}
+        </div>
+      </div>
+        {# {% for page_num in posts.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=5) %}#}
+        {#   {% if page_num %}#}
+        {#     {% if posts.page == page_num %}#}
+        {#       <a class="btn btn-outline-info mb-4 disabled" href="{{ url_for('home', page=page_num) }}">{{ page_num }}</a>#}
+        {#     {% else %}
+        {#       <a class="btn btn-info mb-4 " href="{{ url_for('home', page=page_num) }}">{{ page_num }}</a>#}
+        {#     {% endif %}#}
+        {#   {% else %}#}
+        {#   {% endif %}#}
+        {# {% endfor %}#}
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Delete Property?</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete your this property listing?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel </button>
+        <form action="{{ url_for('home_blueprint.delete_property', property_id=prop_data.id) }}" method="post">
+          <input class="btn btn-danger" type="submit" value="Delete">
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

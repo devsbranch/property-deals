@@ -1,6 +1,6 @@
 {% extends "layouts/base.html" %}
 
-{% block title %} UI Forms {% endblock %}
+{% block title %} {{ title }}{% endblock %}
 
 {% block content%}
 
@@ -40,25 +40,80 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <form class='form-group' method="POST" enctype="multipart/form-data">
+                                            <div>{{ form.csrf_token }}</div>
                                             <div class="form-group">
+
                                                 {{ form.prop_name.label }}
-                                                {{ form.prop_name(class="form-control") }}
+
+                                                {% if form.prop_name.errors %}
+                                                    {{ form.prop_name(class="form-control form-control-lg is-invalid") }}
+                                                    <div class="invalid-feedback">
+                                                        {% for error in form.prop_name.errors %}
+                                                            <span>{{ error }}</span>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% else %}
+                                                    {{ form.prop_name(class="form-control") }}
+                                                {% endif%}
                                             </div>
+
                                             <div class="form-group">
                                                 {{ form.prop_desc.label }}
-                                                {{ form.prop_desc(class="form-control") }}
+
+                                                {% if form.prop_desc.errors %}
+                                                    {{ form.prop_desc(class="form-control form-control-lg is-invalid") }}
+                                                    <div class="invalid-feedback">
+                                                        {% for error in form.prop_desc.errors %}
+                                                            <span>{{ error }}</span>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% else %}
+                                                    {{ form.prop_desc(class="form-control") }}
+                                                {% endif%}
+
                                             </div>
                                             <div class="form-group">
                                                 {{ form.prop_photos.label }}
-                                                {{ form.prop_photos(class="form-control") }}
+
+                                                {% if form.prop_photos.errors %}
+                                                    {{ form.prop_photos(class="form-control form-control-lg is-invalid") }}
+                                                    <div class="invalid-feedback">
+                                                        {% for error in form.prop_photos.errors %}
+                                                            <span>{{ error }}</span>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% else %}
+                                                    {{ form.prop_photos(class="form-control") }}
+                                                {% endif%}
                                             </div>
                                             <div class="form-group">
                                                 {{ form.prop_price.label }}
-                                                {{ form.prop_price(class="form-control") }}
+
+                                                {% if form.prop_price.errors %}
+                                                    {{ form.prop_price(class="form-control form-control-lg is-invalid") }}
+                                                    <div class="invalid-feedback">
+                                                        {% for error in form.prop_price.errors %}
+                                                            <span>{{ error }}</span>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% else %}
+                                                    {{ form.prop_price(class="form-control") }}
+                                                {% endif%}
                                             </div>
+
                                             <div class="form-group">
                                                 {{ form.prop_location.label }}
-                                                {{ form.prop_location(class="form-control") }}
+
+                                                {% if form.prop_location.errors %}
+                                                    {{ form.prop_location(class="form-control form-control-lg is-invalid") }}
+                                                    <div class="invalid-feedback">
+                                                        {% for error in form.prop_location.errors %}
+                                                            <span>{{ error }}</span>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% else %}
+                                                    {{ form.prop_location(class="form-control") }}
+                                                {% endif%}
                                             </div>
                                             <div class="form-group">
                                                 {{ form.submit(class="btn btn-primary") }}
