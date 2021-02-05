@@ -17,9 +17,9 @@
     {% for property in properties %}
       <div class="col-md-4">
           <div class="card m-1" style="width: 18rem;">
-            {% for photo_obj in photos %}
-              {% if photo_obj['photos'][0] == property.image_folder %}
-                <img class="card-img-top" src="{{ url_for('static', filename='/' + property.image_folder + '/' + photo_obj['photos'][-1]) }}" alt="Card image cap">
+            {% for photos in photos_list %}
+              {% if photos[0] == property.image_folder %}
+                <img class="card-img-top" src="{{ url_for('static', filename='/' + property.image_folder + '/' + photos[-1]) }}" alt="Card image cap">
               {% endif %}
             {% endfor %}
             <div class="card-body">

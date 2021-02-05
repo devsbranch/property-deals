@@ -111,9 +111,9 @@
                                         {% for property in properties %}
                                         <div class="col-xs-6 m-3">
                                           <div class="card" style="width: 18rem;">
-                                            {% for photo in photos %}
-                                              {% if photo['photos'][0] == property.image_folder %}
-                                                <img src="{{ url_for('static', filename='/' + property.image_folder + '/' + photo['photos'][-1]) }}" class="card-img-top" alt="...">
+                                            {% for photos in photos_list %}
+                                              {% if photos[0] == property.image_folder %}
+                                                <img src="{{ url_for('static', filename='/' + property.image_folder + '/' + photos[-1]) }}" class="card-img-top" alt="...">
                                               {% endif %}
                                             {% endfor %}
                                             <div class="card-body">
@@ -135,9 +135,9 @@
                                         {% for property in properties %}
                                         <div class="col-xs-6 m-3">
                                           <div class="card" style="width: 18rem;">
-                                            {% for photo in photos %}
-                                              {% if photo['photos'][0] == property.image_folder %}
-                                                <img src="{{ url_for('static', filename='/' + property.image_folder + '/' + photo['photos'][-1]) }}" class="card-img-top" alt="...">
+                                            {% for photos in photos_list %}
+                                              {% if photos[0] == property.image_folder %}
+                                                <img src="{{ url_for('static', filename='/' + property.image_folder + '/' + photos[-1]) }}" class="card-img-top" alt="...">
                                               {% endif %}
                                             {% endfor %}
                                             <div class="card-body">
@@ -159,9 +159,9 @@
                                         {% for property in properties %}
                                         <div class="col-xs-6 m-3">
                                           <div class="card" style="width: 18rem;">
-                                            {% for photo in photos %}
-                                              {% if photo['photos'][0] == property.image_folder %}
-                                                <img src="{{ url_for('static', filename='/' + property.image_folder + '/' + photo['photos'][-1]) }}" class="card-img-top" alt="...">
+                                            {% for photos in photos_list %}
+                                              {% if photos[0] == property.image_folder %}
+                                                <img src="{{ url_for('static', filename='/' + property.image_folder + '/' + photos[-1]) }}" class="card-img-top" alt="...">
                                               {% endif %}
                                             {% endfor %}
                                             <div class="card-body">

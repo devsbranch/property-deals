@@ -39,9 +39,9 @@
             {% for property in property_by_user %}
             <div class="col-xs-6 m-3">
               <div class="card" style="width: 18rem;">
-                {% for photo in photos %}
+                {% for photos in photos_list %}
                   {% if photo['photos'][0] == property.image_folder %}
-                    <img src="{{ url_for('static', filename='/' + property.image_folder + '/' + photo['photos'][-1]) }}" class="card-img-top" alt="...">
+                    <img src="{{ url_for('static', filename='/' + property.image_folder + '/' + photos[-1]) }}" class="card-img-top" alt="...">
                   {% endif %}
                 {% endfor %}
                 <div class="card-body">

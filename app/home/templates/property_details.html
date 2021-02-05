@@ -18,9 +18,9 @@
         <br>
 
         <div class="row">
-           {% for photo in photos['photos'][1:] %}
+           {% for photo in photos_list[1:] %}
             <div class="col-3 col-sm-3" style="width: 50%;">
-                <img class="card-img-top" src="{{ url_for('static', filename='/'+prop_data.image_folder+'/'+photo) }}" alt="Card image cap">
+                <img class="card-img-top mb-3" src="{{ url_for('static', filename='/'+ prop_data.image_folder+ '/'+ photo) }}" alt="Card image cap">
             </div>
          {% endfor %}
         </div>
