@@ -70,7 +70,7 @@ Once your server has started, go to this url `http://localhost:5000/` and you wi
 ## Authors
 
 - **Allison Mukoma** - [https://github.com/sonlinux](https://github.com/sonlinux)
-- **Jachin Manda** - [https://github.com/Jachin-Manda](https://github.com/sonlinux)
+- **Jachin Manda** - [https://github.com/Jachin-Manda](https://github.com/Jachin-Manda)
 
 ## Status
 Still under development
