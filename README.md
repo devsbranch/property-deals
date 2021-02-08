@@ -1,7 +1,6 @@
 # Property Deals 
 The purpose of this application is to provide a platform  where 
 people can post properties for sale or rent e.g Houses.
-![](images/sample.png)
 
 
 
@@ -56,10 +55,11 @@ PS> pip install -r requirememts.txt
 PS> python run.py
 
 ```
-Once your server has started, go to this url `http://localhost:5000/` and you will see the website running on a Development Server:
+Once your server has started, go to this url `http://localhost:5000/` and you will see the website running on a Development Server and will show you a login page.
+![](docs/images/login.png)
 
-![](images/login.png)
-
+ Click on Sign up to register and then login. You can post items to test things out by clicking on the sidebar then click List my property. Your listed items you look something like this:
+![](docs/images/sample.png)
 ---
 
 ## Technologies used 🛠️

@@ -8,7 +8,7 @@ from flask_login import current_user
 
 def property_image_handler(image_files, images_list, save_to_folder):
     """
-    Handles the images uploaded from the web form. The images are down sized using
+    Handles the docs uploaded from the web form. The docs are down sized using
     the Pillow image library and saved to the file system. The image filenames are checked
     using the werkzeug utilities, then the filename is saved to the list of filenames in the
     dictionary object.
