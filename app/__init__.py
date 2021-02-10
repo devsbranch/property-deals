@@ -3,19 +3,25 @@
 Copyright (c) 2020 - DevsBranch
 """
 
-from flask import Flask, url_for
+from flask import Flask
+from flask_marshmallow import Marshmallow
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 from importlib import import_module
-from logging import basicConfig, DEBUG, getLogger, StreamHandler
-from os import path
+from flask_migrate import Migrate
 
 db = SQLAlchemy()
+ma = Marshmallow()
+migrate = Migrate()
 login_manager = LoginManager()
+
+from api.endpoints import api_blueprint
 
 
 def register_extensions(app):
     db.init_app(app)
+    ma.init_app(app)
+    migrate.init_app(app, db)
     login_manager.init_app(app)
 
 
@@ -41,5 +47,6 @@ def create_app(config):
     app.config.from_object(config)
     register_extensions(app)
     register_blueprints(app)
+    app.register_blueprint(api_blueprint)
     configure_database(app)
     return app
