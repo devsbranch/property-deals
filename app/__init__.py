@@ -15,7 +15,7 @@ ma = Marshmallow()
 migrate = Migrate()
 login_manager = LoginManager()
 
-from api.api_endpoints import api_blueprint
+from api.endpoints import api_blueprint
 
 
 def register_extensions(app):

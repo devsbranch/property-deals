@@ -4,7 +4,7 @@ from app.base.models import User, Property
 
 class UserSchema(ma.Schema):
     class Meta:
-        fields = ("id", "username", "profile_image")
+        fields = ("id", "username", "email", "profile_image")
 
 
 user_schema = UserSchema()
