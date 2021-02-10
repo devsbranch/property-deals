@@ -31,3 +31,6 @@ package-lock.json
 # image files
 *.jpeg
 *.jpg
+
+# flask eviroment variables
+*.flaskenv

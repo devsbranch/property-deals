@@ -4,10 +4,7 @@ Copyright (c) 2020 - DevsBranch
 """
 from datetime import datetime
 from flask_login import UserMixin
-from flask_sqlalchemy import SQLAlchemy
-
 from app import db, login_manager
-
 from app.base.util import hash_pass
 
 
