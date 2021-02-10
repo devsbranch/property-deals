@@ -55,12 +55,12 @@ PS> pip install -r requirememts.txt
 PS> python run.py
 
 ```
-Once your server has started, go to this url `http://localhost:5000/` and you will see the website running on a Development Server and will show you a login page.
+##### Once your server has started, go to this url `http://localhost:5000/` and you will see the website running on a Development Server and will show you a login page.
 ![](docs/images/login.png)
 
- Click on Sign up to register and then login. You can post items to test things out by clicking on the sidebar then click List my property. Your listed items you look something like this:
+##### Click on Sign up to register and then login. You can post items to test things out by clicking on the sidebar then click List my property. Your listed items you look something like this:
 ![](docs/images/sample.png)
----
+
 
 ## Technologies used 🛠️
 - [Flask](https://flask.palletsprojects.com/en/1.1.x/) - A Python Web Development Framework
@@ -69,7 +69,7 @@ Once your server has started, go to this url `http://localhost:5000/` and you wi
 
 ## Authors
 
-- **Allison Mukoma** - [https://github.com/sonlinux](https://github.com/sonlinux)
+- **Alison Mukoma** - [https://github.com/sonlinux](https://github.com/sonlinux)
 - **Jachin Manda** - [https://github.com/Jachin-Manda](https://github.com/Jachin-Manda)
 
 ## Status
