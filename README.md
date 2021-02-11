@@ -1,4 +1,9 @@
-# Property Deals 
+# Property Deals  
+
+[![JavaScript Style Guide: Good Parts](https://img.shields.io/badge/code%20style-goodparts-brightgreen.svg?style=flat)](https://github.com/dwyl/goodparts "JavaScript The Good Parts")
+[![Build Status](https://travis-ci.org/{ORG-or-USERNAME}/{REPO-NAME}.png?branch=master)](https://travis-ci.org/{ORG-or-USERNAME}/{REPO-NAME})
+[![Join the chat at https://gitter.im/{ORG-or-USERNAME}/{REPO-NAME}](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/property-deals/?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 The purpose of this application is to provide a platform  where 
 people can post properties for sale or rent e.g Houses.
 
@@ -69,8 +74,8 @@ PS> python run.py
 
 ## Authors
 
-- **Alison Mukoma** - [https://github.com/sonlinux](https://github.com/sonlinux)
-- **Jachin Manda** - [https://github.com/Jachin-Manda](https://github.com/Jachin-Manda)
+- [**Jachin Manda**](https://github.com/Jachin-Manda) (Lead Developer)
+- [**Alison Mukoma**](https://github.com/sonlinux)
 
 ## Status
 Still under development
