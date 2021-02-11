@@ -70,11 +70,7 @@ def update_property(prop_id):
         prop_to_update.location = prop_data['location']
         prop_to_update.photos = prop_data['photos']
         prop_to_update.date = datetime.utcnow()
-        # Checking the user_id foreign key if it points to the owner of the property.
-        if prop_to_update.user_id != int(prop_data['user_id']):
-            return jsonify({"error": f"The user with ID {prop_data['user_id']} is not the owner of the property"})
-        else:
-            prop_to_update.user_id = prop_data['user_id']
+        prop_to_update.user_id = prop_data['user_id']
         db.session.commit()
         return jsonify({"message": "The details of the property has been updated."})
     except ValidationError as err:
@@ -82,7 +78,7 @@ def update_property(prop_id):
 
 
 @property_endpoint.route('/api/property/delete/<prop_id>', methods=['DELETE'])
-def delete_user(prop_id):
+def delete_property(prop_id):
     """
     Deletes a property from database by querying using the ID from the url.
     """
