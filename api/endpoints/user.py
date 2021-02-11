@@ -1,11 +1,13 @@
-from flask import jsonify, request
+from flask import Blueprint, jsonify, request
 from app import db
-from api.endpoints import api_blueprint
 from app.base.models import User
 from api.schema import user_schema, users_schema
 
 
-@api_blueprint.route('/api/user/list')
+user_endpoint = Blueprint("user_blueprint", __name__)
+
+
+@user_endpoint.route('/api/user/list')
 def get_users():
     """
     Returns a json object of all the users in the database.
@@ -14,7 +16,7 @@ def get_users():
     return users_schema.jsonify(users)
 
 
-@api_blueprint.route('/api/user/<int:user_id>', methods=['GET'])
+@user_endpoint.route('/api/user/<int:user_id>', methods=['GET'])
 def get_one_user(user_id):
     """
     Returns a json object of one user matching the id.
@@ -25,7 +27,7 @@ def get_one_user(user_id):
     return user_schema.jsonify(user)
 
 
-@api_blueprint.route('/api/user/add', methods=['POST'])
+@user_endpoint.route('/api/user/add', methods=['POST'])
 def add_user():
     """
     Creates new user in the database with data from request body.
@@ -37,13 +39,17 @@ def add_user():
         return jsonify({"message": "The username already exist."})
     if User.query.filter_by(email=data['email']).first():
         return jsonify({"message": "The email is already registered."})
-    new_user = User(key=value for key, value in data.items())
+    new_user = User(
+        username=data['username'],
+        email=data['email'],
+        password=data['password']
+    )
     db.session.add(new_user)
     db.session.commit()
     return jsonify({"message": f"The user {data['username']} has been created."})
 
 
-@api_blueprint.route('/api/user/update/<int:user_id>', methods=['PUT'])
+@user_endpoint.route('/api/user/update/<int:user_id>', methods=['PUT'])
 def update_user(user_id):
     """
     Updates username and email of user in the database.
@@ -60,7 +66,7 @@ def update_user(user_id):
     return jsonify({"message": "The username and email has been updated."})
 
 
-@api_blueprint.route('/api/user/delete/<username>', methods=['DELETE'])
+@user_endpoint.route('/api/user/delete/<username>', methods=['DELETE'])
 def delete_user(username):
     """
     Deletes user from database with the user id from the url

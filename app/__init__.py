@@ -15,7 +15,8 @@ ma = Marshmallow()
 migrate = Migrate()
 login_manager = LoginManager()
 
-from api.endpoints import api_blueprint
+from api.endpoints.user import user_endpoint
+from api.endpoints.property import property_endpoint
 
 
 def register_extensions(app):
@@ -47,6 +48,7 @@ def create_app(config):
     app.config.from_object(config)
     register_extensions(app)
     register_blueprints(app)
-    app.register_blueprint(api_blueprint)
+    app.register_blueprint(user_endpoint)
+    app.register_blueprint(property_endpoint)
     configure_database(app)
     return app
