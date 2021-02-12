@@ -4,8 +4,7 @@ Copyright (c) 2020 - DevsBranch
 """
 from datetime import datetime
 from flask_login import UserMixin
-from app import db, login_manager
-from app.base.util import hash_pass
+from app import db, login_manager, bcrypt
 
 
 class User(db.Model, UserMixin):
@@ -14,7 +13,7 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String, unique=True, nullable=False)
     email = db.Column(db.String, unique=True, nullable=False)
-    password = db.Column(db.Binary)
+    password = db.Column(db.String, nullable=False)
     profile_image = db.Column(
         db.String(64), nullable=True, default="/profile_pictures/default.png"
     )
@@ -30,7 +29,7 @@ class User(db.Model, UserMixin):
                 value = value[0]
 
             if property == "password":
-                value = hash_pass(value)  # we need bytes here (not plain str)
+                value = bcrypt.generate_password_hash(value)
 
             setattr(self, property, value)
 

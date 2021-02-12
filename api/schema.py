@@ -1,10 +1,19 @@
 from app import ma
 from marshmallow import fields, validate
 
+#
+# class AddUserValidationSchema(ma.Schema):
+#     username = fields.String(validate=validate.Length(min=4, max=20), required=True)
+#     email = fields.String(validate=validate.Length(min=5, max=50), required=True)
+#     password = fields.String(validate=validate.Length(min=6, max=50), required=True)
+#
+
 
 class UserSchema(ma.Schema):
-    class Meta:
-        fields = ("id", "username", "email", "profile_image")
+    id = fields.String()
+    username = fields.String(validate=validate.Length(min=5, max=50), required=True)
+    email = fields.String(validate=validate.Length(min=10, max=300), required=True)
+    profile_image = fields.String(validate=validate.Length(min=1, max=10), required=True)
 
 
 class PropertySchema(ma.Schema):
@@ -15,7 +24,7 @@ class PropertySchema(ma.Schema):
     price = fields.String(validate=validate.Length(min=1, max=10), required=True)
     location = fields.String(validate=validate.Length(min=5, max=50), required=True)
     image_folder = fields.String()
-    photos = fields.String()  # validate=validate.Length(min=3, max=15),
+    photos = fields.String()
     user_id = fields.String(required=True)
 
 

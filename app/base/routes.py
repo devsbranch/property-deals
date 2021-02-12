@@ -6,26 +6,13 @@ Copyright (c) 2020 - DevsBranch
 import os, random, string
 from flask import jsonify, render_template, redirect, request, url_for, current_app
 from flask_login import current_user, login_required, login_user, logout_user
-
-from app import db, login_manager
+from werkzeug.security import check_password_hash
+from app import db, login_manager, bcrypt
 from app.base import blueprint
 from app.base.forms import LoginForm, CreateAccountForm
 from app.base.models import User
 
 from app.base.util import verify_pass
-
-
-# def create_user_folder(user):
-#     """
-#     Generates a random string which will be used as a folder name for storing image files
-#     uploaded by user.
-#     """
-#     s = string.ascii_letters
-#     output_str = ''.join(random.choice(s) for i in range(25))
-#     user_folder = f"user_images/{user}{output_str}"
-#     path = f"/base/static/{user_folder}"
-#     os.mkdir(f'{current_app.root_path}{path}')
-#     return user_folder
 
 
 @blueprint.route("/")
@@ -59,7 +46,7 @@ def login():
         user = User.query.filter_by(username=username).first()
 
         # Check the password
-        if user and verify_pass(password, user.password):
+        if user and bcrypt.check_password_hash(user.password, password):
             login_user(user)
             return redirect(url_for("base_blueprint.route_default"))
 
