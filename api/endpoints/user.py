@@ -1,3 +1,6 @@
+from datetime import datetime
+from datetime import timedelta
+from datetime import timezone
 from flask import Blueprint, jsonify, request
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import (
@@ -7,13 +10,21 @@ from flask_jwt_extended import (
     get_jwt_identity,
     get_raw_jwt,
 )
-from app import db
-from app.base.models import User, RevokedTokenModel
+from app import db, jwt
+from app.base.models import User, TokenBlocklist, Property
 from api.token_generator import generate_access_token
 from api.schema import user_schema, users_schema
 from app.base.image_handler import save_profile_picture
 
 user_endpoint = Blueprint("user_blueprint", __name__)
+
+
+# Callback function to check if a JWT exists in the database blacklist
+@jwt.token_in_blacklist_loader
+def check_if_token_revoked(jwt_payload):
+    jti = jwt_payload["jti"]
+    token = db.session.query(TokenBlocklist.id).filter_by(jti=jti).scalar()
+    return token is not None
 
 
 @user_endpoint.route("/api/user/login", methods=["POST"])
@@ -27,12 +38,9 @@ def login_user():
         return jsonify({"message": "You need to provide a username and password"})
     username = data["username"]
     password = data["password"]
-    print('query user')
     user = User.query.filter_by(username=username).first()
-    print('checking user')
     if not user:
-        return 'user not found'
-    print('check password')
+        return "user not found"
     if not check_password_hash(user.password, password):
         return jsonify({"message": "Invalid username or password"})
 
@@ -47,10 +55,11 @@ def logout_access():
     token to the database.
     """
     jti = get_raw_jwt()["jti"]
+    now = datetime.now(timezone.utc)
     try:
         # Revoking access token
-        revoked_token = RevokedTokenModel(jti=jti)
-        revoked_token.save_revoked_token()
+        db.session.add(TokenBlocklist(jti=jti, created_at=now))
+        db.session.commit()
         return {"message": "Access token has been revoked"}
     except AttributeError:
         return {"message": "Something went wrong"}, 500
@@ -64,7 +73,7 @@ def login_refresh():
     """
     jti = get_raw_jwt()["jti"]
     try:
-        revoked_token = RevokedTokenModel(jti=jti)
+        revoked_token = TokenBlocklist(jti=jti)
         revoked_token.save_revoked_token()
         return {"message": "Refresh token has been revoked"}
     except AttributeError:
@@ -80,6 +89,7 @@ def refresh_token():
 
 
 @user_endpoint.route("/api/user/list")
+@jwt_required
 def get_users():
     """
     Returns a json object of all the users in the database.
@@ -89,6 +99,7 @@ def get_users():
 
 
 @user_endpoint.route("/api/user/<id>", methods=["GET"])
+@jwt_required
 def get_one_user(id):
     """
     Returns a json object of one user matching the id.
@@ -117,11 +128,7 @@ def register_user():
         return jsonify({"message": "The email already exists"})
 
     password = generate_password_hash(data["password"])
-    new_user = User(
-        username=data["username"],
-        email=data["email"],
-        password=password
-    )
+    new_user = User(username=data["username"], email=data["email"], password=password)
     db.session.add(new_user)
     db.session.commit()
     return generate_access_token(new_user.username)
@@ -150,7 +157,11 @@ def update_user():
     current_user = get_jwt_identity()
     user_to_update = User.query.filter_by(username=current_user).first()
     if not user_to_update:
-        return jsonify({"message": f"The user {current_user} does not exist or you may need a new token"})
+        return jsonify(
+            {
+                "message": f"The user {current_user} does not exist or you may need a new token"
+            }
+        )
     user_to_update.username = username
     user_to_update.email = email
     user_to_update.password = generate_password_hash(password)
@@ -176,13 +187,17 @@ def delete_user():
         )
     current_user = get_jwt_identity()
     user_to_delete = User.query.filter_by(username=current_user).first()
+    properties_to_delete = Property.query.filter_by(user_id=user_to_delete.id)
 
     try:
         if not check_password_hash(user_to_delete.password, data["password"]):
             return jsonify({"message": "Wrong password."})
+        # Deletes properties that belongs to the current user
+        for prop in properties_to_delete:
+            db.session.delete(prop)
 
         db.session.delete(user_to_delete)
-        revoked_token = RevokedTokenModel(jti=jti)
+        revoked_token = TokenBlocklist(jti=jti)
         revoked_token.save_revoked_token()
         db.session.commit()
         return jsonify(

@@ -2,8 +2,6 @@
 """
 Copyright (c) 2020 - DevsBranch
 """
-
-
 from flask import render_template, redirect, request, url_for
 from flask_login import current_user, login_user, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -29,8 +27,6 @@ def feedback():
 
 
 ## Login & Registration
-
-
 @blueprint.route("/login", methods=["GET", "POST"])
 def login():
     login_form = LoginForm(request.form)

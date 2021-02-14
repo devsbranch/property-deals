@@ -19,7 +19,7 @@ class PropertySchema(ma.Schema):
     price = fields.String(validate=validate.Length(min=1, max=10), required=True)
     location = fields.String(validate=validate.Length(min=5, max=50), required=True)
     image_folder = fields.String()
-    photos = fields.String()
+    photos = fields.String(validate=validate.Length(min=2, max=10))
     user_id = fields.String(required=True)
 
 

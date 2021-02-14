@@ -14,9 +14,9 @@ class Config(object):
     SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'db.sqlite3')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     JWT_SECRET_KEY = 'This!isAnAPIofSomeSort'
-    JWT_BLACKLIST_ENABLED = False
+    JWT_BLACKLIST_ENABLED = True
     JWT_BLACKLIST_TOKEN_CHECKS = ['access', 'refresh']
-    JWT_ACCESS_TOKEN_EXPIRES = 300
+    JWT_ACCESS_TOKEN_EXPIRES = 1200
 
 
 class ProductionConfig(Config):

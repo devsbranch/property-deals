@@ -40,31 +40,13 @@ class Property(db.Model):
     users = db.relationship(User)
 
 
-class RevokedTokenModel(db.Model):
+class TokenBlocklist(db.Model):
     """
     This table will store tokens that are revoked
     """
-
-    __tablename__ = "revoked_token"
     id = db.Column(db.Integer, primary_key=True)
-    jti = db.Column(db.String(120))
-
-    def save_revoked_token(self):
-        """
-        This method when called will save the revoked token(jti) to the database
-        """
-        db.session.add(self)
-        db.session.commit()
-
-    @classmethod
-    def is_jti_blacklisted(cls, jti):
-        """
-        This method will check if the token(jti) is revoked. It will return
-        True if the query matched the token and false if the query returned None
-        """
-        query = cls.query.filter_by(jti=jti).first()
-        # If query re
-        return bool(query)
+    jti = db.Column(db.String(120), nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False)
 
 
 @login_manager.user_loader
