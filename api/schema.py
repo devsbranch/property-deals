@@ -1,13 +1,6 @@
 from app import ma
 from marshmallow import fields, validate
 
-#
-# class AddUserValidationSchema(ma.Schema):
-#     username = fields.String(validate=validate.Length(min=4, max=20), required=True)
-#     email = fields.String(validate=validate.Length(min=5, max=50), required=True)
-#     password = fields.String(validate=validate.Length(min=6, max=50), required=True)
-#
-
 
 class UserSchema(ma.Schema):
     id = fields.String()

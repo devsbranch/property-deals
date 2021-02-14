@@ -4,8 +4,6 @@ from marshmallow import ValidationError
 from app import db
 from app.base.models import Property
 from api.schema import property_schema, properties_schema
-from api.authentication import token_required
-
 
 property_endpoint = Blueprint("property_blueprint", __name__)
 
@@ -20,7 +18,6 @@ def get_properties():
 
 
 @property_endpoint.route('/api/property/<int:prop_id>', methods=['GET'])
-@token_required
 def get_one_property(prop_id):
     """
     Returns a json object of one property matching the ID.
@@ -32,7 +29,6 @@ def get_one_property(prop_id):
 
 
 @property_endpoint.route('/api/property/add', methods=['POST'])
-@token_required
 def add_property():
     """
     Creates a new property in the database with data from request body.
@@ -57,7 +53,6 @@ def add_property():
 
 
 @property_endpoint.route('/api/property/update/<int:prop_id>', methods=['PUT'])
-@token_required
 def update_property(prop_id):
     """
     Updates the details of the property in the database.
@@ -82,7 +77,6 @@ def update_property(prop_id):
 
 
 @property_endpoint.route('/api/property/delete/<prop_id>', methods=['DELETE'])
-@token_required
 def delete_property(prop_id):
     """
     Deletes a property from database by querying using the ID from the url.

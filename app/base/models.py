@@ -2,9 +2,10 @@
 """
 Copyright (c) 2020 - DevsBranch
 """
+
 from datetime import datetime
 from flask_login import UserMixin
-from app import db, login_manager, bcrypt
+from app import db, login_manager
 
 
 class User(db.Model, UserMixin):
@@ -19,22 +20,8 @@ class User(db.Model, UserMixin):
     )
     user_prop = db.relationship("Property", backref="prop_owner", lazy=True)
 
-    def __init__(self, **kwargs):
-        for property, value in kwargs.items():
-            # depending on whether value is an iterable or not, we must
-            # unpack it's value (when **kwargs is request.form, some values
-            # will be a 1-element list)
-            if hasattr(value, "__iter__") and not isinstance(value, str):
-                # the ,= unpack of a singleton fails PEP8 (travis flake8 test)
-                value = value[0]
-
-            if property == "password":
-                value = bcrypt.generate_password_hash(value)
-
-            setattr(self, property, value)
-
     def __repr__(self):
-        return str(self.username)
+        return str({'username': self.username, 'email': self.email})
 
 
 class Property(db.Model):
@@ -51,6 +38,32 @@ class Property(db.Model):
     photos = db.Column(db.Text)
     user_id = db.Column(db.ForeignKey("User.id"), nullable=False)
     users = db.relationship(User)
+
+
+class RevokedTokenModel(db.Model):
+    """
+    This table will store tokens that are revoked
+    """
+    __tablename__ = 'revoked_token'
+    id = db.Column(db.Integer, primary_key=True)
+    jti = db.Column(db.String(120))
+
+    def save_revoked_token(self):
+        """
+        This method when called will save the revoked token(jti) to the database
+        """
+        db.session.add(self)
+        db.session.commit()
+
+    @classmethod
+    def is_jti_blacklisted(cls, jti):
+        """
+        This method will check if the token(jti) is revoked. It will return
+        True if the query matched the token and false if the query returned None
+        """
+        query = cls.query.filter_by(jti=jti).first()
+        # If query re
+        return bool(query)
 
 
 @login_manager.user_loader

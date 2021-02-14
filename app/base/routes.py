@@ -3,16 +3,14 @@
 Copyright (c) 2020 - DevsBranch
 """
 
-import os, random, string
-from flask import jsonify, render_template, redirect, request, url_for, current_app
-from flask_login import current_user, login_required, login_user, logout_user
-from werkzeug.security import check_password_hash
-from app import db, login_manager, bcrypt
+
+from flask import render_template, redirect, request, url_for
+from flask_login import current_user, login_user, logout_user
+from werkzeug.security import generate_password_hash, check_password_hash
+from app import db, login_manager
 from app.base import blueprint
 from app.base.forms import LoginForm, CreateAccountForm
 from app.base.models import User
-
-from app.base.util import verify_pass
 
 
 @blueprint.route("/")
@@ -46,7 +44,7 @@ def login():
         user = User.query.filter_by(username=username).first()
 
         # Check the password
-        if user and bcrypt.check_password_hash(user.password, password):
+        if user and check_password_hash(user.password, password):
             login_user(user)
             return redirect(url_for("base_blueprint.route_default"))
 
@@ -68,6 +66,7 @@ def register():
 
         username = request.form["username"]
         email = request.form["email"]
+        password = request.form['password']
 
         # Check usename exists
         user = User.query.filter_by(username=username).first()
@@ -90,7 +89,11 @@ def register():
             )
 
         # else we can create the user
-        user = User(**request.form)
+        user = User(
+            username=username,
+            email=email
+        )
+        user.generate_password_hash(password)
         db.session.add(user)
         db.session.commit()
 
