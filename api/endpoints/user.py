@@ -1,4 +1,3 @@
-import pdb
 from flask import Blueprint, jsonify, request
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import (
@@ -12,7 +11,7 @@ from app import db
 from app.base.models import User, RevokedTokenModel
 from api.token_generator import generate_access_token
 from api.schema import user_schema, users_schema
-from app.base.image_handler import save_profile_picture, property_image_handler
+from app.base.image_handler import save_profile_picture
 
 user_endpoint = Blueprint("user_blueprint", __name__)
 
