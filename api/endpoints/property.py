@@ -91,13 +91,3 @@ def delete_property(prop_id):
     return jsonify(
         {"message": f"The property listing '{prop_to_delete.name}' has been deleted."}
     )
-
-"""
-{
-    "access token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2MTMzMTA3MjAsIm5iZiI6MTYxMzMxMDcyMCwianRpIjoiMWFhN2QwMDItODQ2OS00ZGM2LWFiOGEtNzM3NzZhMGU3OWEyIiwiZXhwIjoxNjEzMzExMDIwLCJpZGVudGl0eSI6ImRhbiIsImZyZXNoIjpmYWxzZSwidHlwZSI6ImFjY2VzcyJ9.jmJGR_Fo7JMyGCWmJOKmxqvoiqLQhPdq0Zept0OyXco",
-    "message": "User dan was created",
-    "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2MTMzMTA3MjAsIm5iZiI6MTYxMzMxMDcyMCwianRpIjoiZDBhNWYyMjgtNjEwYS00Mjc5LWJmNGUtNjBjZDI2MzkwMTZmIiwiZXhwIjoxNjE1OTAyNzIwLCJpZGVudGl0eSI6ImRhbiIsInR5cGUiOiJyZWZyZXNoIn0.sdSlWolMJ81VgA79BCH2CFVoZzwhXaSFwrUDr3TB91g"
-}
-
-eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2MTMzMTExNTMsIm5iZiI6MTYxMzMxMTE1MywianRpIjoiMjYwNWZkMGYtYzljNi00NDE3LTkzMTUtYzM3MTQxMTU1OGE2IiwiZXhwIjoxNjEzMzExNDUzLCJpZGVudGl0eSI6ImRhbiIsImZyZXNoIjpmYWxzZSwidHlwZSI6ImFjY2VzcyJ9.b9IlQAiBbDZ-K6VSmyu1jVOk0SYJMN2BJkRkLlTwSkQ
-"""
