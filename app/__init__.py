@@ -18,6 +18,7 @@ login_manager = LoginManager()
 jwt = JWTManager()
 
 from api.endpoints.user import user_endpoint
+from api.endpoints.property import property_endpoint
 
 
 def register_extensions(app):
@@ -51,5 +52,6 @@ def create_app(config):
     register_extensions(app)
     register_blueprints(app)
     app.register_blueprint(user_endpoint)
+    app.register_blueprint(property_endpoint)
     configure_database(app)
     return app

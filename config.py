@@ -16,6 +16,7 @@ class Config(object):
     JWT_SECRET_KEY = 'This!isAnAPIofSomeSort'
     JWT_BLACKLIST_ENABLED = False
     JWT_BLACKLIST_TOKEN_CHECKS = ['access', 'refresh']
+    JWT_ACCESS_TOKEN_EXPIRES = 300
 
 
 class ProductionConfig(Config):

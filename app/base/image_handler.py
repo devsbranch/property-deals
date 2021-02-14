@@ -47,4 +47,4 @@ def save_profile_picture(form_picture):
     img.thumbnail((200, 250))
     img.save(picture_path)
 
-    return picture_file_name
+    return f"profile_pictures/{picture_file_name}"

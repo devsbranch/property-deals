@@ -21,7 +21,7 @@ class User(db.Model, UserMixin):
     user_prop = db.relationship("Property", backref="prop_owner", lazy=True)
 
     def __repr__(self):
-        return str({'username': self.username, 'email': self.email})
+        return str({"username": self.username, "email": self.email})
 
 
 class Property(db.Model):
@@ -44,7 +44,8 @@ class RevokedTokenModel(db.Model):
     """
     This table will store tokens that are revoked
     """
-    __tablename__ = 'revoked_token'
+
+    __tablename__ = "revoked_token"
     id = db.Column(db.Integer, primary_key=True)
     jti = db.Column(db.String(120))
 

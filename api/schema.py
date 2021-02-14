@@ -6,7 +6,9 @@ class UserSchema(ma.Schema):
     id = fields.String()
     username = fields.String(validate=validate.Length(min=5, max=50), required=True)
     email = fields.String(validate=validate.Length(min=10, max=300), required=True)
-    profile_image = fields.String(validate=validate.Length(min=1, max=10), required=True)
+    profile_image = fields.String(
+        validate=validate.Length(min=1, max=10), required=True
+    )
 
 
 class PropertySchema(ma.Schema):

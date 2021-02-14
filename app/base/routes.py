@@ -66,7 +66,7 @@ def register():
 
         username = request.form["username"]
         email = request.form["email"]
-        password = request.form['password']
+        password = request.form["password"]
 
         # Check usename exists
         user = User.query.filter_by(username=username).first()
@@ -91,9 +91,9 @@ def register():
         # else we can create the user
         user = User(
             username=username,
-            email=email
+            email=email,
+            password=generate_password_hash(password)
         )
-        user.generate_password_hash(password)
         db.session.add(user)
         db.session.commit()
 
