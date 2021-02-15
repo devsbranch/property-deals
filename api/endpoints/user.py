@@ -1,5 +1,4 @@
 from datetime import datetime
-from datetime import timedelta
 from datetime import timezone
 from flask import Blueprint, jsonify, request
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -55,27 +54,11 @@ def logout_access():
     token to the database.
     """
     jti = get_raw_jwt()["jti"]
-    now = datetime.now(timezone.utc)
     try:
         # Revoking access token
-        db.session.add(TokenBlocklist(jti=jti, created_at=now))
+        db.session.add(TokenBlocklist(jti=jti, created_at=datetime.now(timezone.utc)))
         db.session.commit()
         return {"message": "Access token has been revoked"}
-    except AttributeError:
-        return {"message": "Something went wrong"}, 500
-
-
-@user_endpoint.route("/api/user/logout/refresh", methods=["POST"])
-@jwt_refresh_token_required
-def login_refresh():
-    """
-    User Logout Refresh Api
-    """
-    jti = get_raw_jwt()["jti"]
-    try:
-        revoked_token = TokenBlocklist(jti=jti)
-        revoked_token.save_revoked_token()
-        return {"message": "Refresh token has been revoked"}
     except AttributeError:
         return {"message": "Something went wrong"}, 500
 
@@ -179,15 +162,11 @@ def delete_user():
     jti = get_raw_jwt()["jti"]
 
     data = request.get_json()
-    if "password" not in data:
-        return jsonify(
-            {
-                "message": "The password is missing. You need to provide a password to delete your account."
-            }
-        )
     current_user = get_jwt_identity()
     user_to_delete = User.query.filter_by(username=current_user).first()
     properties_to_delete = Property.query.filter_by(user_id=user_to_delete.id)
+    if "password" not in data:
+        return jsonify({"message": "The password is missing. You need to provide a password to delete your account."})
 
     try:
         if not check_password_hash(user_to_delete.password, data["password"]):
@@ -196,14 +175,20 @@ def delete_user():
         for prop in properties_to_delete:
             db.session.delete(prop)
 
+        db.session.add(TokenBlocklist(jti=jti, created_at=datetime.now(timezone.utc)))
         db.session.delete(user_to_delete)
-        revoked_token = TokenBlocklist(jti=jti)
-        revoked_token.save_revoked_token()
         db.session.commit()
         return jsonify(
             {
                 "message": f"The user '{current_user}' has been deleted and your token has been revoked."
             }
         )
+    except TypeError:  # Raise error if a empty json data is received
+        if "password" not in data:
+            return jsonify(
+                {
+                    "message": "The password is missing. You need to provide a password to delete your account."
+                }
+            )
     except AttributeError:
         return jsonify({"message": "User not found"})
