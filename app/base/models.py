@@ -59,7 +59,7 @@ class Property(db.Model):
         }
 
 
-class TokenBlocklist(db.Model):
+class TokenBlacklist(db.Model):
     """
     This table will store tokens that are revoked
     """

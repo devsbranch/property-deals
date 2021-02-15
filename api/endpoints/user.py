@@ -9,21 +9,14 @@ from flask_jwt_extended import (
     get_jwt_identity,
     get_raw_jwt,
 )
-from app import db, jwt
-from app.base.models import User, TokenBlocklist, Property
-from api.token_generator import generate_access_token
-from api.schema import users_schema, property_schema
+from app import db
+from app.base.models import User, TokenBlacklist, Property
+from api.utils.token_utils import generate_access_token
+from api.schema import users_schema
 from app.base.image_handler import save_profile_picture
+from api.utils.token_utils import save_revoked_token
 
 user_endpoint = Blueprint("user_blueprint", __name__)
-
-
-# Callback function to check if a JWT exists in the database blacklist
-@jwt.token_in_blacklist_loader
-def check_if_token_revoked(jwt_payload):
-    jti = jwt_payload["jti"]
-    token = db.session.query(TokenBlocklist.id).filter_by(jti=jti).scalar()
-    return token is not None
 
 
 @user_endpoint.route("/api/user/login", methods=["POST"])
@@ -56,9 +49,8 @@ def logout_access():
     jti = get_raw_jwt()["jti"]
     try:
         # Revoking access token
-        db.session.add(TokenBlocklist(jti=jti, created_at=datetime.now(timezone.utc)))
-        db.session.commit()
-        return {"message": "Access token has been revoked"}
+        save_revoked_token(jti)
+        return jsonify({"message": "Access token has been revoked"})
     except AttributeError:
         return {"message": "Something went wrong"}, 500
 
@@ -187,7 +179,7 @@ def delete_user():
         for prop in properties_to_delete:
             db.session.delete(prop)
 
-        db.session.add(TokenBlocklist(jti=jti, created_at=datetime.now(timezone.utc)))
+        save_revoked_token(jti)
         db.session.delete(user_to_delete)
         db.session.commit()
         return jsonify(
