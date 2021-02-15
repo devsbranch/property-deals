@@ -12,7 +12,7 @@ from flask_jwt_extended import (
 from app import db, jwt
 from app.base.models import User, TokenBlocklist, Property
 from api.token_generator import generate_access_token
-from api.schema import user_schema, users_schema
+from api.schema import users_schema, property_schema
 from app.base.image_handler import save_profile_picture
 
 user_endpoint = Blueprint("user_blueprint", __name__)
@@ -88,9 +88,21 @@ def get_one_user(id):
     Returns a json object of one user matching the id.
     """
     user = User.query.get(id)
+    properties = []
+    user_props = Property.query.filter_by(user_id=user.id)
+    # prop_list = jsonify(json_data=[prop.serialize for prop in user_props])
+    for prop in user_props:
+        properties.append(prop.serialize)
     if not user:
         return jsonify({"message": f"The user with id {id} was not found."})
-    return user_schema.jsonify(user)
+    # return user_schema.jsonify(user)
+    return {
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "profile_image": user.profile_image,
+        "properties": properties
+    }
 
 
 @user_endpoint.route("/api/user/register", methods=["POST"])

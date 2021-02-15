@@ -39,6 +39,25 @@ class Property(db.Model):
     user_id = db.Column(db.ForeignKey("User.id"), nullable=False)
     users = db.relationship(User)
 
+    def __init__(self, name, desc, price, location, photos, user_id):
+        self.name = name
+        self.desc = desc
+        self.price = price
+        self.location = location
+        self.photos = photos
+        self.user_id = user_id
+
+    @property
+    def serialize(self):
+        return {
+            "name": self.name,
+            "desc": self.desc,
+            "price": self.price,
+            "location": self.location,
+            "photos": self.photos,
+            "user_id": self.user_id
+        }
+
 
 class TokenBlocklist(db.Model):
     """
