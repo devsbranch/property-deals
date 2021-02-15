@@ -11,11 +11,9 @@ def generate_access_token(username):
     user login details.
     """
     access_token = create_access_token(identity=username)
-    refresh_token = create_refresh_token(identity=username)
     return jsonify(
         {
-            "message": f"User {username} was created",
+            "message": f"Access token generated",
             "access token": access_token,
-            "refresh_token": refresh_token,
         }
     )

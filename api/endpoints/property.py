@@ -139,7 +139,7 @@ def update_property():
 @jwt_required
 def delete_property():
     """
-    Deletes a property from database by querying using the ID from the url.
+    Deletes a property from database by querying using the ID from the request json data.
     """
     current_user = get_jwt_identity()
     property_id = request.json["id"]
