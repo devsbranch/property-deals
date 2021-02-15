@@ -2,7 +2,7 @@
 """
 Copyright (c) 2020 - DevsBranch
 """
-
+import json
 from datetime import datetime
 from flask_login import UserMixin
 from app import db, login_manager
@@ -20,8 +20,54 @@ class User(db.Model, UserMixin):
     )
     user_prop = db.relationship("Property", backref="prop_owner", lazy=True)
 
+    def json(self):
+        return {
+            "id": self.id,
+            "username": self.name,
+            "email": self.email,
+            "profile_image": self.profile_image,
+        }
+
+    @staticmethod
+    def get_all_users():
+        return [User.json(user) for user in User.query.all]
+
+    @staticmethod
+    def get_user(_user_id):
+        query = User.query.get(_user_id)
+        return query
+
+    @staticmethod
+    def add_user(_username, _email, _password):
+        new_user = User(username=_username, email=_email, password=_password)
+        db.session.add(new_user)
+        db.session.commit()
+
+    @staticmethod
+    def update_user(_username, _email, _password, _profile_image):
+        user_to_update = User(
+            username=_username,
+            email=_email,
+            password=_password,
+            profile_image=_profile_image
+        )
+        db.session.add(user_to_update)
+        db.session.commit()
+
+    @staticmethod
+    def delete_user(_user_id):
+        is_successful = User.query.get(_user_id).delete()
+        db.session.commit()
+        return bool(is_successful)
+
     def __repr__(self):
-        return str({"username": self.username, "email": self.email})
+        user_object = {
+            "id": self.id,
+            "username": self.username,
+            "email": self.email,
+            "profile_image": self.profile_image
+        }
+        return json.dumps(user_object)
 
 
 class Property(db.Model):
