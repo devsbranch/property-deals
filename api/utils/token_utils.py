@@ -1,7 +1,5 @@
 from datetime import datetime, timezone
-from flask_jwt_extended import (
-    create_access_token
-)
+from flask_jwt_extended import create_access_token
 from app import db, jwt
 from app.base.models import TokenBlacklist
 
@@ -35,5 +33,3 @@ def check_if_token_revoked(jwt_payload):
     jti = jwt_payload["jti"]
     token = db.session.query(TokenBlacklist.id).filter_by(jti=jti).scalar()
     return token is not None
-
-

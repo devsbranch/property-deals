@@ -174,7 +174,9 @@ def update_property(property_id):
     if request.method == "POST" and form.validate_on_submit():
         img_files = request.files.getlist("prop_photos")
         imgs_folder = prop_to_update.image_folder
-        image_list = [imgs_folder]  # images folder is added to the list and will used to form a filepath to images
+        image_list = [
+            imgs_folder
+        ]  # images folder is added to the list and will used to form a filepath to images
 
         property_image_handler(img_files, image_list, imgs_folder)
         image_list_to_json = json.dumps(image_list)

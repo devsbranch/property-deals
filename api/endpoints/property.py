@@ -1,10 +1,7 @@
 import json
 from flask import Blueprint, jsonify, request
 from marshmallow import ValidationError
-from flask_jwt_extended import (
-    jwt_required,
-    get_jwt_identity
-)
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.base.models import Property
 from api.schema import property_schema, properties_schema, user_schema
 from api.utils.file_handlers import create_images_folder, property_image_handler
@@ -33,11 +30,11 @@ def get_one_property(prop_id):
         )
     return {
         "property": property_schema.dump(prop_data),
-        "owner": user_schema.dump(prop_data.prop_owner)
+        "owner": user_schema.dump(prop_data.prop_owner),
     }
 
 
-@property_endpoint.route("/api/property/add", methods=["POST"])
+@property_endpoint.route("/api/property/create", methods=["POST"])
 @jwt_required
 def add_property():
     """
@@ -51,7 +48,9 @@ def add_property():
         image_files = request.files.getlist("photos")
         folder_to_save_images = create_images_folder(current_user)
         # List of image filenames to save to database
-        image_list = property_image_handler(current_user, image_files, folder_to_save_images)
+        image_list = property_image_handler(
+            current_user, image_files, folder_to_save_images
+        )
 
         # convert the python dictionary(image_files) to json string
         image_list_to_json = json.dumps(image_list)
@@ -99,13 +98,14 @@ def update_property(prop_id):
         image_list_to_json = json.dumps(image_list)
         Property.update_property(
             prop_id,
-            prop_data['name'],
-            prop_data['desc'],
-            prop_data['price'],
-            prop_data['_location'],
+            prop_data["name"],
+            prop_data["desc"],
+            prop_data["price"],
+            prop_data["_location"],
             images_folder,
             image_list_to_json,
-            prop_data['user_id'])
+            prop_data["user_id"],
+        )
         return jsonify({"created": property_schema.dump(data)}), 201
     except ValidationError as err:
         return jsonify(err.messages)
