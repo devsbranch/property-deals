@@ -32,7 +32,6 @@ def create_img_folder(username):
 
 
 @blueprint.route("/index")
-@login_required
 def index():
     properties = Property.query.order_by(Property.date.desc())
     photos = [json.loads(p.photos) for p in properties]
@@ -43,7 +42,6 @@ def index():
 
 
 @blueprint.route("/<template>")
-@login_required
 def route_template(template):
     try:
 

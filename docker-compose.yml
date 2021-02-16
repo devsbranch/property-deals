@@ -7,21 +7,21 @@ services:
     ports:
       - "5005:5005"
     volumes:
-      - ./app:/app
+      - .:/app
     networks:
       - db_network
       - web_network
-  nginx:
-    restart: always
-    image: "nginx:latest"
-    ports:
-      - "80:85"
-    volumes:
-      - ./nginx:/etc/nginx/conf.d
-    networks:
-      - web_network
-    depends_on: 
-      - pm-app
+  # nginx:
+  #   restart: always
+  #   image: "nginx:latest"
+  #   ports:
+  #     - "80:85"
+  #   volumes:
+  #     - ./nginx:/etc/nginx/conf.d
+  #   networks:
+  #     - web_network
+  #   depends_on: 
+  #     - pm-app
 networks:
   db_network:
     driver: bridge

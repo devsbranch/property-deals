@@ -31,7 +31,36 @@
                         </div>
                     </div>
 
-                    <div class="row">
+                    <h5 class="mt-4">Basic Pills</h5>
+                    <hr>
+                    <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="pills-home-tab" data-toggle="pill" href="#pills-home" role="tab" aria-controls="pills-home" aria-selected="true">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="pills-profile-tab" data-toggle="pill" href="#pills-profile" role="tab" aria-controls="pills-profile" aria-selected="false">Profile</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="pills-contact-tab" data-toggle="pill" href="#pills-contact" role="tab" aria-controls="pills-contact" aria-selected="false">Contact</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="pills-tabContent">
+                        <div class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
+                            <p class="mb-0">Consequat occaecat ullamco amet non eiusmod nostrud dolore irure incididunt est duis anim sunt officia. Fugiat velit proident aliquip nisi incididunt nostrud exercitation proident est nisi. Irure magna elit commodo anim ex veniam culpa eiusmod id nostrud sit cupidatat in veniam ad. Eiusmod consequat eu adipisicing minim anim aliquip cupidatat culpa excepteur quis. Occaecat sit eu exercitation irure Lorem incididunt nostrud.
+                            </p>
+                        </div>
+                        <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab">
+                            <p class="mb-0">Ad pariatur nostrud pariatur exercitation ipsum ipsum culpa mollit commodo mollit ex. Aute sunt incididunt amet commodo est sint nisi deserunt pariatur do. Aliquip ex eiusmod voluptate exercitation cillum id incididunt elit sunt. Qui minim sit magna Lorem id et dolore velit Lorem amet exercitation duis deserunt. Anim id labore elit adipisicing ut in id occaecat pariatur ut ullamco ea tempor duis.
+                            </p>
+                        </div>
+                        <div class="tab-pane fade" id="pills-contact" role="tabpanel" aria-labelledby="pills-contact-tab">
+                            <p class="mb-0">Est quis nulla laborum officia ad nisi ex nostrud culpa Lorem excepteur aliquip dolor aliqua irure ex. Nulla ut duis ipsum nisi elit fugiat commodo sunt reprehenderit laborum veniam eu veniam. Eiusmod minim exercitation fugiat irure ex labore incididunt do fugiat commodo aliquip sit id deserunt reprehenderit aliquip nostrud. Amet ex cupidatat excepteur aute veniam incididunt mollit cupidatat esse irure officia elit do ipsum ullamco Lorem. Ullamco ut ad minim do mollit labore ipsum laboris ipsum commodo sunt tempor enim incididunt. Commodo quis sunt dolore aliquip aute tempor irure magna enim minim reprehenderit. Ullamco consectetur culpa veniam sint cillum aliqua incididunt velit ullamco sunt ullamco quis quis commodo voluptate. Mollit nulla nostrud adipisicing aliqua cupidatat aliqua pariatur mollit voluptate voluptate consequat non.</p>
+                        </div>
+                    </div>
+                  </div>
+                  
+                    
+                    <!-- <div class="row"> -->
                         <!--[ daily sales section ] start-->
 <!--                        <div class="col-md-6 col-xl-4">-->
 <!--                            <div class="card daily-sales">-->
@@ -93,93 +122,7 @@
 <!--                            </div>-->
 <!--                        </div>-->
                         <!-- [ rating list ] end-->
-                        <div class="col-xl-12 col-md-12 m-b-30">
-                            <ul class="nav nav-tabs" id="myTab" role="tablist">
-                                <li class="nav-item">
-                                    <a class="nav-link" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="false">Today</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link active show" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="true">This Week</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" id="contact-tab" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">All</a>
-                                </li>
-                            </ul>
-                            <div class="tab-content" id="myTabContent">
-                                <div class="tab-pane fade" id="home" role="tabpanel" aria-labelledby="home-tab">
-                                    <div class="row">
-                                        {% for property in properties %}
-                                        <div class="col-xs-6 m-3">
-                                          <div class="card" style="width: 18rem;">
-                                            {% for photos in photos_list %}
-                                              {% if photos[0] == property.image_folder %}
-                                                <img src="{{ url_for('static', filename='/' + property.image_folder + '/' + photos[-1]) }}" class="card-img-top" alt="...">
-                                              {% endif %}
-                                            {% endfor %}
-                                            <div class="card-body">
-                                              <h5 class="card-title">{{ property.name }}</h5>
-                                            </div>
-                                            <ul class="list-group list-group-flush">
-                                              <li class="list-group-item">{{ property.location }}</li>
-                                              <li class="list-group-item">{{ property.date.strftime("%m/%d/%Y") }} at {{ property.date.strftime("%H:%M:%S")  }}</li>
-                                              <li class="list-group-item"><h6 class="mt-0 text-c-green">Available</h6></li>
-                                            </ul>
-                                            <a href="{{ url_for('home_blueprint.details', property_id=property.id) }}" class="card-link m-2 btn btn-primary">View Property</a>
-                                          </div>
-                                        </div>
-                                        {% endfor %}
-                                      </div>
-                                </div>
-                                <div class="tab-pane fade active show" id="profile" role="tabpanel" aria-labelledby="profile-tab">
-                                    <div class="row">
-                                        {% for property in properties %}
-                                        <div class="col-xs-6 m-3">
-                                          <div class="card" style="width: 18rem;">
-                                            {% for photos in photos_list %}
-                                              {% if photos[0] == property.image_folder %}
-                                                <img src="{{ url_for('static', filename='/' + property.image_folder + '/' + photos[-1]) }}" class="card-img-top" alt="...">
-                                              {% endif %}
-                                            {% endfor %}
-                                            <div class="card-body">
-                                              <h5 class="card-title">{{ property.name }}</h5>
-                                            </div>
-                                            <ul class="list-group list-group-flush">
-                                              <li class="list-group-item">{{ property.location }}</li>
-                                              <li class="list-group-item">{{ property.date.strftime("%m/%d/%Y") }} at {{ property.date.strftime("%H:%M:%S")  }}</li>
-                                              <li class="list-group-item"><h6 class="mt-0 text-c-green">Available</h6></li>
-                                            </ul>
-                                            <a href="{{ url_for('home_blueprint.details', property_id=property.id) }}" class="card-link m-2 btn btn-primary">View Property</a>
-                                          </div>
-                                        </div>
-                                        {% endfor %}
-                                      </div>
-                                </div>
-                                <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
-                                    <div class="row">
-                                        {% for property in properties %}
-                                        <div class="col-xs-6 m-3">
-                                          <div class="card" style="width: 18rem;">
-                                            {% for photos in photos_list %}
-                                              {% if photos[0] == property.image_folder %}
-                                                <img src="{{ url_for('static', filename='/' + property.image_folder + '/' + photos[-1]) }}" class="card-img-top" alt="...">
-                                              {% endif %}
-                                            {% endfor %}
-                                            <div class="card-body">
-                                              <h5 class="card-title">{{ property.name }}</h5>
-                                            </div>
-                                            <ul class="list-group list-group-flush">
-                                              <li class="list-group-item">{{ property.location }}</li>
-                                              <li class="list-group-item">{{ property.date.strftime("%m/%d/%Y") }} at {{ property.date.strftime("%H:%M:%S")  }}</li>
-                                              <li class="list-group-item"><h6 class="mt-0 text-c-green">Available</h6></li>
-                                            </ul>
-                                            <a href="{{ url_for('home_blueprint.details', property_id=property.id) }}" class="card-link m-2 btn btn-primary">View Property</a>
-                                          </div>
-                                        </div>
-                                        {% endfor %}
-                                      </div>
-                                </div>
-                            </div>
-                        </div>
+
 
 
                         <!--[ year  sales section ] end-->
