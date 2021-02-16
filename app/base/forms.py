@@ -8,12 +8,10 @@ from wtforms import (
     StringField,
     PasswordField,
     TextAreaField,
-    IntegerField,
     SubmitField,
     FileField,
 )
 from wtforms.validators import (
-    InputRequired,
     Email,
     DataRequired,
     Length,

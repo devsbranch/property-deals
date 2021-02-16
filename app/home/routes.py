@@ -59,9 +59,6 @@ def route_template(template):
     except TemplateNotFound:
         return render_template("page-404.html"), 404
 
-    except:
-        return render_template("page-500.html"), 500
-
 
 # Helper - Extract current page name from request
 def get_segment(request):
@@ -139,7 +136,7 @@ def account():
     if form.validate_on_submit():
         if form.picture.data:
             filename = save_profile_picture(form.picture.data)
-            current_user.profile_image = f"profile_pictures/{filename}"
+            current_user.profile_image = filename
 
         current_user.username = form.username.data
         current_user.email = form.email.data
@@ -177,7 +174,7 @@ def update_property(property_id):
     if request.method == "POST" and form.validate_on_submit():
         img_files = request.files.getlist("prop_photos")
         imgs_folder = prop_to_update.image_folder
-        image_list = [imgs_folder]
+        image_list = [imgs_folder]  # images folder is added to the list and will used to form a filepath to images
 
         property_image_handler(img_files, image_list, imgs_folder)
         image_list_to_json = json.dumps(image_list)
@@ -189,7 +186,6 @@ def update_property(property_id):
         prop_to_update.location = form.prop_location.data
         prop_to_update.date = datetime.utcnow()
         db.session.commit()
-
         flash("Your Property listing has been updated", "success")
         return redirect(url_for("home_blueprint.view_properties"))
 

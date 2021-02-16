@@ -1,82 +1,152 @@
 from flask import Blueprint, jsonify, request
+from marshmallow import ValidationError
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_jwt_extended import (
+    jwt_required,
+    get_raw_jwt
+)
 from app import db
 from app.base.models import User
-from api.schema import user_schema, users_schema
-
+from api.utils import token_utils
+from api.schema import user_schema, property_schema, add_user_schema
+from api.utils.file_handlers import save_profile_picture
+from api.utils.token_utils import save_revoked_token
 
 user_endpoint = Blueprint("user_blueprint", __name__)
 
 
-@user_endpoint.route('/api/user/list')
+@user_endpoint.route("/api/user/login", methods=["POST"])
+def login_user():
+    """
+    This function will login/authenticate the user by generating an access token and
+    a refresh token for the login credentials.
+    """
+    data = request.get_json()
+    if "username" not in data or "password" not in data:
+        return jsonify({"message": "You need to provide a username and password"})
+    username = data["username"]
+    password = data["password"]
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return "user not found"
+    if not check_password_hash(user.password, password):
+        return jsonify({"message": "Invalid username or password"})
+
+    return token_utils.generate_access_token(user.username)
+
+
+@user_endpoint.route("/api/user/logout/access", methods=["POST"])
+@jwt_required
+def logout_access():
+    """
+    This function will logout the user, revoke the token and save the revoked
+    token to the database.
+    """
+    jti = get_raw_jwt()["jti"]
+    try:
+        # Revoking access token
+        save_revoked_token(jti)
+        return jsonify({"message": "Access token has been revoked"})
+    except AttributeError:
+        return {"message": "Something went wrong"}, 500
+
+
+@user_endpoint.route("/api/user/list")
+@jwt_required
 def get_users():
     """
     Returns a json object of all the users in the database.
     """
-    users = User.query.all()
-    return users_schema.jsonify(users)
+    users = User.get_all_users()
+    return jsonify(users)
 
 
-@user_endpoint.route('/api/user/<int:user_id>', methods=['GET'])
-def get_one_user(user_id):
+@user_endpoint.route("/api/user/<id>", methods=["GET"])
+@jwt_required
+def get_one_user(id):
     """
     Returns a json object of one user matching the id.
     """
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({"message": f"The user with id {user_id} was not found."})
-    return user_schema.jsonify(user)
+
+    user = User.get_user(id)
+    try:
+        props_of_user = [property_schema.dump(prop) for prop in user.user_prop]
+    except AttributeError:
+        return jsonify({"message": f"The user with id {id} was not found."})
+    return {
+        "user": {
+            "user_data": user_schema.dump(user),
+            "properties_by_user": props_of_user
+        }
+    }
 
 
-@user_endpoint.route('/api/user/add', methods=['POST'])
-def add_user():
+@user_endpoint.route("/api/user/register", methods=["POST"])
+def register_user():
     """
-    Creates new user in the database with data from request body.
+    Creates new user in the database and generate an access token and a refresh token
+    from request data.
     """
     data = request.get_json()
-    if "username" not in data or "email" not in data or "password" not in data:
-        return jsonify({"message": "Must contain username, email and password."})
-    if User.query.filter_by(username=data['username']).first():
-        return jsonify({"message": "The username already exist."})
-    if User.query.filter_by(email=data['email']).first():
-        return jsonify({"message": "The email is already registered."})
-    new_user = User(
-        username=data['username'],
-        email=data['email'],
-        password=data['password']
-    )
-    db.session.add(new_user)
-    db.session.commit()
-    return jsonify({"message": f"The user {data['username']} has been created."})
+    try:
+        verified_data = add_user_schema.load(data)
+        if User.username_exists(verified_data['username']):
+            return jsonify({"message": "Username already exist"})
+        elif User.email_exists(verified_data['email']):
+            return jsonify({"message": "Email already exist"})
+        password = generate_password_hash(verified_data["password"])
+        User.add_user(
+            verified_data["username"],
+            verified_data["email"],
+            password
+        )
+        return jsonify({
+            "new_user": [
+                data,
+                token_utils.generate_access_token(data['username'])
+            ]
+        })
+    except ValidationError as err:
+        return jsonify(err.messages)
 
 
-@user_endpoint.route('/api/user/update/<int:user_id>', methods=['PUT'])
-def update_user(user_id):
+@user_endpoint.route("/api/user/update/<int:id>", methods=["PUT"])
+@jwt_required
+def update_user(id):
     """
     Updates username and email of user in the database.
     """
-    data = request.get_json()
-    if "username" not in data or "email" not in data:
-        return jsonify({"message": "Payload must contain username and email."})
-    user_to_update = User.query.get(user_id)
-    if not user_to_update:
-        return jsonify({"message": f"The user with id {user_id} does not exist"})
-    user_to_update.username = data['username']
-    user_to_update.email = data['email']
-    db.session.commit()
-    return jsonify({"message": "The username and email has been updated."})
+    user_to_update = User.get_user(id)
+    data = request.form
+    try:
+        verified_data = add_user_schema.load(data)
+        username = verified_data["username"]
+        email = verified_data["email"]
+        password = verified_data["password"]
+        photo = request.files["photo"]
+
+        if photo.filename == "":
+            return jsonify({"message": "You need to upload a profile picture"}), 401
+
+        user_to_update.username = username
+        user_to_update.email = email
+        user_to_update.password = generate_password_hash(password)
+        user_to_update.profile_image = save_profile_picture(username, photo)
+        db.session.commit()
+        return jsonify({"updated_user": data})
+    except ValidationError as err:
+        return jsonify({"message": err.messages})
 
 
-@user_endpoint.route('/api/user/delete/<username>', methods=['DELETE'])
-def delete_user(username):
+@user_endpoint.route("/api/user/delete/<int:id>", methods=["DELETE"])
+@jwt_required
+def delete_user(id):
     """
     Deletes user from database with the user id from the url
     """
-    data = request.get_json()
-    if "username" not in data:
-        return jsonify({"message": "The username is missing. You need to submit a username to delete."})
-    user_to_delete = User.query.filter_by(username=username).first()
-    if not user_to_delete:
-        return jsonify({"message": "The username does not exist."})
-    db.session.delete(user_to_delete)
-    db.session.commit()
-    return jsonify({"message": f"The user '{username}' has been deleted."})
+    jti = get_raw_jwt()["jti"]
+    if User.delete_user(id):  # Then delete properties of user as well.
+        save_revoked_token(jti)
+        return jsonify({"message": "User has been deleted"})
+    else:
+        return jsonify({"message": "user not found"})

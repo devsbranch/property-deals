@@ -3,8 +3,20 @@ from marshmallow import fields, validate
 
 
 class UserSchema(ma.Schema):
-    class Meta:
-        fields = ("id", "username", "email", "profile_image")
+    id = fields.String()
+    username = fields.String(validate=validate.Length(min=5, max=50), required=True)
+    email = fields.String(validate=validate.Length(min=10, max=300), required=True)
+    profile_image = fields.String(
+        validate=validate.Length(min=1, max=10), required=True
+    )
+
+
+class AddUserSchema(ma.Schema):
+    id = fields.String()
+    username = fields.String(validate=validate.Length(min=5, max=50), required=True)
+    email = fields.String(validate=validate.Length(min=10, max=60), required=True)
+    password = fields.String(validate=validate.Length(min=4, max=60), required=True)
+    photo = fields.String()
 
 
 class PropertySchema(ma.Schema):
@@ -15,11 +27,12 @@ class PropertySchema(ma.Schema):
     price = fields.String(validate=validate.Length(min=1, max=10), required=True)
     location = fields.String(validate=validate.Length(min=5, max=50), required=True)
     image_folder = fields.String()
-    photos = fields.String()  # validate=validate.Length(min=3, max=15),
+    photos = fields.String(validate=validate.Length(min=2, max=10))
     user_id = fields.String(required=True)
 
 
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
+add_user_schema = AddUserSchema()
 property_schema = PropertySchema()
 properties_schema = PropertySchema(many=True)
