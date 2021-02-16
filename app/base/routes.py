@@ -86,9 +86,7 @@ def register():
 
         # else we can create the user
         user = User(
-            username=username,
-            email=email,
-            password=generate_password_hash(password)
+            username=username, email=email, password=generate_password_hash(password)
         )
         db.session.add(user)
         db.session.commit()
