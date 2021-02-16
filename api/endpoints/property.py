@@ -1,4 +1,4 @@
-import json, os, random, string, shutil
+import json, os, shutil
 from datetime import datetime
 from flask import Blueprint, current_app, jsonify, request
 from marshmallow import ValidationError
@@ -7,23 +7,12 @@ from flask_jwt_extended import (
     get_jwt_identity
 )
 from app import db
-from app.base.image_handler import property_image_handler
 from app.base.models import Property, User
 from api.schema import property_schema, properties_schema
+from api.utils.file_upload_handlers import create_images_folder, property_image_handler
+
 
 property_endpoint = Blueprint("property_blueprint", __name__)
-
-
-def create_images_folder(username):
-    """
-    Generates a random string which will be used as a folder name for storing image files
-    of properties uploaded by user.
-    """
-    s = string.ascii_letters
-    output_str = "".join(random.choice(s) for i in range(10))
-    property_img_folder = f"property_images/{username}-property{output_str}"
-    os.mkdir(f"{current_app.root_path}/base/static/{property_img_folder}")
-    return property_img_folder
 
 
 @property_endpoint.route("/api/property/list")
@@ -56,13 +45,14 @@ def add_property():
     """
     data = request.form
     current_user = get_jwt_identity()
+    print(current_user)
     if "photos" not in data and request.files["photos"].filename == "":
         return jsonify({"message": "You need to upload photos."})
     try:
         image_files = request.files.getlist("photos")
         folder_to_save_images = create_images_folder(current_user)
         # List of image filenames to save to database
-        image_list = property_image_handler(image_files, folder_to_save_images)
+        image_list = property_image_handler(current_user, image_files, folder_to_save_images)
 
         # convert the python dictionary(image_files) to json string
         image_list_to_json = json.dumps(image_list)

@@ -23,19 +23,29 @@ class User(db.Model, UserMixin):
     def json(self):
         return {
             "id": self.id,
-            "username": self.name,
+            "username": self.username,
             "email": self.email,
             "profile_image": self.profile_image,
         }
 
     @staticmethod
     def get_all_users():
-        return [User.json(user) for user in User.query.all]
+        return [User.json(user) for user in User.query.all()]
 
     @staticmethod
     def get_user(_user_id):
         query = User.query.get(_user_id)
         return query
+
+    @staticmethod
+    def username_exists(_username):
+        return_value = User.query.filter_by(username=_username).first()
+        return bool(return_value)
+
+    @staticmethod
+    def email_exists(_email):
+        return_value = User.query.filter_by(email=_email).first()
+        return bool(return_value)
 
     @staticmethod
     def add_user(_username, _email, _password):
@@ -56,7 +66,10 @@ class User(db.Model, UserMixin):
 
     @staticmethod
     def delete_user(_user_id):
-        is_successful = User.query.get(_user_id).delete()
+        properties_to_delete = Property.query.filter_by(user_id=_user_id)
+        for prop in properties_to_delete:
+            db.session.delete(prop)
+        is_successful = User.query.filter_by(id=_user_id).delete()
         db.session.commit()
         return bool(is_successful)
 
@@ -85,24 +98,25 @@ class Property(db.Model):
     user_id = db.Column(db.ForeignKey("User.id"), nullable=False)
     users = db.relationship(User)
 
-    def __init__(self, name, desc, price, location, photos, user_id):
-        self.name = name
-        self.desc = desc
-        self.price = price
-        self.location = location
-        self.photos = photos
-        self.user_id = user_id
-
-    @property
-    def serialize(self):
-        return {
-            "name": self.name,
-            "desc": self.desc,
-            "price": self.price,
-            "location": self.location,
-            "photos": self.photos,
-            "user_id": self.user_id
-        }
+    # def __init__(self, name, desc, price, location, image_folder, photos, user_id):
+    #     self.name = name
+    #     self.desc = desc
+    #     self.price = price
+    #     self.location = location
+    #     self.photos = photos
+    #     self.image_folder = image_folder
+    #     self.user_id = user_id
+    #
+    # @property
+    # def serialize(self):
+    #     return {
+    #         "name": self.name,
+    #         "desc": self.desc,
+    #         "price": self.price,
+    #         "location": self.location,
+    #         "photos": self.photos,
+    #         "user_id": self.user_id
+    #     }
 
 
 class TokenBlacklist(db.Model):

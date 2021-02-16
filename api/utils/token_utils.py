@@ -13,12 +13,7 @@ def generate_access_token(username):
     user registration or login details.
     """
     access_token = create_access_token(identity=username)
-    return jsonify(
-        {
-            "message": f"Access token generated",
-            "access token": access_token,
-        }
-    )
+    return {"message": f"Access token generated", "access token": access_token}
 
 
 def save_revoked_token(jti):

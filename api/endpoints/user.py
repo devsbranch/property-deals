@@ -1,19 +1,15 @@
-from datetime import datetime
-from datetime import timezone
 from flask import Blueprint, jsonify, request
+from marshmallow import ValidationError
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import (
-    create_access_token,
     jwt_required,
-    jwt_refresh_token_required,
-    get_jwt_identity,
-    get_raw_jwt,
+    get_raw_jwt
 )
 from app import db
-from app.base.models import User, TokenBlacklist, Property
-from api.utils.token_utils import generate_access_token
-from api.schema import users_schema
-from app.base.image_handler import save_profile_picture
+from app.base.models import User
+from api.utils import token_utils
+from api.schema import user_schema, property_schema, add_user_schema
+from api.utils.file_upload_handlers import save_profile_picture
 from api.utils.token_utils import save_revoked_token
 
 user_endpoint = Blueprint("user_blueprint", __name__)
@@ -36,7 +32,7 @@ def login_user():
     if not check_password_hash(user.password, password):
         return jsonify({"message": "Invalid username or password"})
 
-    return generate_access_token(user.username)
+    return token_utils.generate_access_token(user.username)
 
 
 @user_endpoint.route("/api/user/logout/access", methods=["POST"])
@@ -55,22 +51,14 @@ def logout_access():
         return {"message": "Something went wrong"}, 500
 
 
-@user_endpoint.route("/api/token/refresh", methods=["POST"])
-@jwt_refresh_token_required
-def refresh_token():
-    current_user = get_jwt_identity()
-    access_token = create_access_token(identity=current_user)
-    return jsonify({"access token": access_token})
-
-
 @user_endpoint.route("/api/user/list")
 @jwt_required
 def get_users():
     """
     Returns a json object of all the users in the database.
     """
-    users = User.query.all()
-    return users_schema.jsonify(users)
+    users = User.get_all_users()
+    return jsonify(users)
 
 
 @user_endpoint.route("/api/user/<id>", methods=["GET"])
@@ -79,21 +67,15 @@ def get_one_user(id):
     """
     Returns a json object of one user matching the id.
     """
-    user = User.query.get(id)
-    properties = []
-    user_props = Property.query.filter_by(user_id=user.id)
-    # prop_list = jsonify(json_data=[prop.serialize for prop in user_props])
-    for prop in user_props:
-        properties.append(prop.serialize)
+    user = User.get_user(id)
+    props_of_user = [property_schema.dump(prop) for prop in user.user_prop]
     if not user:
         return jsonify({"message": f"The user with id {id} was not found."})
-    # return user_schema.jsonify(user)
     return {
-        "id": user.id,
-        "username": user.username,
-        "email": user.email,
-        "profile_image": user.profile_image,
-        "properties": properties
+        "user": {
+            "user_data": user_schema.dump(user),
+            "properties_by_user": props_of_user
+        }
     }
 
 
@@ -104,95 +86,65 @@ def register_user():
     from request data.
     """
     data = request.get_json()
-    # Checking if user already exist
+    try:
+        verified_data = add_user_schema.load(data)
+        if User.username_exists(verified_data['username']):
+            return jsonify({"message": "Username already exist"})
+        elif User.email_exists(verified_data['email']):
+            return jsonify({"message": "Email already exist"})
+        password = generate_password_hash(verified_data["password"])
+        User.add_user(
+            verified_data["username"],
+            verified_data["email"],
+            password
+        )
+        return jsonify({
+            "new_user": [
+                data,
+                token_utils.generate_access_token(data['username'])
+            ]
+        })
+    except ValidationError as err:
+        return jsonify(err.messages)
 
-    if "username" not in data or "email" not in data or "password" not in data:
-        return jsonify({"message": "Must contain username, email and password."})
-    user = User.query.filter_by(username=data["username"]).first()
-    if user:
-        return jsonify({"message": f"The username {user.username} already exists"})
-    if User.query.filter_by(email=data["email"]).first():
-        return jsonify({"message": "The email already exists"})
 
-    password = generate_password_hash(data["password"])
-    new_user = User(username=data["username"], email=data["email"], password=password)
-    db.session.add(new_user)
-    db.session.commit()
-    return generate_access_token(new_user.username)
-
-
-@user_endpoint.route("/api/user/update", methods=["PUT"])
+@user_endpoint.route("/api/user/update/<int:id>", methods=["PUT"])
 @jwt_required
-def update_user():
+def update_user(id):
     """
     Updates username and email of user in the database.
     """
+    user_to_update = User.get_user(id)
     data = request.form
     try:
-        username = data["username"]
-        email = data["email"]
-        password = data["password"]
+        verified_data = add_user_schema.load(data)
+        username = verified_data["username"]
+        email = verified_data["email"]
+        password = verified_data["password"]
         photo = request.files["photo"]
-    except KeyError:
-        return jsonify({"error": "KeyError exception occurred"})
 
-    if "username" not in data or "email" not in data or "password" not in data:
-        return jsonify({"message": "Must contain username, email and password."})
-    elif photo.filename == "":
-        return jsonify({"message": "You need to upload a profile picture"}), 401
+        if photo.filename == "":
+            return jsonify({"message": "You need to upload a profile picture"}), 401
 
-    current_user = get_jwt_identity()
-    user_to_update = User.query.filter_by(username=current_user).first()
-    if not user_to_update:
-        return jsonify(
-            {
-                "message": f"The user {current_user} does not exist or you may need a new token"
-            }
-        )
-    user_to_update.username = username
-    user_to_update.email = email
-    user_to_update.password = generate_password_hash(password)
-    user_to_update.profile_image = save_profile_picture(photo)
-    db.session.commit()
-    return jsonify({"message": f"The user {username} has been updated."})
+        user_to_update.username = username
+        user_to_update.email = email
+        user_to_update.password = generate_password_hash(password)
+        user_to_update.profile_image = save_profile_picture(username, photo)
+        db.session.commit()
+        return jsonify({"updated_user": data})
+    except ValidationError as err:
+        return jsonify({"message": err.messages})
 
 
-@user_endpoint.route("/api/user/delete", methods=["DELETE"])
+@user_endpoint.route("/api/user/delete/<int:id>", methods=["DELETE"])
 @jwt_required
-def delete_user():
+def delete_user(id):
     """
     Deletes user from database with the user id from the url
     """
     jti = get_raw_jwt()["jti"]
-
-    data = request.get_json()
-    current_user = get_jwt_identity()
-    user_to_delete = User.query.filter_by(username=current_user).first()
-    properties_to_delete = Property.query.filter_by(user_id=user_to_delete.id)
-    if "password" not in data:
-        return jsonify({"message": "The password is missing. You need to provide a password to delete your account."})
-
-    try:
-        if not check_password_hash(user_to_delete.password, data["password"]):
-            return jsonify({"message": "Wrong password."})
-        # Deletes properties that belongs to the current user
-        for prop in properties_to_delete:
-            db.session.delete(prop)
-
+    if User.delete_user(id):  # Then delete properties of user as well.
         save_revoked_token(jti)
-        db.session.delete(user_to_delete)
-        db.session.commit()
-        return jsonify(
-            {
-                "message": f"The user '{current_user}' has been deleted and your token has been revoked."
-            }
-        )
-    except TypeError:  # Raise error if a empty json data is received
-        if "password" not in data:
-            return jsonify(
-                {
-                    "message": "The password is missing. You need to provide a password to delete your account."
-                }
-            )
-    except AttributeError:
-        return jsonify({"message": "User not found"})
+        return jsonify({"message": "User has been deleted"})
+    else:
+        return jsonify({"message": "user not found"})
