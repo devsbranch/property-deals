@@ -73,7 +73,7 @@ def get_segment(request):
         return None
 
 
-@blueprint.route("/create-property", methods=["GET", "POST"])
+@blueprint.route("/property/create", methods=["GET", "POST"])
 @login_required
 def create_property():
     form = PropertyForm()
@@ -103,7 +103,7 @@ def create_property():
     return render_template("create_property.html", form=form)
 
 
-@blueprint.route("/view_properties", methods=["GET", "POST"])
+@blueprint.route("/property/list", methods=["GET", "POST"])
 def view_properties():
     properties = Property.query.order_by(Property.date.desc())
     # converts the json object from the db to a python dictionary
@@ -117,7 +117,7 @@ def view_properties():
     )
 
 
-@blueprint.route("/property/<int:property_id>")
+@blueprint.route("/property/details/<int:property_id>")
 def details(property_id):
     prop_data = Property.query.get_or_404(property_id)
     # converts the json object from the db to a python dictionary
