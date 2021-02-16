@@ -1,10 +1,7 @@
 from flask import Blueprint, jsonify, request
 from marshmallow import ValidationError
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_jwt_extended import (
-    jwt_required,
-    get_raw_jwt
-)
+from flask_jwt_extended import jwt_required, get_raw_jwt
 from app import db
 from app.base.models import User
 from api.utils import token_utils
@@ -57,8 +54,7 @@ def get_users():
     """
     Returns a json object of all the users in the database.
     """
-    users = User.get_all_users()
-    return jsonify(users)
+    return jsonify({"users": User.get_all_users()})
 
 
 @user_endpoint.route("/api/user/<id>", methods=["GET"])
@@ -67,7 +63,6 @@ def get_one_user(id):
     """
     Returns a json object of one user matching the id.
     """
-
     user = User.get_user(id)
     try:
         props_of_user = [property_schema.dump(prop) for prop in user.user_prop]
@@ -76,7 +71,7 @@ def get_one_user(id):
     return {
         "user": {
             "user_data": user_schema.dump(user),
-            "properties_by_user": props_of_user
+            "properties_by_user": props_of_user,
         }
     }
 
@@ -90,22 +85,15 @@ def register_user():
     data = request.get_json()
     try:
         verified_data = add_user_schema.load(data)
-        if User.username_exists(verified_data['username']):
+        if User.username_exists(verified_data["username"]):
             return jsonify({"message": "Username already exist"})
-        elif User.email_exists(verified_data['email']):
+        elif User.email_exists(verified_data["email"]):
             return jsonify({"message": "Email already exist"})
         password = generate_password_hash(verified_data["password"])
-        User.add_user(
-            verified_data["username"],
-            verified_data["email"],
-            password
+        User.add_user(verified_data["username"], verified_data["email"], password)
+        return jsonify(
+            {"new_user": [data, token_utils.generate_access_token(data["username"])]}
         )
-        return jsonify({
-            "new_user": [
-                data,
-                token_utils.generate_access_token(data['username'])
-            ]
-        })
     except ValidationError as err:
         return jsonify(err.messages)
 
