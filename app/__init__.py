@@ -45,6 +45,7 @@ def configure_database(app):
     def shutdown_session(exception=None):
         db.session.remove()
 
+
 def create_app(config):
     app = Flask(__name__, static_folder="base/static")
     app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
