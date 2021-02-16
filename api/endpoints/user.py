@@ -3,14 +3,13 @@ from marshmallow import ValidationError
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import (
     jwt_required,
-    get_raw_jwt,
-    get_jwt_identity
+    get_raw_jwt
 )
 from app import db
 from app.base.models import User, Property
 from api.utils import token_utils
 from api.schema import user_schema, property_schema, add_user_schema
-from api.utils.file_upload_handlers import save_profile_picture
+from api.utils.file_handlers import save_profile_picture
 from api.utils.token_utils import save_revoked_token
 
 user_endpoint = Blueprint("user_blueprint", __name__)
@@ -70,8 +69,6 @@ def get_one_user(id):
     """
 
     user = User.get_user(id)
-    p = Property.query.filter_by(user_id=id).first()
-    print(p.prop_owner)
     try:
         props_of_user = [property_schema.dump(prop) for prop in user.user_prop]
     except AttributeError:

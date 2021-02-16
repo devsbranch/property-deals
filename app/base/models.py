@@ -7,7 +7,7 @@ from datetime import datetime
 from flask import current_app
 from flask_login import UserMixin
 from app import db, login_manager
-from api.schema import properties_schema, property_schema
+from api.schema import properties_schema, property_schema, users_schema
 
 
 class User(db.Model, UserMixin):
@@ -22,17 +22,9 @@ class User(db.Model, UserMixin):
     )
     user_prop = db.relationship("Property", backref="prop_owner", lazy=True)
 
-    def json(self):
-        return {
-            "id": self.id,
-            "username": self.username,
-            "email": self.email,
-            "profile_image": self.profile_image,
-        }
-
     @staticmethod
     def get_all_users():
-        return [User.json(user) for user in User.query.all()]
+        return [users_schema.dump(user) for user in User.query.all()]
 
     @staticmethod
     def get_user(_user_id):
@@ -41,13 +33,11 @@ class User(db.Model, UserMixin):
 
     @staticmethod
     def username_exists(_username):
-        return_value = User.query.filter_by(username=_username).first()
-        return bool(return_value)
+        return bool(User.query.filter_by(username=_username).first())
 
     @staticmethod
     def email_exists(_email):
-        return_value = User.query.filter_by(email=_email).first()
-        return bool(return_value)
+        return bool(User.query.filter_by(email=_email).first())
 
     @staticmethod
     def add_user(_username, _email, _password):

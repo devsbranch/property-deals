@@ -7,7 +7,7 @@ from flask_jwt_extended import (
 )
 from app.base.models import Property
 from api.schema import property_schema, properties_schema, user_schema
-from api.utils.file_upload_handlers import create_images_folder, property_image_handler
+from api.utils.file_handlers import create_images_folder, property_image_handler
 
 property_endpoint = Blueprint("property_blueprint", __name__)
 
