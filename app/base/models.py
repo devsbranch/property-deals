@@ -2,10 +2,12 @@
 """
 Copyright (c) 2020 - DevsBranch
 """
-import json
+import json, shutil, os
 from datetime import datetime
+from flask import current_app
 from flask_login import UserMixin
 from app import db, login_manager
+from api.schema import properties_schema, property_schema
 
 
 class User(db.Model, UserMixin):
@@ -96,27 +98,52 @@ class Property(db.Model):
     image_folder = db.Column(db.Text, nullable=True)
     photos = db.Column(db.Text)
     user_id = db.Column(db.ForeignKey("User.id"), nullable=False)
-    users = db.relationship(User)
 
-    # def __init__(self, name, desc, price, location, image_folder, photos, user_id):
-    #     self.name = name
-    #     self.desc = desc
-    #     self.price = price
-    #     self.location = location
-    #     self.photos = photos
-    #     self.image_folder = image_folder
-    #     self.user_id = user_id
-    #
-    # @property
-    # def serialize(self):
-    #     return {
-    #         "name": self.name,
-    #         "desc": self.desc,
-    #         "price": self.price,
-    #         "location": self.location,
-    #         "photos": self.photos,
-    #         "user_id": self.user_id
-    #     }
+    @staticmethod
+    def get_all_properties():
+        return [properties_schema.dump(prop) for prop in Property.query.all()]
+
+    @staticmethod
+    def get_property(_prop_id):
+        query = Property.query.get(_prop_id)
+        return property_schema.dump(query)
+
+    @staticmethod
+    def add_property(_name, _desc, _price, _location, _image_folder, _photos, _user_id):
+        new_property = Property(
+            name=_name,
+            desc=_desc,
+            price=_price,
+            location=_location,
+            image_folder=_image_folder,
+            photos=_photos,
+            user_id=_user_id
+        )
+        db.session.add(new_property)
+        db.session.commit()
+
+    @staticmethod
+    def update_property(prop_id, _name, _desc, _price, _location, _image_folder, _photos, _user_id):
+        prop_ro_update = Property.query.get(prop_id)
+        prop_ro_update.name = _name,
+        prop_ro_update.desc = _desc,
+        prop_ro_update.price = _price,
+        prop_ro_update.location = _location,
+        prop_ro_update.image_folder = _image_folder,
+        prop_ro_update.photos = _photos,
+        prop_ro_update.user_id = _user_id
+        db.session.commit()
+
+    @staticmethod
+    def delete_property(prop_id):
+        prop_to_delete = Property.query.get(prop_id)
+        if prop_to_delete:
+            images_folder = os.path.join(f"{current_app.root_path}/base/static/{prop_to_delete.image_folder}")
+            shutil.rmtree(images_folder)
+            db.session.delete(prop_to_delete)
+            db.session.commit()
+            return True
+        return False
 
 
 class TokenBlacklist(db.Model):

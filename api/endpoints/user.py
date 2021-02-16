@@ -3,10 +3,11 @@ from marshmallow import ValidationError
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import (
     jwt_required,
-    get_raw_jwt
+    get_raw_jwt,
+    get_jwt_identity
 )
 from app import db
-from app.base.models import User
+from app.base.models import User, Property
 from api.utils import token_utils
 from api.schema import user_schema, property_schema, add_user_schema
 from api.utils.file_upload_handlers import save_profile_picture
@@ -67,9 +68,13 @@ def get_one_user(id):
     """
     Returns a json object of one user matching the id.
     """
+
     user = User.get_user(id)
-    props_of_user = [property_schema.dump(prop) for prop in user.user_prop]
-    if not user:
+    p = Property.query.filter_by(user_id=id).first()
+    print(p.prop_owner)
+    try:
+        props_of_user = [property_schema.dump(prop) for prop in user.user_prop]
+    except AttributeError:
         return jsonify({"message": f"The user with id {id} was not found."})
     return {
         "user": {

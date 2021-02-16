@@ -1,16 +1,13 @@
-import json, os, shutil
-from datetime import datetime
-from flask import Blueprint, current_app, jsonify, request
+import json
+from flask import Blueprint, jsonify, request
 from marshmallow import ValidationError
 from flask_jwt_extended import (
     jwt_required,
     get_jwt_identity
 )
-from app import db
-from app.base.models import Property, User
-from api.schema import property_schema, properties_schema
+from app.base.models import Property
+from api.schema import property_schema, properties_schema, user_schema
 from api.utils.file_upload_handlers import create_images_folder, property_image_handler
-
 
 property_endpoint = Blueprint("property_blueprint", __name__)
 
@@ -34,7 +31,10 @@ def get_one_property(prop_id):
         return jsonify(
             {"message": f"The property listing with ID {prop_id} was not found."}
         )
-    return property_schema.jsonify(prop_data)
+    return {
+        "property": property_schema.dump(prop_data),
+        "owner": user_schema.dump(prop_data.prop_owner)
+    }
 
 
 @property_endpoint.route("/api/property/add", methods=["POST"])
@@ -45,7 +45,6 @@ def add_property():
     """
     data = request.form
     current_user = get_jwt_identity()
-    print(current_user)
     if "photos" not in data and request.files["photos"].filename == "":
         return jsonify({"message": "You need to upload photos."})
     try:
@@ -58,42 +57,34 @@ def add_property():
         image_list_to_json = json.dumps(image_list)
         # Check if the request data matches the schema else raise ValidationError
         prop_data = property_schema.load(data)
-        prop_to_add = Property(
-            name=prop_data["name"],
-            desc=prop_data["desc"],
-            price=prop_data["price"],
-            location=prop_data["location"],
-            image_folder=folder_to_save_images,
-            photos=image_list_to_json,
-            user_id=prop_data["user_id"],
+        Property.add_property(
+            prop_data["name"],
+            prop_data["desc"],
+            prop_data["price"],
+            prop_data["location"],
+            folder_to_save_images,
+            image_list_to_json,
+            prop_data["user_id"],
         )
-        db.session.add(prop_to_add)
-        db.session.commit()
-        return jsonify({"message": f"The property '{data['name']}' has been created."})
+
+        return jsonify({"created": property_schema.dump(data)})
 
     except ValidationError as err:  # Returns an error if a required field is missing
         return jsonify({"error": err.messages})
 
 
-@property_endpoint.route("/api/property/update", methods=["PUT"])
+@property_endpoint.route("/api/property/update/<int:prop_id>", methods=["PUT"])
 @jwt_required
-def update_property():
+def update_property(prop_id):
     """
     Updates the details of the property in the database.
     """
     data = request.form
 
-    user = get_jwt_identity()  # We get the username from token accessing this URL
-    owner = User.query.filter_by(
-        username=user
-    ).first()  # Then use the username from the token to query a user from db
-    prop_to_update = Property.query.get(data["id"])
-    if not owner:
-        return jsonify({"error": f"User not found"}), 403
-    elif not prop_to_update:
+    prop_to_update = Property.query.get(prop_id)
+
+    if not prop_to_update:
         return jsonify({"message": "Invalid ID"})
-    elif prop_to_update.user_id != owner.id:
-        return jsonify({"message": "Action forbidden"}), 403
 
     try:
         if "photos" not in data and request.files["photos"].filename == "":
@@ -106,48 +97,29 @@ def update_property():
         image_list = property_image_handler(image_files, images_folder)
 
         image_list_to_json = json.dumps(image_list)
-
-        prop_to_update.name = prop_data["name"]
-        prop_to_update.desc = prop_data["desc"]
-        prop_to_update.price = prop_data["price"]
-        prop_to_update.location = prop_data["location"]
-        prop_to_update.photos = image_list_to_json
-        prop_to_update.date = datetime.utcnow()
-        prop_to_update.user_id = owner.id
-        db.session.commit()
-        return (
-            jsonify({"message": "The details of the property has been updated."}),
-            201,
-        )
+        Property.update_property(
+            prop_id,
+            prop_data['name'],
+            prop_data['desc'],
+            prop_data['price'],
+            prop_data['_location'],
+            images_folder,
+            image_list_to_json,
+            prop_data['user_id'])
+        return jsonify({"message": "The details of the property has been updated."}), 201
     except ValidationError as err:
         return jsonify(err.messages)
     except KeyError as err:
         return jsonify(err)
 
 
-@property_endpoint.route("/api/property/delete", methods=["DELETE"])
+@property_endpoint.route("/api/property/delete/<int:prop_id>", methods=["DELETE"])
 @jwt_required
-def delete_property():
+def delete_property(prop_id):
     """
     Deletes a property from database by querying using the ID from the request json data.
     """
-    current_user = get_jwt_identity()
-    property_id = request.json["id"]
-    owner = User.query.filter_by(username=current_user).first()
-    if not owner:
-        return jsonify({"message": "User not found"}), 404
-    prop_to_delete = Property.query.get(property_id)
-    if not prop_to_delete:
-        return jsonify({"error": f"Invalid property ID."}), 404
+    if Property.delete_property(prop_id):
+        return jsonify({"message": "The property has been deleted"})
 
-    if prop_to_delete.user_id != owner.id:
-        return jsonify({"message": "Action forbidden"}), 403
-    images_directory = os.path.join(
-        f"{current_app.root_path}/base/static/{prop_to_delete.image_folder}"
-    )
-    shutil.rmtree(images_directory)
-    db.session.delete(prop_to_delete)
-    db.session.commit()
-    return jsonify(
-        {"message": f"The property listing '{prop_to_delete.name}' has been deleted."}
-    )
+    return jsonify({"message": f"Property with ID {prop_id} was not found."})
