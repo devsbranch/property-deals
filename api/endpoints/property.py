@@ -106,7 +106,7 @@ def update_property(prop_id):
             images_folder,
             image_list_to_json,
             prop_data['user_id'])
-        return jsonify({"message": "The details of the property has been updated."}), 201
+        return jsonify({"created": property_schema.dump(data)}), 201
     except ValidationError as err:
         return jsonify(err.messages)
     except KeyError as err:
