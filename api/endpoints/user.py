@@ -6,7 +6,7 @@ from flask_jwt_extended import (
     get_raw_jwt
 )
 from app import db
-from app.base.models import User, Property
+from app.base.models import User
 from api.utils import token_utils
 from api.schema import user_schema, property_schema, add_user_schema
 from api.utils.file_handlers import save_profile_picture
