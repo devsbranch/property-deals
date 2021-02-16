@@ -1,12 +1,15 @@
 # -*- encoding: utf-8 -*-
+from __future__ import absolute_import, unicode_literals
+
 """
 Copyright (c) 2020 - DevsBranch
 """
 
 from sys import exit
+from app import create_app
+
 from decouple import config
 from config import config_dict
-from app import create_app
 
 # WARNING: Don't run with debug turned on in production!
 DEBUG = config("DEBUG", default=True)

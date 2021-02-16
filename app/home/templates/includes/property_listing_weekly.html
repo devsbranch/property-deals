@@ -1,0 +1,48 @@
+    <div class="pcoded-content">
+        <div class="pcoded-inner-content">
+            <div class="main-body">
+                <div class="col-sm-12">
+
+                <div class="page-wrapper">
+                    <!-- [ Main Content ] start -->
+                    <div class="row">
+                        <!-- [ Breadcrumbs & Pagination ] start -->
+                        
+                    {% for property in properties %}
+                        <div class="col-sm-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>{{property.name|title}}</h5>
+                                </div>
+                                <div class="card-body">
+                                    <nav aria-label="breadcrumb">
+                                        <ol class="breadcrumb">
+                                            <li class="breadcrumb-item active" aria-current="page"><i class="feather icon-home"></i> Location {{ property.location }}</li>
+                                        </ol>
+                                    </nav>
+
+                                    <nav aria-label="breadcrumb">
+                                        <ol class="breadcrumb">
+                                            <li class="breadcrumb-item active" aria-current="page"><i class="feather icon-home"></i> Price {{  property.price }}</li>
+                                        </ol>
+                                    </nav>
+
+                                    <nav aria-label="breadcrumb">
+                                        <ol class="breadcrumb">
+                                            <li class="breadcrumb-item"><a href="#!"><i class="feather icon-home"></i></a>Posted {{ property.date.strftime("%m/%d/%Y") }} at {{ property.date.strftime("%H:%M:%S")  }}</li>
+                                        </ol>
+                                    </nav>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    
+                        </div>
+                    </div>
+                    <!-- [ Main Content ] end -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+

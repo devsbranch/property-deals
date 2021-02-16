@@ -13,7 +13,7 @@ from app.base.models import User
 
 @blueprint.route("/")
 def route_default():
-    return redirect(url_for("base_blueprint.login"))
+    return redirect(url_for("home_blueprint.index"))
 
 
 @blueprint.route("/error-<error>")
