@@ -39,32 +39,31 @@ class User(db.Model, UserMixin):
     def get_all_users():
         return [User.to_json(user) for user in User.query.all()]
 
-    @staticmethod
-    def get_user(_user_id):
-        query = User.query.get(_user_id)
-        return query
+    @classmethod
+    def get_user(cls, _user_id):
+        return cls.query.get(_user_id)
 
-    @staticmethod
-    def username_exists(_username):
-        return bool(User.query.filter_by(username=_username).first())
+    @classmethod
+    def username_exists(cls, _username):
+        return bool(cls.query.filter_by(username=_username).first())
 
-    @staticmethod
-    def email_exists(_email):
-        return bool(User.query.filter_by(email=_email).first())
+    @classmethod
+    def email_exists(cls, _email):
+        return bool(cls.query.filter_by(email=_email).first())
 
-    @staticmethod
-    def add_user(_username, _email, _password):
-        new_user = User(username=_username, email=_email, password=_password)
+    @classmethod
+    def add_user(cls, _username, _email, _password):
+        new_user = cls(username=_username, email=_email, password=_password)
         db.session.add(new_user)
         db.session.commit()
 
-    @staticmethod
-    def update_user(_username, _email, _password, _profile_image):
-        user_to_update = User(
+    @classmethod
+    def update_user(cls, _username, _email, _password, _profile_image):
+        user_to_update = cls(
             username=_username,
             email=_email,
             password=_password,
-            profile_image=_profile_image
+            profile_image=_profile_image,
         )
         db.session.add(user_to_update)
         db.session.commit()
@@ -116,42 +115,48 @@ class Property(db.Model):
     def get_all_properties():
         return [Property.to_son(prop) for prop in Property.query.all()]
 
-    @staticmethod
-    def get_property(_prop_id):
-        query = Property.query.get(_prop_id)
+    @classmethod
+    def get_property(cls, _prop_id):
+        query = cls.query.get(_prop_id)
         return property_schema.dump(query)
 
-    @staticmethod
-    def add_property(_name, _desc, _price, _location, _image_folder, _photos, _user_id):
-        new_property = Property(
+    @classmethod
+    def add_property(
+        cls, _name, _desc, _price, _location, _image_folder, _photos, _user_id
+    ):
+        new_property = cls(
             name=_name,
             desc=_desc,
             price=_price,
             location=_location,
             image_folder=_image_folder,
             photos=_photos,
-            user_id=_user_id
+            user_id=_user_id,
         )
         db.session.add(new_property)
         db.session.commit()
 
-    @staticmethod
-    def update_property(prop_id, _name, _desc, _price, _location, _image_folder, _photos, _user_id):
-        prop_ro_update = Property.query.get(prop_id)
-        prop_ro_update.name = _name,
-        prop_ro_update.desc = _desc,
-        prop_ro_update.price = _price,
-        prop_ro_update.location = _location,
-        prop_ro_update.image_folder = _image_folder,
-        prop_ro_update.photos = _photos,
+    @classmethod
+    def update_property(
+        cls, prop_id, _name, _desc, _price, _location, _image_folder, _photos, _user_id
+    ):
+        prop_ro_update = cls.query.get(prop_id)
+        prop_ro_update.name = (_name,)
+        prop_ro_update.desc = (_desc,)
+        prop_ro_update.price = (_price,)
+        prop_ro_update.location = (_location,)
+        prop_ro_update.image_folder = (_image_folder,)
+        prop_ro_update.photos = (_photos,)
         prop_ro_update.user_id = _user_id
         db.session.commit()
 
-    @staticmethod
-    def delete_property(prop_id):
-        prop_to_delete = Property.query.get(prop_id)
+    @classmethod
+    def delete_property(cls, prop_id):
+        prop_to_delete = cls.query.get(prop_id)
         if prop_to_delete:
-            images_folder = os.path.join(f"{current_app.root_path}/base/static/{prop_to_delete.image_folder}")
+            images_folder = os.path.join(
+                f"{current_app.root_path}/base/static/{prop_to_delete.image_folder}"
+            )
             shutil.rmtree(images_folder)
             db.session.delete(prop_to_delete)
             db.session.commit()
@@ -163,6 +168,7 @@ class TokenBlacklist(db.Model):
     """
     This table will store tokens that are revoked
     """
+
     id = db.Column(db.Integer, primary_key=True)
     jti = db.Column(db.String(120), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False)

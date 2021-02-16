@@ -82,6 +82,9 @@ def register_user():
     Creates new user in the database and generate an access token and a refresh token
     from request data.
     """
+
+    # TODO (Jachin), need to implement sending activation emails for new users
+    # A good place to start is using mailgun API for this.
     data = request.get_json()
     try:
         verified_data = add_user_schema.load(data)

@@ -33,7 +33,7 @@ def get_one_property(prop_id):
     }
 
 
-@property_endpoint.route("/api/property/add", methods=["POST"])
+@property_endpoint.route("/api/property/create", methods=["POST"])
 @jwt_required
 def add_property():
     """
