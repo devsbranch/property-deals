@@ -16,3 +16,5 @@ flask_marshmallow
 marshmallow-sqlalchemy
 marshmallow~=3.10.0
 flask-jwt-extended==3.25.1
+sphinx
+rinohtype
