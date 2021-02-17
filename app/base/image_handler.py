@@ -13,10 +13,10 @@ def property_image_handler(image_files, save_to_folder):
     using the werkzeug utilities, then the filename is saved to the list of filenames in the
     dictionary object.
     """
-    images_list = []
+    image_list = []
     for image_file in image_files:
         filename = secure_filename(image_file.filename)
-        images_list.append(filename)
+        image_list.append(filename)
 
         image = Image.open(image_file)
         # reduce image size down to 15%

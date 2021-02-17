@@ -72,6 +72,16 @@ def get_segment(request):
     except:
         return None
 
+def read_dir_imgs(img_dir):
+    """
+    Gets a directory name and recursively reads images and validates them before saving to list.
+    """
+    image_list = []
+    for img in os.listdir(img_dir):
+        if Path(img).suffix in ALLOWED_IMG_EXT:
+            image_list.append(img)
+        continue
+    return image_list
 
 @blueprint.route("/property/create", methods=["GET", "POST"])
 @login_required
@@ -81,14 +91,10 @@ def create_property():
         img_files = request.files.getlist("prop_photos")
         imgs_folder = create_img_folder(current_user.username, current_user.id)
 
-        image_list = []
         property_image_handler(img_files, imgs_folder)
-        # convert the python dictionary(img_files) to json string
-        for img in os.listdir(imgs_folder):
-            if Path(img).suffix in ALLOWED_IMG_EXT:
-                image_list.append(img)
-            continue
-        image_list_to_json = json.dumps(image_list)
+
+        img_list = read_dir_imgs(imgs_folder)
+        img_list_to_json = json.dumps(img_list)
 
         prop_info = Property(
             name=form.prop_name.data,
@@ -96,7 +102,7 @@ def create_property():
             price=form.prop_price.data,
             location=form.prop_location.data,
             image_folder=imgs_folder,
-            photos=image_list_to_json,
+            photos=img_list_to_json,
             user_id=current_user.id,
         )
 
@@ -161,12 +167,10 @@ def update_property(property_id):
     if request.method == "POST" and form.validate_on_submit():
         img_files = request.files.getlist("prop_photos")
         imgs_folder = prop_to_update.image_folder
-        image_list = [
-            imgs_folder
-        ]  # images folder is added to the list and will used to form a filepath to images
-
-        property_image_handler(img_files, image_list, imgs_folder)
-        image_list_to_json = json.dumps(image_list)
+        
+        img_list = read_dir_imgs(imgs_folder)
+        property_image_handler(img_files, imgs_folder)
+        image_list_to_json = json.dumps(img_list)
 
         prop_to_update.name = form.prop_name.data
         prop_to_update.desc = form.prop_desc.data
