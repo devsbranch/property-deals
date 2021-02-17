@@ -7,6 +7,7 @@ import shutil
 import random
 import string
 import json
+from pathlib import Path
 from datetime import datetime
 from flask import render_template, redirect, url_for, request, current_app, flash
 from flask_login import login_required, current_user
@@ -18,15 +19,14 @@ from app.base.models import Property
 from app.home import blueprint
 from app.base.image_handler import property_image_handler, save_profile_picture
 
+ALLOWED_IMG_EXT  = ['.png', '.jpg', '.jpeg']
 
-def create_img_folder(username):
+def create_img_folder(username, user_id):
     """
     Generates a random string which will be used as a folder name for storing image files
     of properties uploaded by user.
     """
-    s = string.ascii_letters
-    output_str = "".join(random.choice(s) for i in range(10))
-    property_img_folder = f"property_images/{username}-property{output_str}"
+    property_img_folder = f"property_images/{username}_{user_id}"
     os.mkdir(f"{current_app.root_path}/base/static/{property_img_folder}")
     return property_img_folder
 
@@ -79,11 +79,15 @@ def create_property():
     form = PropertyForm()
     if form.validate_on_submit():
         img_files = request.files.getlist("prop_photos")
-        imgs_folder = create_img_folder(current_user.username)
+        imgs_folder = create_img_folder(current_user.username, current_user.id)
 
-        image_list = [imgs_folder]
-        property_image_handler(img_files, image_list, imgs_folder)
+        image_list = []
+        property_image_handler(img_files, imgs_folder)
         # convert the python dictionary(img_files) to json string
+        for img in os.listdir(imgs_folder):
+            if Path(img).suffix in ALLOWED_IMG_EXT:
+                image_list.append(img)
+            continue
         image_list_to_json = json.dumps(image_list)
 
         prop_info = Property(
@@ -148,7 +152,7 @@ def account():
     )
 
 
-@blueprint.route("/update_property/<int:property_id>", methods=["GET", "POST"])
+@blueprint.route("/property/update/<int:property_id>", methods=["GET", "POST"])
 @login_required
 def update_property(property_id):
     prop_to_update = Property.query.get_or_404(property_id)
@@ -184,7 +188,7 @@ def update_property(property_id):
     return render_template("create_property.html", form=form)
 
 
-@blueprint.route("/delete_property/<int:property_id>", methods=["POST"])
+@blueprint.route("/property/delete/<int:property_id>", methods=["POST"])
 @login_required
 def delete_property(property_id):
     prop_to_delete = Property.query.get_or_404(property_id)

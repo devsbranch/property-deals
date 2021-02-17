@@ -84,7 +84,7 @@ class Property(db.Model):
     date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     price = db.Column(db.Integer, nullable=False)
     location = db.Column(db.Text(64), nullable=False)
-    image_folder = db.Column(db.Text, nullable=True)
+    image_folder = db.Column(db.Text, nullable=True) # Do we need this as a db attribute?
     photos = db.Column(db.Text)
     user_id = db.Column(db.ForeignKey("User.id"), nullable=False)
 
