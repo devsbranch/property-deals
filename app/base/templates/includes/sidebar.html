@@ -16,13 +16,11 @@
                         class="nav-item {% if 'index' in segment %} active {% endif %}">
                         <a href="/" class="nav-link "><span class="pcoded-micon"><i class="feather icon-home"></i></span><span class="pcoded-mtext">Lets Trade</span></a>
                     </li>
-                    <li class="nav-item pcoded-menu-caption">
-                        <label>Deals</label>
-                    </li>
+                   
                     <li data-username="basic components Button Alert Badges breadcrumb Paggination progress Tooltip popovers Carousel Cards Collapse Tabs pills Modal Grid System Typography Extra Shadows Embeds" class="nav-item pcoded-hasmenu">
                         <a href="javascript:" class="nav-link "><span class="pcoded-micon"><i class="feather icon-box"></i></span><span class="pcoded-mtext">Property</span></a>
                         <ul class="pcoded-submenu">
-                            <li class=""><a href="{{ url_for('home_blueprint.view_properties') }}" class="">Listings</a></li>
+                            <li class=""><a href="{{ url_for('home_blueprint.index') }}" class="">Listings</a></li>
                             <li class=""><a href="{{ url_for('home_blueprint.create_property') }}" class="">Create</a></li>
                             <li class=""><a href="#" class="">My Listings<span class="pcoded-badge label label-danger">NEW</span></a></li>
                         </ul>
@@ -39,18 +37,18 @@
                             <li class=""><a href="/ui-tabs.html" class="">Tabs & pills</a></li>
                             <li class=""><a href="/ui-typography.html" class="">Typography</a></li>
                             <li class=""><a href="/ui-icons.html" class="">icons<span class="pcoded-badge label label-danger">NEW</span></a></li>
-                                <li data-username="Sample Page" class="nav-item {% if 'page-blank' in segment %} active {% endif %}">
-                        <a href="/page-blank.html" class="nav-link">
-                            <span class="pcoded-micon"><i class="feather icon-sidebar"></i></span><span class="pcoded-mtext">Sample page</span></a></li>
-                    <li data-username="Sample Page" class="nav-item {% if 'page-403' in segment %} active {% endif %}">
-                        <a href="/page-403.html" class="nav-link">
-                            <span class="pcoded-micon"><i class="feather icon-sidebar"></i></span><span class="pcoded-mtext">Error 403</span></a></li>
-                    <li data-username="Sample Page" class="nav-item {% if 'page-404' in segment %} active {% endif %}">
-                        <a href="/page-404.html" class="nav-link">
-                            <span class="pcoded-micon"><i class="feather icon-sidebar"></i></span><span class="pcoded-mtext">Error 404</span></a></li>
-                    <li data-username="Sample Page" class="nav-item {% if 'page-500' in segment %} active {% endif %}">
-                        <a href="/page-500.html" class="nav-link">
-                            <span class="pcoded-micon"><i class="feather icon-sidebar"></i></span><span class="pcoded-mtext">Error 500</span></a></li>
+                            <li data-username="Sample Page" class="nav-item {% if 'page-blank' in segment %} active {% endif %}">
+                                <a href="/page-blank.html" class="nav-link">
+                                    <span class="pcoded-micon"><i class="feather icon-sidebar"></i></span><span class="pcoded-mtext">Sample page</span></a></li>
+                            <li data-username="Sample Page" class="nav-item {% if 'page-403' in segment %} active {% endif %}">
+                                <a href="/page-403.html" class="nav-link">
+                                    <span class="pcoded-micon"><i class="feather icon-sidebar"></i></span><span class="pcoded-mtext">Error 403</span></a></li>
+                            <li data-username="Sample Page" class="nav-item {% if 'page-404' in segment %} active {% endif %}">
+                                <a href="/page-404.html" class="nav-link">
+                                    <span class="pcoded-micon"><i class="feather icon-sidebar"></i></span><span class="pcoded-mtext">Error 404</span></a></li>
+                            <li data-username="Sample Page" class="nav-item {% if 'page-500' in segment %} active {% endif %}">
+                                <a href="/page-500.html" class="nav-link">
+                                    <span class="pcoded-micon"><i class="feather icon-sidebar"></i></span><span class="pcoded-mtext">Error 500</span></a></li>
 
 
                             <li data-username="Sample Page" class="nav-item {% if 'page-blank' in segment %} active {% endif %}">
@@ -65,21 +63,20 @@
                             <li data-username="Sample Page" class="nav-item {% if 'page-500' in segment %} active {% endif %}">
                                 <a href="/page-500.html" class="nav-link">
                                     <span class="pcoded-micon"><i class="feather icon-sidebar"></i></span><span class="pcoded-mtext">Error 500</span></a></li>
-                                    <li data-username="Charts Morris" class="nav-item {% if 'charts-morris' in segment %} active {% endif %}">
-                                        <a href="/charts-morris.html" class="nav-link ">
-                                            <span class="pcoded-micon"><i class="feather icon-pie-chart"></i></span><span class="pcoded-mtext">Chart</span></a></li>
-                                    <li data-username="Maps Google" class="nav-item {% if 'maps-google' in segment %} active {% endif %}">
-                                        <a href="/maps-google.html" class="nav-link ">
-                                            <span class="pcoded-micon"><i class="feather icon-map"></i></span><span class="pcoded-mtext">Maps</span></a></li>
-                                    <li class="nav-item pcoded-menu-caption">
-                                        <label>Pages</label>
-                                    </li>
-                                    <li data-username="Authentication Sign up Sign in reset password Change password Personal information profile settings map form subscribe" class="nav-item pcoded-hasmenu">
-                                        <a href="javascript:" class="nav-link "><span class="pcoded-micon"><i class="feather icon-lock"></i></span><span class="pcoded-mtext">Authentication</span></a>
-                                        <ul class="pcoded-submenu">
-                                            <li class=""><a href="/auth-reset-pass.html" class="">Reset Pass</a></li>
-                                            <li class=""><a href={{ url_for('base_blueprint.register') }} class="">Register</a></li>
-                
+                            <li data-username="Charts Morris" class="nav-item {% if 'charts-morris' in segment %} active {% endif %}">
+                                <a href="/charts-morris.html" class="nav-link ">
+                                    <span class="pcoded-micon"><i class="feather icon-pie-chart"></i></span><span class="pcoded-mtext">Chart</span></a></li>
+                            <li data-username="Maps Google" class="nav-item {% if 'maps-google' in segment %} active {% endif %}">
+                                <a href="/maps-google.html" class="nav-link ">
+                                    <span class="pcoded-micon"><i class="feather icon-map"></i></span><span class="pcoded-mtext">Maps</span></a></li>
+                            <li class="nav-item pcoded-menu-caption">
+                                <label>Pages</label>
+                            </li>
+                            <li data-username="Authentication Sign up Sign in reset password Change password Personal information profile settings map form subscribe" class="nav-item pcoded-hasmenu">
+                                <a href="javascript:" class="nav-link "><span class="pcoded-micon"><i class="feather icon-lock"></i></span><span class="pcoded-mtext">Authentication</span></a>
+                            <ul class="pcoded-submenu">
+                                <li class=""><a href="/auth-reset-pass.html" class="">Reset Pass</a></li>
+                                <li class=""><a href={{ url_for('base_blueprint.register') }} class="">Register</a></li>
                         </ul>
                     </li>
 

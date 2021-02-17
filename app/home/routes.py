@@ -99,23 +99,8 @@ def create_property():
         db.session.add(prop_info)
         db.session.commit()
         flash("Your Property has been listed")
-        return redirect(url_for("home_blueprint.view_properties"))
+        return redirect(url_for("home_blueprint.index"))
     return render_template("create_property.html", form=form)
-
-
-@blueprint.route("/property/list", methods=["GET", "POST"])
-def view_properties():
-    properties = Property.query.order_by(Property.date.desc())
-    # converts the json object from the db to a python dictionary
-    photos = [json.loads(p.photos) for p in properties]
-
-    return render_template(
-        "properties.html",
-        properties=properties,
-        photos_list=photos,
-        title="Properties on sale",
-    )
-
 
 @blueprint.route("/property/details/<int:property_id>")
 def details(property_id):
@@ -187,7 +172,7 @@ def update_property(property_id):
         prop_to_update.date = datetime.utcnow()
         db.session.commit()
         flash("Your Property listing has been updated", "success")
-        return redirect(url_for("home_blueprint.view_properties"))
+        return redirect(url_for("home_blueprint.index"))
 
     elif request.method == "GET":
         # prefills the forms with the attributes to the property to be updated
@@ -210,4 +195,4 @@ def delete_property(property_id):
     shutil.rmtree(image_dir)
     db.session.delete(prop_to_delete)
     db.session.commit()
-    return redirect(url_for("home_blueprint.view_properties"))
+    return redirect(url_for("home_blueprint.index"))
