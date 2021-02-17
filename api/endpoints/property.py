@@ -15,8 +15,7 @@ def get_properties():
     """
     Returns a json object of all the properties in the database.
     """
-    properties = Property.query.all()
-    return properties_schema.jsonify(properties)
+    return jsonify({"properties": Property.get_all_properties()})
 
 
 @property_endpoint.route("/api/property/<int:prop_id>", methods=["GET"])

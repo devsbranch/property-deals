@@ -2,12 +2,12 @@
 """
 Copyright (c) 2020 - DevsBranch
 """
-import json, shutil, os
+import shutil, os
 from datetime import datetime
 from flask import current_app
 from flask_login import UserMixin
 from app import db, login_manager
-from api.schema import properties_schema, property_schema, users_schema
+from api.schema import property_schema, user_schema
 
 
 class User(db.Model, UserMixin):
@@ -22,9 +22,22 @@ class User(db.Model, UserMixin):
     )
     user_prop = db.relationship("Property", backref="prop_owner", lazy=True)
 
-    @classmethod
-    def get_all_users(cls):
-        return [users_schema.dump(user) for user in cls.query.all()]
+    def to_json(self):
+        """
+        This function returns the a json representation of the object. This is useful if we want to include and
+        return data related to the instance from other database tables
+        """
+        return {
+            'id': self.id,
+            'username': self.username,
+            'email': self.email,
+            'profile_image': self.profile_image,
+            'properties_by_user': [property_schema.dump(prop) for prop in self.user_prop]
+        }
+
+    @staticmethod
+    def get_all_users():
+        return [User.to_json(user) for user in User.query.all()]
 
     @classmethod
     def get_user(cls, _user_id):
@@ -64,15 +77,6 @@ class User(db.Model, UserMixin):
         db.session.commit()
         return bool(is_successful)
 
-    def __repr__(self):
-        user_object = {
-            "id": self.id,
-            "username": self.username,
-            "email": self.email,
-            "profile_image": self.profile_image,
-        }
-        return json.dumps(user_object)
-
 
 class Property(db.Model):
 
@@ -87,10 +91,29 @@ class Property(db.Model):
     image_folder = db.Column(db.Text, nullable=True) # Do we need this as a db attribute?
     photos = db.Column(db.Text)
     user_id = db.Column(db.ForeignKey("User.id"), nullable=False)
+    owner = db.relationship('User')
+
+    def to_son(self):
+        """
+        This function returns the a json representation of the object. This is useful if we want to include and
+        return data related to the instance from other database tables
+        """
+        return {
+            "id": self.id,
+            "name": self.name,
+            "desc": self.desc,
+            "price": self.price,
+            "date": self.date,
+            "location": self.location,
+            "image_folder": self.image_folder,
+            "photos": self.photos,
+            "user_id": self.user_id,
+            "owner": user_schema.dump(self.prop_owner)
+        }
 
     @staticmethod
     def get_all_properties():
-        return [properties_schema.dump(prop) for prop in Property.query.all()]
+        return [Property.to_son(prop) for prop in Property.query.all()]
 
     @classmethod
     def get_property(cls, _prop_id):

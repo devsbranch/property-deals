@@ -54,8 +54,7 @@ def get_users():
     """
     Returns a json object of all the users in the database.
     """
-    users = User.get_all_users()
-    return jsonify(users)
+    return jsonify({"users": User.get_all_users()})
 
 
 @user_endpoint.route("/api/user/<id>", methods=["GET"])
@@ -64,7 +63,6 @@ def get_one_user(id):
     """
     Returns a json object of one user matching the id.
     """
-
     user = User.get_user(id)
     try:
         props_of_user = [property_schema.dump(prop) for prop in user.user_prop]
