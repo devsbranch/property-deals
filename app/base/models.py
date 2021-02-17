@@ -28,11 +28,13 @@ class User(db.Model, UserMixin):
         return data related to the instance from other database tables
         """
         return {
-            'id': self.id,
-            'username': self.username,
-            'email': self.email,
-            'photo': self.photo,
-            'properties_by_user': [property_schema.dump(prop) for prop in self.user_properties]
+            "id": self.id,
+            "username": self.username,
+            "email": self.email,
+            "photo": self.photo,
+            "properties_by_user": [
+                property_schema.dump(prop) for prop in self.user_properties
+            ],
         }
 
     @staticmethod
@@ -88,10 +90,12 @@ class Property(db.Model):
     date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     price = db.Column(db.Integer, nullable=False)
     location = db.Column(db.Text(64), nullable=False)
-    image_folder = db.Column(db.Text, nullable=True) # Do we need this as a db attribute?
+    image_folder = db.Column(
+        db.Text, nullable=True
+    )  # Do we need this as a db attribute?
     photos = db.Column(db.Text)
     user_id = db.Column(db.ForeignKey("User.id"), nullable=False)
-    owner = db.relationship('User')
+    owner = db.relationship("User")
 
     def to_json(self):
         """
@@ -108,7 +112,7 @@ class Property(db.Model):
             "image_folder": self.image_folder,
             "photos": self.photos,
             "user_id": self.user_id,
-            "owner": user_schema.dump(self.prop_owner)
+            "owner": user_schema.dump(self.prop_owner),
         }
 
     @staticmethod

@@ -16,9 +16,13 @@ from app import db
 from app.base.forms import PropertyForm, UpdateAccountForm
 from app.base.models import Property
 from app.home import blueprint
-from app.base.file_handler import property_image_handler, save_profile_picture, create_images_folder
+from app.base.file_handler import (
+    property_image_handler,
+    save_profile_picture,
+    create_images_folder,
+)
 
-ALLOWED_IMG_EXT = ['.png', '.jpg', '.jpeg']
+ALLOWED_IMG_EXT = [".png", ".jpg", ".jpeg"]
 
 
 @blueprint.route("/index")
@@ -27,7 +31,11 @@ def index():
     photos = [json.loads(p.photos) for p in properties]
     today = date.today()
     return render_template(
-        "index.html", segment="index", properties=properties, photos_list=photos, today=today
+        "index.html",
+        segment="index",
+        properties=properties,
+        photos_list=photos,
+        today=today,
     )
 
 
@@ -116,12 +124,14 @@ def details(property_id):
     )
 
 
-@blueprint.route('/my-listings/<int:user_id>')
+@blueprint.route("/my-listings/<int:user_id>")
 @login_required
 def user_listing(user_id):
     user_listings = Property.query.filter_by(user_id=user_id)
     photos = [json.loads(p.photos) for p in user_listings]
-    return render_template("user_properties.html", properties=user_listings, photos_list=photos)
+    return render_template(
+        "user_properties.html", properties=user_listings, photos_list=photos
+    )
 
 
 @blueprint.route("/account", methods=["GET", "POST"])
