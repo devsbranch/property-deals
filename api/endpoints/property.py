@@ -3,7 +3,7 @@ from flask import Blueprint, jsonify, request
 from marshmallow import ValidationError
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.base.models import Property
-from api.schema import property_schema, properties_schema, user_schema
+from api.schema import property_schema, user_schema
 from api.utils.file_handlers import create_images_folder, property_image_handler
 
 property_endpoint = Blueprint("property_blueprint", __name__)
@@ -15,8 +15,7 @@ def get_properties():
     """
     Returns a json object of all the properties in the database.
     """
-    properties = Property.query.all()
-    return properties_schema.jsonify(properties)
+    return jsonify({"properties": Property.get_all_properties()})
 
 
 @property_endpoint.route("/api/property/<int:prop_id>", methods=["GET"])

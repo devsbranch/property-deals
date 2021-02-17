@@ -129,7 +129,7 @@ def account():
     if form.validate_on_submit():
         if form.picture.data:
             filename = save_profile_picture(form.picture.data)
-            current_user.profile_image = filename
+            current_user.photo = filename
 
         current_user.username = form.username.data
         current_user.email = form.email.data
@@ -142,7 +142,7 @@ def account():
         form.username.data = current_user.username
         form.email.data = current_user.email
     # get the path for the profile picture of the current user
-    profile_picture = url_for("static", filename=f"{current_user.profile_image}")
+    profile_picture = url_for("static", filename=f"{current_user.photo}")
 
     property_by_user = Property.query.filter_by(user_id=current_user.id).order_by(
         Property.date.desc()
