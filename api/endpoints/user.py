@@ -87,7 +87,7 @@ def register_user():
     # A good place to start is using mailgun API for this.
     data = request.get_json()
     try:
-        verified_data = add_user_schema.load(data)
+        verified_data = user_schema.load(data)
         if User.username_exists(verified_data["username"]):
             return jsonify({"message": "Username already exist"})
         elif User.email_exists(verified_data["email"]):
@@ -122,7 +122,7 @@ def update_user(id):
         user_to_update.username = username
         user_to_update.email = email
         user_to_update.password = generate_password_hash(password)
-        user_to_update.profile_image = save_profile_picture(username, photo)
+        user_to_update.photo = save_profile_picture(username, photo)
         db.session.commit()
         return jsonify({"updated_user": data})
     except ValidationError as err:

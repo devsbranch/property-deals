@@ -2,19 +2,11 @@ from app import ma
 from marshmallow import fields, validate
 
 
-class AddUserSchema(ma.Schema):
-    id = fields.String()
-    username = fields.String(validate=validate.Length(min=5, max=50), required=True)
-    email = fields.String(validate=validate.Length(min=10, max=60), required=True)
-    password = fields.String(validate=validate.Length(min=4, max=60), required=True)
-    photo = fields.String()
-
-
 class UserSchema(ma.Schema):
     id = fields.String()
     username = fields.String(validate=validate.Length(min=5, max=50), required=True)
     email = fields.String(validate=validate.Length(min=10, max=300), required=True)
-    profile_image = fields.String(
+    photo = fields.String(
         validate=validate.Length(min=1, max=10), required=True
     )
 
@@ -33,6 +25,5 @@ class PropertySchema(ma.Schema):
 
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
-add_user_schema = AddUserSchema()
 property_schema = PropertySchema()
 properties_schema = PropertySchema(many=True)

@@ -17,7 +17,7 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String, unique=True, nullable=False)
     email = db.Column(db.String, unique=True, nullable=False)
     password = db.Column(db.String, nullable=False)
-    profile_image = db.Column(
+    photo = db.Column(
         db.String(64), nullable=True, default="/profile_pictures/default.png"
     )
     user_properties = db.relationship("Property", backref="prop_owner", lazy=True)
@@ -31,7 +31,7 @@ class User(db.Model, UserMixin):
             'id': self.id,
             'username': self.username,
             'email': self.email,
-            'profile_image': self.profile_image,
+            'photo': self.photo,
             'properties_by_user': [property_schema.dump(prop) for prop in self.user_properties]
         }
 
@@ -58,12 +58,12 @@ class User(db.Model, UserMixin):
         db.session.commit()
 
     @classmethod
-    def update_user(cls, _username, _email, _password, _profile_image):
+    def update_user(cls, _username, _email, _password, _photo):
         user_to_update = cls(
             username=_username,
             email=_email,
             password=_password,
-            profile_image=_profile_image,
+            photo=_photo,
         )
         db.session.add(user_to_update)
         db.session.commit()
