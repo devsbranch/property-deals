@@ -20,11 +20,11 @@ class User(db.Model, UserMixin):
     profile_image = db.Column(
         db.String(64), nullable=True, default="/profile_pictures/default.png"
     )
-    user_prop = db.relationship("Property", backref="prop_owner", lazy=True)
+    user_properties = db.relationship("Property", backref="prop_owner", lazy=True)
 
     def to_json(self):
         """
-        This function returns the a json representation of the object. This is useful if we want to include and
+        This function returns a json representation of the object. This is useful if we want to include and
         return data related to the instance from other database tables
         """
         return {
@@ -32,12 +32,12 @@ class User(db.Model, UserMixin):
             'username': self.username,
             'email': self.email,
             'profile_image': self.profile_image,
-            'properties_by_user': [property_schema.dump(prop) for prop in self.user_prop]
+            'properties_by_user': [property_schema.dump(prop) for prop in self.user_properties]
         }
 
     @staticmethod
     def get_all_users():
-        return [User.to_json(user) for user in User.query.all()]
+        return [user.to_json() for user in User.query.all()]
 
     @staticmethod
     def get_user(_user_id):
@@ -94,7 +94,7 @@ class Property(db.Model):
     user_id = db.Column(db.ForeignKey("User.id"), nullable=False)
     owner = db.relationship('User')
 
-    def to_son(self):
+    def to_json(self):
         """
         This function returns the a json representation of the object. This is useful if we want to include and
         return data related to the instance from other database tables
@@ -114,7 +114,7 @@ class Property(db.Model):
 
     @staticmethod
     def get_all_properties():
-        return [Property.to_son(prop) for prop in Property.query.all()]
+        return [prop.to_json() for prop in Property.query.all()]
 
     @staticmethod
     def get_property(_prop_id):

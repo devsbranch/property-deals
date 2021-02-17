@@ -17,7 +17,6 @@ class UserSchema(ma.Schema):
     profile_image = fields.String(
         validate=validate.Length(min=1, max=10), required=True
     )
-    user_prop = fields.String()
 
 
 class PropertySchema(ma.Schema):

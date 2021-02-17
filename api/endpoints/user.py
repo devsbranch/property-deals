@@ -65,12 +65,12 @@ def get_one_user(id):
     """
     user = User.get_user(id)
     try:
-        props_of_user = [property_schema.dump(prop) for prop in user.user_prop]
+        props_of_user = [property_schema.dump(prop) for prop in user.user_properties]
     except AttributeError:
         return jsonify({"message": f"The user with id {id} was not found."})
     return {
-        "user": {
-            "user_data": user_schema.dump(user),
+        "data": {
+            "user": user_schema.dump(user),
             "properties_by_user": props_of_user,
         }
     }
