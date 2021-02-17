@@ -13,7 +13,7 @@ from app.base.models import User
 
 @blueprint.route("/")
 def route_default():
-    return redirect(url_for("base_blueprint.login"))
+    return redirect(url_for("home_blueprint.index"))
 
 
 @blueprint.route("/error-<error>")
@@ -86,9 +86,7 @@ def register():
 
         # else we can create the user
         user = User(
-            username=username,
-            email=email,
-            password=generate_password_hash(password)
+            username=username, email=email, password=generate_password_hash(password)
         )
         db.session.add(user)
         db.session.commit()

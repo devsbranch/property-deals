@@ -13,10 +13,10 @@ def property_image_handler(image_files, save_to_folder):
     using the werkzeug utilities, then the filename is saved to the list of filenames in the
     dictionary object.
     """
-    images_list = [save_to_folder]
+    image_list = []
     for image_file in image_files:
         filename = secure_filename(image_file.filename)
-        images_list.append(filename)
+        image_list.append(filename)
 
         image = Image.open(image_file)
         # reduce image size down to 15%
@@ -26,7 +26,6 @@ def property_image_handler(image_files, save_to_folder):
             f"{current_app.root_path}/base/static/{save_to_folder}", filename
         )
         image.save(file_path)
-    return images_list
 
 
 def save_profile_picture(form_picture):

@@ -1,6 +1,8 @@
 {% extends 'layouts/base.html' %}
 {% block content %}
 
+<div class="col-sm-12">
+
 <div class="container-fluid">
   <div>
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -34,3 +36,5 @@
   </div>
 </div>
 {% endblock content %}
+
+{% block javascript %}  {% endblock  javascript %}

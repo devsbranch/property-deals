@@ -17,8 +17,9 @@ migrate = Migrate()
 login_manager = LoginManager()
 jwt = JWTManager()
 
-from api.endpoints.user import user_endpoint
-from api.endpoints.property import property_endpoint
+# importing from base module __init__
+from api.endpoints import user_endpoint
+from api.endpoints import property_endpoint
 
 
 def register_extensions(app):

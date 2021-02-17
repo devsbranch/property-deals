@@ -10,6 +10,7 @@ property_endpoint = Blueprint("property_blueprint", __name__)
 
 
 @property_endpoint.route("/api/property/list")
+@jwt_required
 def get_properties():
     """
     Returns a json object of all the properties in the database.
@@ -18,6 +19,7 @@ def get_properties():
 
 
 @property_endpoint.route("/api/property/<int:prop_id>", methods=["GET"])
+@jwt_required
 def get_one_property(prop_id):
     """
     Returns a json object of one property matching the ID.
@@ -33,7 +35,7 @@ def get_one_property(prop_id):
     }
 
 
-@property_endpoint.route("/api/property/add", methods=["POST"])
+@property_endpoint.route("/api/property/create", methods=["POST"])
 @jwt_required
 def add_property():
     """
