@@ -6,6 +6,7 @@ import os
 import shutil
 import json
 from pathlib import Path
+from datetime import date
 from datetime import datetime
 from flask import render_template, redirect, url_for, request, current_app, flash
 from flask_login import login_required, current_user
@@ -61,16 +62,19 @@ def get_segment(request):
     except:
         return None
 
+
 def read_dir_imgs(img_dir):
     """
     Gets a directory name and recursively reads images and validates them before saving to list.
     """
-    image_list = []
-    for img in os.listdir(img_dir):
+    path = f"{current_app.root_path}/base/static/{img_dir}"
+    image_list = [img_dir]
+    for img in os.listdir(path):
         if Path(img).suffix in ALLOWED_IMG_EXT:
             image_list.append(img)
         continue
     return image_list
+
 
 @blueprint.route("/property/create", methods=["GET", "POST"])
 @login_required
@@ -80,7 +84,7 @@ def create_property():
         img_files = request.files.getlist("prop_photos")
         imgs_folder = create_images_folder(current_user.username)
 
-        property_image_handler(img_files, imgs_folder)
+        property_image_handler(current_user.username, img_files, imgs_folder)
 
         img_list = read_dir_imgs(imgs_folder)
         img_list_to_json = json.dumps(img_list)
@@ -101,6 +105,7 @@ def create_property():
         return redirect(url_for("home_blueprint.index"))
     return render_template("create_property.html", form=form)
 
+
 @blueprint.route("/property/details/<int:property_id>")
 def details(property_id):
     prop_data = Property.query.get_or_404(property_id)
@@ -109,6 +114,14 @@ def details(property_id):
     return render_template(
         "property_details.html", prop_data=prop_data, photos_list=photos
     )
+
+
+@blueprint.route('/my-listings/<int:user_id>')
+@login_required
+def user_listing(user_id):
+    user_listings = Property.query.filter_by(user_id=user_id)
+    photos = [json.loads(p.photos) for p in user_listings]
+    return render_template("user_properties.html", properties=user_listings, photos_list=photos)
 
 
 @blueprint.route("/account", methods=["GET", "POST"])
