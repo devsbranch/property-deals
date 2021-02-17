@@ -69,8 +69,8 @@ def add_property():
 
         return jsonify({"created": property_schema.dump(data)})
 
-    except ValidationError as err:  # Returns an error if a required field is missing
-        return jsonify({"error": err.messages})
+    except ValidationError as err:  # Returns an errors if a required field is missing
+        return jsonify({"errors": err.messages})
 
 
 @property_endpoint.route("/api/property/update/<int:prop_id>", methods=["PUT"])

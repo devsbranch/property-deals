@@ -57,7 +57,7 @@ class UpdateAccountForm(FlaskForm):
         different than the current_user username and email address.
         """
         if username.data != current_user.username:
-            """ Will raise a validation error if the username submitted from the form already exists in the database """
+            """ Will raise a validation errors if the username submitted from the form already exists in the database """
             user = User.query.filter_by(username=username.data).first()
             if user:
                 raise ValidationError(
@@ -65,7 +65,7 @@ class UpdateAccountForm(FlaskForm):
                 )
 
     def validate_email(self, email):
-        """ Will raise a validation error if the email submitted from the form already exists in the database """
+        """ Will raise a validation errors if the email submitted from the form already exists in the database """
         if email.data != current_user.email:
             user = User.query.filter_by(email=email.data).first()
             if user:

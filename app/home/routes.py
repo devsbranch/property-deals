@@ -4,8 +4,6 @@ Copyright (c) 2020 - DevsBranch
 """
 import os
 import shutil
-import random
-import string
 import json
 from pathlib import Path
 from datetime import datetime
@@ -17,27 +15,18 @@ from app import db
 from app.base.forms import PropertyForm, UpdateAccountForm
 from app.base.models import Property
 from app.home import blueprint
-from app.base.image_handler import property_image_handler, save_profile_picture
+from app.base.file_handler import property_image_handler, save_profile_picture, create_images_folder
 
-ALLOWED_IMG_EXT  = ['.png', '.jpg', '.jpeg']
-
-def create_img_folder(username, user_id):
-    """
-    Generates a random string which will be used as a folder name for storing image files
-    of properties uploaded by user.
-    """
-    property_img_folder = f"property_images/{username}_{user_id}"
-    os.mkdir(f"{current_app.root_path}/base/static/{property_img_folder}")
-    return property_img_folder
+ALLOWED_IMG_EXT = ['.png', '.jpg', '.jpeg']
 
 
 @blueprint.route("/index")
 def index():
     properties = Property.query.order_by(Property.date.desc())
     photos = [json.loads(p.photos) for p in properties]
-
+    today = date.today()
     return render_template(
-        "index.html", segment="index", properties=properties, photos_list=photos
+        "index.html", segment="index", properties=properties, photos_list=photos, today=today
     )
 
 
@@ -89,7 +78,7 @@ def create_property():
     form = PropertyForm()
     if form.validate_on_submit():
         img_files = request.files.getlist("prop_photos")
-        imgs_folder = create_img_folder(current_user.username, current_user.id)
+        imgs_folder = create_images_folder(current_user.username)
 
         property_image_handler(img_files, imgs_folder)
 
@@ -167,7 +156,7 @@ def update_property(property_id):
     if request.method == "POST" and form.validate_on_submit():
         img_files = request.files.getlist("prop_photos")
         imgs_folder = prop_to_update.image_folder
-        
+
         img_list = read_dir_imgs(imgs_folder)
         property_image_handler(img_files, imgs_folder)
         image_list_to_json = json.dumps(img_list)

@@ -22,7 +22,9 @@
                         <ul class="pcoded-submenu">
                             <li class=""><a href="{{ url_for('home_blueprint.index') }}" class="">Listings</a></li>
                             <li class=""><a href="{{ url_for('home_blueprint.create_property') }}" class="">Create</a></li>
-                            <li class=""><a href="#" class="">My Listings<span class="pcoded-badge label label-danger">NEW</span></a></li>
+                            {% if current_user.is_authenticated %}
+                                <li class=""><a href="{{ url_for('home_blueprint.user_listing', user_id=current_user.id) }}"  class="">My Listings<span class="pcoded-badge label label-danger">NEW</span></a></li>
+                            {% endif %}
                         </ul>
                     </li>
 
@@ -107,9 +109,15 @@
                     </li>
                 
                     <li data-username="Disabled Menu" class="nav-item">
-                        <a href={{ url_for('base_blueprint.logout') }} class="nav-link">
-                            <span class="pcoded-micon"><i class="feather icon-power"></i></span><span class="pcoded-mtext">Logout [ {{ current_user.username }} ]</span>
-                        </a>
+                        {% if current_user.is_authenticated %}
+                            <a href="{{ url_for('base_blueprint.logout') }}" class="nav-link">
+                                <span class="pcoded-micon"><i class="feather icon-power"></i></span><span class="pcoded-mtext">Logout [ {{ current_user.username }} ]</span>
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('base_blueprint.login') }}" class="nav-link">
+                                <span class="pcoded-micon"><i class="feather icon-power"></i></span><span class="pcoded-mtext">Login</span>
+                            </a>
+                        {% endif %}
                     </li>
                 </ul>
             </div>

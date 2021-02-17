@@ -16,7 +16,7 @@ def route_default():
     return redirect(url_for("home_blueprint.index"))
 
 
-@blueprint.route("/error-<error>")
+@blueprint.route("/errors-<errors>")
 def route_errors(error):
     return render_template("errors/{}.html".format(error))
 
@@ -122,7 +122,7 @@ def shutdown():
 
 @login_manager.unauthorized_handler
 def unauthorized_handler():
-    return render_template("errors/403.html"), 403
+    return render_template("errors/page-403.html"), 403
 
 
 @blueprint.errorhandler(403)

@@ -1,4 +1,12 @@
 {% extends 'layouts/base.html' %}
+{% block scripts %}
+    <script src="{{url_for('static', filename='assets/js/tab_gallery.js')}}"></script>
+{% endblock %}
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{url_for('static', filename='assets/js/tab_gallery.css')}}">
+{% endblock stylesheets %}
+
 {% block content %}
 <div class="container-fluid">
   <div class="row">
@@ -17,14 +25,17 @@
         </div>
         <br>
 
-        <div class="row">
+        <div class="row" id="gallery">
            {% for photo in photos_list[1:] %}
             <div class="col-3 col-sm-3" style="width: 50%;">
-                <img class="card-img-top mb-3" src="{{ url_for('static', filename='/'+ prop_data.image_folder+ '/'+ photo) }}" alt="Card image cap">
+                <img class="card-img-top mb-3"
+                     src="{{ url_for('static', filename='/'+ prop_data.image_folder+ '/'+ photo) }}"
+                     alt="Card image cap">
             </div>
-         {% endfor %}
+           {% endfor %}
+          </div>
         </div>
-      </div>
+
         {# {% for page_num in posts.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=5) %}#}
         {#   {% if page_num %}#}
         {#     {% if posts.page == page_num %}#}
