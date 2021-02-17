@@ -17,27 +17,27 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String, unique=True, nullable=False)
     email = db.Column(db.String, unique=True, nullable=False)
     password = db.Column(db.String, nullable=False)
-    profile_image = db.Column(
+    photo = db.Column(
         db.String(64), nullable=True, default="/profile_pictures/default.png"
     )
-    user_prop = db.relationship("Property", backref="prop_owner", lazy=True)
+    user_properties = db.relationship("Property", backref="prop_owner", lazy=True)
 
     def to_json(self):
         """
-        This function returns the a json representation of the object. This is useful if we want to include and
+        This function returns a json representation of the object. This is useful if we want to include and
         return data related to the instance from other database tables
         """
         return {
             'id': self.id,
             'username': self.username,
             'email': self.email,
-            'profile_image': self.profile_image,
-            'properties_by_user': [property_schema.dump(prop) for prop in self.user_prop]
+            'photo': self.photo,
+            'properties_by_user': [property_schema.dump(prop) for prop in self.user_properties]
         }
 
     @staticmethod
     def get_all_users():
-        return [User.to_json(user) for user in User.query.all()]
+        return [user.to_json() for user in User.query.all()]
 
     @classmethod
     def get_user(cls, _user_id):
@@ -58,12 +58,12 @@ class User(db.Model, UserMixin):
         db.session.commit()
 
     @classmethod
-    def update_user(cls, _username, _email, _password, _profile_image):
+    def update_user(cls, _username, _email, _password, _photo):
         user_to_update = cls(
             username=_username,
             email=_email,
             password=_password,
-            profile_image=_profile_image,
+            photo=_photo,
         )
         db.session.add(user_to_update)
         db.session.commit()
@@ -93,7 +93,7 @@ class Property(db.Model):
     user_id = db.Column(db.ForeignKey("User.id"), nullable=False)
     owner = db.relationship('User')
 
-    def to_son(self):
+    def to_json(self):
         """
         This function returns the a json representation of the object. This is useful if we want to include and
         return data related to the instance from other database tables
@@ -113,7 +113,7 @@ class Property(db.Model):
 
     @staticmethod
     def get_all_properties():
-        return [Property.to_son(prop) for prop in Property.query.all()]
+        return [prop.to_json() for prop in Property.query.all()]
 
     @classmethod
     def get_property(cls, _prop_id):
