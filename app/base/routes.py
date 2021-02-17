@@ -132,7 +132,7 @@ def access_forbidden(error):
 
 @blueprint.errorhandler(404)
 def not_found_error(error):
-    return render_template("page-404.html"), 404
+    return render_template("erros/404.html"), 404
 
 
 @blueprint.errorhandler(500)
