@@ -5,7 +5,7 @@ from flask_jwt_extended import jwt_required, get_raw_jwt
 from app import db
 from app.base.models import User
 from api.utils import token_utils
-from api.schema import user_schema, property_schema, add_user_schema
+from api.schema import user_schema, property_schema
 from api.utils.file_handlers import save_profile_picture
 from api.utils.token_utils import save_revoked_token
 
@@ -110,7 +110,7 @@ def update_user(id):
     user_to_update = User.get_user(id)
     data = request.form
     try:
-        verified_data = add_user_schema.load(data)
+        verified_data = user_schema.load(data)
         username = verified_data["username"]
         email = verified_data["email"]
         password = verified_data["password"]
