@@ -97,4 +97,4 @@ class PropertyForm(FlaskForm):
     prop_location = StringField(
         "Property location", validators=[DataRequired(), Length(min=5, max=50)]
     )
-    submit = SubmitField("Sale Property")
+    submit = SubmitField("Create")
