@@ -1,3 +1,11 @@
+{% block scripts %}
+    <script src="{{url_for('static', filename='assets/js/lightbox-plus-jquery.min.js')}}"></script>
+{% endblock %}
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{url_for('static', filename='assets/css/lightbox.min.css')}}">
+{% endblock stylesheets %}
+
     <div class="pcoded-content">
         <div class="pcoded-inner-content">
             <div class="main-body">
@@ -15,7 +23,9 @@
                             <div class="col-md-4">
                             {% for photo_list in photos_list %}
                                 {% if photo_list[0] == property.image_folder %}
-                                    <img class="card-img-top property-image mr-5" src="{{url_for('static', filename=property.image_folder+ '/' + photo_list[1])}}" alt="" style="width: 150px; height: 100px; object-fit: cover;">
+                                <a class="example-image-link" href="{{url_for('static', filename=property.image_folder+ '/' + photo_list[1])}}" data-lightbox="example-2" data-title="Optional caption.">
+                                  <img class="example-image img-thumbnail" src="{{url_for('static', filename=property.image_folder+ '/' + photo_list[1])}}" alt="image-1"/>
+                                </a>
                                 {% endif %}
                             {% endfor %}
                             </div>
