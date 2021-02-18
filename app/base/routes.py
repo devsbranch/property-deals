@@ -122,7 +122,7 @@ def shutdown():
 
 @login_manager.unauthorized_handler
 def unauthorized_handler():
-    return render_template("errors/page-403.html"), 403
+    return render_template("errors/403.html"), 403
 
 
 @blueprint.errorhandler(403)

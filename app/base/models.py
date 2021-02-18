@@ -32,7 +32,7 @@ class User(db.Model, UserMixin):
             "username": self.username,
             "email": self.email,
             "photo": self.photo,
-            "properties_by_user": [
+            "user_properties": [
                 property_schema.dump(prop) for prop in self.user_properties
             ],
         }
