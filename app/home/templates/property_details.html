@@ -10,14 +10,10 @@
 {% block content %}
 <div class="container-fluid">
   <div class="row">
-    <div class="col">
+    <div class="col-8">
       <div class="card m-3">
-        <div class="card-body text-center">
+        <div class="card-body text-left">
           <h2>{{ prop_data.name }}</h2>
-          <p>{{ prop_data.desc }}</p>
-          <h5 class="card-text">K{{ prop_data.price }}</h5>
-          <h5 class="card-text">{{ prop_data.location }}</h5>
-          <h6 class="card-text">Date Posted - {{ prop_data.date.strftime("%m/%d/%Y") }} at {{ prop_data.date.strftime("%H:%M:%S") }}</h6>
           {% if prop_data.user_id == current_user.id %}
             <a  class="btn btn-secondary" href="{{ url_for('home_blueprint.update_property', property_id=prop_data.id) }}">Update Property</a>
             <button type="button" class="btn btn-danger btn-sm m-1" data-toggle="modal" data-target="#deleteModal">Delete Property</button>
@@ -37,20 +33,29 @@
            {% endfor %}
           </div>
         </div>
+    </div>
 
-        {# {% for page_num in posts.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=5) %}#}
-        {#   {% if page_num %}#}
-        {#     {% if posts.page == page_num %}#}
-        {#       <a class="btn btn-outline-info mb-4 disabled" href="{{ url_for('home', page=page_num) }}">{{ page_num }}</a>#}
-        {#     {% else %}
-        {#       <a class="btn btn-info mb-4 " href="{{ url_for('home', page=page_num) }}">{{ page_num }}</a>#}
-        {#     {% endif %}#}
-        {#   {% else %}#}
-        {#   {% endif %}#}
-        {# {% endfor %}#}
+  <!--Property Details-->
+    <div class="col mt-3">
+      <div class="card" style="width: 18rem;">
+        <div class="card-body">
+          <h5 class="card-title">Posted by:  {{prop_data.prop_owner.username}}</h5>
+          <p class="card-text">{{prop_data.desc}}</p>
+        </div>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item">K{{prop_data.price}}</li>
+          <li class="list-group-item">{{prop_data.location}}</li>
+          <li class="list-group-item">Date Posted - {{ prop_data.date.strftime("%m/%d/%Y") }} at {{ prop_data.date.strftime("%H:%M:%S") }}</li>
+        </ul>
+        <div class="card-body">
+          <a href="#" class="card-link btn btn-primary"><h5 class="text-light font-weight-bold">Contact Seller</h5></a>
+        </div>
+      </div>
     </div>
   </div>
 </div>
+
+
 
 <!-- Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
