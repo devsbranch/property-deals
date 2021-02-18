@@ -132,7 +132,7 @@ def user_listing(user_id):
     user_listings = Property.query.filter_by(user_id=user_id)
     photos = [json.loads(p.photos) for p in user_listings]
     return render_template(
-        "user_properties.html", properties=user_listings, photos_list=photos
+        "my_properties.html", properties=user_listings, photos_list=photos
     )
 
 
