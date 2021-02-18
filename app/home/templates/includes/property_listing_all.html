@@ -19,7 +19,7 @@
                         <!-- Property Card-->
                         {% for property in properties.items %}
                         <div class="card shadow p-1 mb-1 bg-white rounded border" style="max-width: 540px;">
-                          <div class="row g-0">
+                          <div class="row">
                             <div class="col-md-4">
                             {% for photo_list in photos_list %}
                                 {% if photo_list[0] == property.image_folder %}
@@ -30,7 +30,7 @@
                             {% endfor %}
                             </div>
                             <div class="col-md-8">
-                              <div class="card-body">
+                              <div class="card-body p-0">
                                   <a href="{{url_for('home_blueprint.details', property_id=property.id)}}">
                                       <h5 class="card-title font-weight-bold text-primary">{{property.name}}</h5>
                                   </a>
@@ -43,7 +43,7 @@
                         {% endfor %}
                       </div>
                     </div>
-                  </div>
+                </div>
 
 <!--                  Pagination-->
                 <div class="container m-4">
