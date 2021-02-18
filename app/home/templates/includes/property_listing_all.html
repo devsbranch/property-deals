@@ -34,7 +34,7 @@
                                   <a href="{{url_for('home_blueprint.details', property_id=property.id)}}">
                                       <h5 class="card-title font-weight-bold text-primary">{{property.name}}</h5>
                                   </a>
-                                <p class="card-text">{{property.desc}} </p>
+                                <p class="card-text">{{property.desc[:45]}} ... </p>
                                 <p class="card-text"><small class="font-weight-bold">K{{property.price}} | Location: {{property.location}} | Date posted: {{ property.date.strftime("%m/%d/%Y") }}</small></p>
                               </div>
                             </div>
