@@ -19,7 +19,7 @@
                                 {% for photo_list in photos_list %}
                                     {% if photo_list[0] == property.image_folder %}
                                     <div class="property-image">
-                                        <img src="{{url_for('static', filename=property.image_folder+ '/' + photo_list[1])}}" class="card-img-top" alt="">
+                                        <img src="{{url_for('static', filename=property.image_folder+ '/' + photo_list[1])}}" class="card-img-top" alt="" style="height: 120px; width: 260px; object-fit: contain;">
                                     </div>
                                     {% endif %}
                                 {% endfor %}

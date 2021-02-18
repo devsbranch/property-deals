@@ -4,7 +4,7 @@
 {% endblock %}
 <!-- Specific CSS goes HERE -->
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{url_for('static', filename='assets/js/tab_gallery.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='assets/dist/css/lightbox.min.css')}}">
 {% endblock stylesheets %}
 
 {% block content %}
@@ -28,9 +28,11 @@
         <div class="row" id="gallery">
            {% for photo in photos_list[1:] %}
             <div class="col-3 col-sm-3" style="width: 50%;">
-                <img class="card-img-top mb-3"
+              <a class="example-image-link" href="{{ url_for('static', filename='/'+ prop_data.image_folder+ '/'+ photo) }}" data-lightbox="example-set">
+                <img class="card-img-top example-image"
                      src="{{ url_for('static', filename='/'+ prop_data.image_folder+ '/'+ photo) }}"
                      alt="Card image cap">
+              </a>
             </div>
            {% endfor %}
           </div>
@@ -73,3 +75,7 @@
   </div>
 </div>
 {% endblock content %}
+
+{% block javascripts %}
+  <script src="{{url_for('static', filename='assets/dist/js/lightbox-plus-jquery.min.js')}}"></script>
+{% endblock javascripts %}
