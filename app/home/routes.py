@@ -183,7 +183,7 @@ def update_property(property_id):
         imgs_folder = prop_to_update.image_folder
 
         img_list = read_dir_imgs(imgs_folder)
-        property_image_handler(img_files, imgs_folder)
+        property_image_handler(current_user.username, img_files, imgs_folder)
         image_list_to_json = json.dumps(img_list)
 
         prop_to_update.name = form.prop_name.data

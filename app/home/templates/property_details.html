@@ -1,16 +1,16 @@
 {% extends 'layouts/base.html' %}
 {% block scripts %}
-    <script src="{{url_for('static', filename='assets/js/tab_gallery.js')}}"></script>
+    <script src="{{url_for('static', filename='assets/js/lightbox-plus-jquery.min.js')}}"></script>
 {% endblock %}
 <!-- Specific CSS goes HERE -->
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{url_for('static', filename='assets/dist/css/lightbox.min.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='assets/css/lightbox.min.css')}}">
 {% endblock stylesheets %}
 
 {% block content %}
 <div class="container-fluid">
   <div class="row">
-    <div class="col-8">
+    <div class="col-sm-8">
       <div class="card m-3">
         <div class="card-body text-left">
           <h3 class="text-left font-weight-bold">{{ prop_data.name }}</h3>
@@ -21,23 +21,25 @@
           {% endif %}
         </div>
         <br>
-
-        <div class="row" id="gallery">
-           {% for photo in photos_list[1:] %}
-            <div class="col-3 col-sm-3" style="width: 50%;">
-              <a class="example-image-link" href="{{ url_for('static', filename='/'+ prop_data.image_folder+ '/'+ photo) }}" data-lightbox="example-set">
-                <img class="card-img-top example-image mb-1 ml-0"
-                     src="{{ url_for('static', filename='/'+ prop_data.image_folder+ '/'+ photo) }}"
-                     alt="Card image cap">
-              </a>
+        <div class="container-fluid">
+          <div class="row">
+            {% for photo in photos_list[1:] %}
+              <div class="col- m-1 px-0">
+                <a class="example-image-link" href="{{ url_for('static', filename='/'+ prop_data.image_folder+ '/'+ photo) }}" data-lightbox="example-set">
+                  <img class="img-thumbnail example-image"
+                       src="{{ url_for('static', filename='/'+ prop_data.image_folder+ '/'+ photo) }}"
+                       alt="Card image cap"
+                       style="width: 150px; height: 100px;">
+                </a>
+              </div>
+             {% endfor %}
             </div>
-           {% endfor %}
           </div>
         </div>
     </div>
 
   <!--Property Details-->
-    <div class="col mt-3">
+    <div class="col-sm-3 mt-3 justify-content-center">
       <div class="card" style="width: 18rem;">
         <div class="card-body">
           <h5 class="card-title">Posted by:  {{prop_data.prop_owner.username}}</h5>
