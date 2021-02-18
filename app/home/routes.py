@@ -27,13 +27,15 @@ ALLOWED_IMG_EXT = [".png", ".jpg", ".jpeg"]
 
 @blueprint.route("/index")
 def index():
-    properties = Property.query.order_by(Property.date.desc())
-    photos = [json.loads(p.photos) for p in properties]
+    page = request.args.get('page', 1, type=int)
+    property_photos = Property.query.order_by(Property.date.desc())
+    photos = [json.loads(p.photos) for p in property_photos]
+    paginate_properties = Property.query.paginate(page=page, per_page=5)
     today = date.today()
     return render_template(
         "index.html",
         segment="index",
-        properties=properties,
+        properties=paginate_properties,
         photos_list=photos,
         today=today,
     )

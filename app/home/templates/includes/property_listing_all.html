@@ -9,7 +9,7 @@
                         <!-- [ Breadcrumbs & Pagination ] start -->
 
                         <!-- Property Card-->
-                        {% for property in properties %}
+                        {% for property in properties.items %}
                         <div class="card shadow p-1 mb-1 bg-white rounded border" style="max-width: 540px;">
                           <div class="row g-0">
                             <div class="col-md-4">
@@ -30,12 +30,25 @@
                             </div>
                           </div>
                         </div>
-                        `{% endfor %}
-                    
-                        </div>
+                        {% endfor %}
+                      </div>
                     </div>
-                    <!-- [ Main Content ] end -->
+                  </div>
+
+<!--                  Pagination-->
+                <div class="container m-4">
+                  {% for page_num in properties.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=5) %}
+                    {% if page_num %}
+                        {% if properties.page == page_num %}
+                          <a class="btn btn-outline-info mb-4 disabled" href="{{ url_for('home_blueprint.index', page=page_num) }}">{{ page_num }}</a>
+                        {% else %}
+                          <a class="btn btn-info mb-4 " href="{{ url_for('home_blueprint.index', page=page_num) }}">{{ page_num }}</a>
+                        {% endif %}
+                    {% else %}
+                    {% endif %}
+                  {% endfor %}
                 </div>
+<!--                     [ Main Content ] end-->
             </div>
         </div>
     </div>

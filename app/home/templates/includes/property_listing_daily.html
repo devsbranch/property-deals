@@ -9,7 +9,7 @@
                     <div class="row">
                         <!-- [ Breadcrumbs & Pagination ] start -->
                         
-                    {% for property in properties %}
+                    {% for property in properties.items %}
                         {% if today.strftime("%m/%d/%Y") == property.date.strftime("%m/%d/%Y") %}
                         <div class="col-sm-4">
                             <div class="card">
@@ -48,6 +48,18 @@
                     {% endfor %}
                     
                         </div>
+                    </div>
+                    <div class="container m-4">
+                      {% for page_num in properties.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=5) %}
+                        {% if page_num %}
+                            {% if properties.page == page_num %}
+                              <a class="btn btn-outline-info mb-4 disabled" href="{{ url_for('home_blueprint.index', page=page_num) }}">{{ page_num }}</a>
+                            {% else %}
+                              <a class="btn btn-info mb-4 " href="{{ url_for('home_blueprint.index', page=page_num) }}">{{ page_num }}</a>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                      {% endfor %}
                     </div>
                     <!-- [ Main Content ] end -->
                 </div>
