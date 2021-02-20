@@ -10,13 +10,9 @@ from wtforms import (
     TextAreaField,
     SubmitField,
     FileField,
+    IntegerField,
 )
-from wtforms.validators import (
-    Email,
-    DataRequired,
-    Length,
-    ValidationError,
-)
+from wtforms.validators import Email, DataRequired, Length, ValidationError, EqualTo
 from flask_wtf.file import FileAllowed
 from wtforms.fields import MultipleFileField
 from flask_login import current_user
@@ -30,13 +26,43 @@ class LoginForm(FlaskForm):
 
 
 class CreateAccountForm(FlaskForm):
+    first_name = StringField(
+        "First name", validators=[DataRequired(), Length(min=2, max=20)]
+    )
+    last_name = StringField(
+        "Last Name", validators=[DataRequired(), Length(min=2, max=20)]
+    )
+    other_name = StringField("Other Name", validators=[Length(min=2, max=30)])
+    address_1 = StringField(
+        "Address 1", validators=[DataRequired(), Length(min=5, max=100)]
+    )
+    address_2 = StringField(
+        "Address 2", validators=[DataRequired(), Length(min=5, max=100)]
+    )
+    city = StringField("City", validators=[DataRequired(), Length(min=2, max=30)])
+    state = StringField(
+        "State/Province", validators=[DataRequired(), Length(min=2, max=30)]
+    )
+    postal_code = StringField(
+        "Postal Code", validators=[DataRequired(), Length(min=2, max=30)]
+    )
+    phone_number = IntegerField(
+        "Phone Number", validators=[DataRequired(), Length(min=10, max=10)]
+    )
     username = StringField(
-        "Username", id="username_create", validators=[DataRequired()]
+        "Username", validators=[DataRequired(), Length(min=4, max=20)]
     )
     email = StringField(
-        "Email", id="email_create", validators=[DataRequired(), Email()]
+        "Email", validators=[DataRequired(), Email(), Length(min=5, max=60)]
     )
-    password = PasswordField("Password", id="pwd_create", validators=[DataRequired()])
+    password = PasswordField(
+        "Password", validators=[DataRequired(), Length(min=6, max=60)]
+    )
+    confirm_password = PasswordField(
+        "Confirm Password",
+        validators=[DataRequired(), Length(min=6, max=60), EqualTo("confirm_password")],
+    )
+    submit = SubmitField("Sign Up")
 
 
 class UpdateAccountForm(FlaskForm):
@@ -57,7 +83,7 @@ class UpdateAccountForm(FlaskForm):
         different than the current_user username and email address.
         """
         if username.data != current_user.username:
-            """ Will raise a validation error if the username submitted from the form already exists in the database """
+            """ Will raise a validation errors if the username submitted from the form already exists in the database """
             user = User.query.filter_by(username=username.data).first()
             if user:
                 raise ValidationError(
@@ -65,7 +91,7 @@ class UpdateAccountForm(FlaskForm):
                 )
 
     def validate_email(self, email):
-        """ Will raise a validation error if the email submitted from the form already exists in the database """
+        """ Will raise a validation errors if the email submitted from the form already exists in the database """
         if email.data != current_user.email:
             user = User.query.filter_by(email=email.data).first()
             if user:
@@ -97,4 +123,4 @@ class PropertyForm(FlaskForm):
     prop_location = StringField(
         "Property location", validators=[DataRequired(), Length(min=5, max=50)]
     )
-    submit = SubmitField("Sale Property")
+    submit = SubmitField("Create")

@@ -16,7 +16,7 @@ def route_default():
     return redirect(url_for("home_blueprint.index"))
 
 
-@blueprint.route("/error-<error>")
+@blueprint.route("/errors-<errors>")
 def route_errors(error):
     return render_template("errors/{}.html".format(error))
 

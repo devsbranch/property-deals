@@ -9,37 +9,50 @@
                     <div class="row">
                         <!-- [ Breadcrumbs & Pagination ] start -->
                         
-                    {% for property in properties %}
-                        <div class="col-sm-4">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5>{{property.name|title}}</h5>
+                      {% for property in properties.items %}
+                        {% if today.strftime("%m/%d/%Y") == property.date.strftime("%m/%d/%Y") %}
+                        <div class="container-fluid">
+                          <div class="card shadow p-1 mb-1 bg-white rounded border" style="max-width: 650px;">
+                            <div class="row">
+                              <div class="col-md-4">
+                              </div>
+                              <div class="col-md-8">
+                                <div class="card-body p-0">
+                                  <div class="container">
+                                    <div class="row">
+                                      <div class="col-sm-8 px-0 m-1">
+                                        <a href="{{url_for('home_blueprint.details', property_id=property.id)}}">
+                                          <h4 class="card-title font-weight-bold text-primary">{{property.name}}</h4>
+                                        </a>
+                                      </div>
+                                      {% if current_user.is_authenticated %}
+                                      <div class="col-sm-3 px-0 ml-4 mt-1">
+                                          <button class="btn btn-info btn-sm dropdown-toggle p-1" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</button>
+                                          <div class="dropdown-menu">
+                                              <a class="dropdown-item" href="#!">Update</a>
+                                              <a class="dropdown-item" href="#!">Delete</a>
+                                          </div>
+                                      </div>
+                                      {% else %}
+                                      <div class="col-sm-3 px-0 ml-2 mt-1">
+                                        <button type="button" class="btn btn-square btn-info btn-sm p-1">Contact Owner</button>
+                                      </div>
+                                      {% endif %}
+                                    </div>
+                                  </div>
+                                  <p class="card-text">{{property.desc[:45]}} ... </p>
+                                  <p class="card-text"><small class="font-weight-bold">K{{property.price}} | Location: {{property.location}} | Date posted: {{ property.date.strftime("%m/%d/%Y") }}</small></p>
                                 </div>
-                                <div class="card-body">
-                                    <nav aria-label="breadcrumb">
-                                        <ol class="breadcrumb">
-                                            <li class="breadcrumb-item active" aria-current="page"><i class="feather icon-home"></i> Location {{ property.location }}</li>
-                                        </ol>
-                                    </nav>
-
-                                    <nav aria-label="breadcrumb">
-                                        <ol class="breadcrumb">
-                                            <li class="breadcrumb-item active" aria-current="page"><i class="feather icon-home"></i> Price {{  property.price }}</li>
-                                        </ol>
-                                    </nav>
-
-                                    <nav aria-label="breadcrumb">
-                                        <ol class="breadcrumb">
-                                            <li class="breadcrumb-item"><a href="#!"><i class="feather icon-home"></i></a>Posted {{ property.date.strftime("%m/%d/%Y") }} at {{ property.date.strftime("%H:%M:%S")  }}</li>
-                                        </ol>
-                                    </nav>
-                                </div>
+                              </div>
                             </div>
+                          </div>
                         </div>
-                    {% endfor %}
+                        {% endif %}
+                      {% endfor %}
                     
                         </div>
                     </div>
+                    {% include "includes/pagination.html" %}
                     <!-- [ Main Content ] end -->
                 </div>
             </div>
