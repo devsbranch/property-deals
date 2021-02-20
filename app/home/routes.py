@@ -55,7 +55,7 @@ def route_template(template):
         return render_template(template, segment=segment)
 
     except TemplateNotFound:
-        return render_template("page-404.html"), 404
+        return render_template("404.html"), 404
 
 
 # Helper - Extract current page name from request
@@ -108,6 +108,15 @@ def create_property():
             photos=img_list_to_json,
             user_id=current_user.id,
         )
+        # data = {
+        #     "name": form.prop_name.data,
+        #     "desc": form.prop_desc.data,
+        #     "price": form.prop_price.data,
+        #     "location": form.prop_location.data,
+        #     "image_folder": imgs_folder,
+        #     "photos": img_list_to_json,
+        #     "user_id": current_user.id
+        # }
 
         db.session.add(prop_info)
         db.session.commit()
