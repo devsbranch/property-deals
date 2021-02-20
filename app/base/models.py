@@ -14,12 +14,21 @@ class User(db.Model, UserMixin):
     __tablename__ = "User"
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String, unique=True, nullable=False)
-    email = db.Column(db.String, unique=True, nullable=False)
-    password = db.Column(db.String, nullable=False)
+    first_name = db.Column(db.String, nullable=False)
+    last_name = db.Column(db.String, nullable=False)
+    other_name = db.Column(db.String, nullable=True)
+    gender = db.Column(db.String, nullable=False)
+    phone_number = db.Column(db.String, nullable=False)
+    address_1 = db.Column(db.String, nullable=False)
+    address_2 = db.Column(db.String, nullable=True)
+    city = db.Column(db.String, nullable=False)
+    postcode = db.Column(db.String, nullable=True)
     photo = db.Column(
         db.String(64), nullable=True, default="/profile_pictures/default.png"
     )
+    username = db.Column(db.String, unique=True, nullable=False)
+    email = db.Column(db.String, unique=True, nullable=False)
+    password = db.Column(db.String, nullable=False)
     user_properties = db.relationship("Property", backref="prop_owner", lazy=True)
 
     def to_json(self):
