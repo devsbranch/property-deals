@@ -10,6 +10,7 @@ from flask_sqlalchemy import SQLAlchemy
 from importlib import import_module
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
+from decouple import config as db_config
 
 db = SQLAlchemy()
 ma = Marshmallow()
@@ -23,7 +24,6 @@ from api.endpoints import property_endpoint
 
 
 def register_extensions(app):
-    db.init_app(app)
     ma.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
@@ -49,7 +49,10 @@ def configure_database(app):
 def create_app(config):
     app = Flask(__name__, static_folder="base/static")
     app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
+    app.config["SQLALCHEMY_DATABASE_URI"] = db_config("SQLALCHEMY_DATABASE_URI")
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config.from_object(config)
+    db.init_app(app)
     register_extensions(app)
     register_blueprints(app)
     app.register_blueprint(user_endpoint)
