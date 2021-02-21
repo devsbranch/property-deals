@@ -17,6 +17,7 @@ from wtforms.validators import Email, DataRequired, Length, ValidationError, Equ
 from flask_wtf.file import FileAllowed
 from wtforms.fields import MultipleFileField
 from flask_login import current_user
+from werkzeug.security import check_password_hash
 from app.base.models import User
 
 

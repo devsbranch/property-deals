@@ -29,27 +29,59 @@
 
                     <br />
                     <br />
-
+                    <div>
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                            {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">
+                                <p class="text-muted mb-2">{{ message }}</p>
+                            </div>
+                            {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+                    </div>
                     <form role="form" method="post" action="" enctype="multipart/form-data">
 
                         {{ form.hidden_tag() }}
                          {{ form.csrf_token }}
-                        <div class="input-group mb-3">
-                            {{ form.username(class="form-control") }}
-                        </div>
-
-                        <div class="input-group mb-4">
-                            {{ form.password(class="form-control") }}
-                        </div>
-
-                        <div class="form-group text-left">
-                            <div class="checkbox checkbox-fill d-inline">
-                                <input type="checkbox" name="checkbox-fill-1" id="checkbox-fill-a1" checked="">
-                                <label for="checkbox-fill-a1" class="cr"> Save Details</label>
+                        <div align="center" class="col col-12">
+                            <div class="form-group">
+                                {{ form.username.label(class="form-control-label") }}
+                                {% if form.username.errors %}
+                                {{ form.username(class="form-control form-control-lg is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.username.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.username(class="form-control form-control-lg") }}
+                                {% endif %}
                             </div>
-                        </div>
-                        <div align="center" class="form-group">
-                          {{ form.submit(class="btn btn-primary btn-square") }}
+
+                            <div class="form-group">
+                                {{ form.password.label(class="form-control-label") }}
+                                {% if form.password.errors %}
+                                {{ form.password(class="form-control form-control-lg is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.password.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.password(class="form-control form-control-lg") }}
+                                {% endif %}
+                            </div>
+
+                            <div class="form-group text-left">
+                                <div class="checkbox checkbox-fill d-inline">
+                                    <input type="checkbox" name="checkbox-fill-1" id="checkbox-fill-a1" checked="">
+                                    <label for="checkbox-fill-a1" class="cr"> Save Details</label>
+                                </div>
+                            </div>
+                            <div align="center" class="form-group">
+                              {{ form.submit(class="btn btn-primary btn-square") }}
+                            </div>
                         </div>
                     </form>
 

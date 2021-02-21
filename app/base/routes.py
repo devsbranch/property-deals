@@ -2,13 +2,14 @@
 """
 Copyright (c) 2020 - DevsBranch
 """
-from flask import render_template, redirect, request, url_for
+from flask import render_template, redirect, request, url_for, flash
 from flask_login import current_user, login_user, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db, login_manager
 from app.base import blueprint
 from app.base.forms import LoginForm, CreateAccountForm
 from app.base.models import User
+from wtforms.validators import ValidationError
 
 
 @blueprint.route("/")
@@ -40,6 +41,8 @@ def login():
             user.is_active = True
             login_user(user)
             return redirect(url_for("home_blueprint.index"))
+        else:
+            flash("Invalid username or password.", "danger")
 
     return render_template("accounts/login.html", form=form)
 
