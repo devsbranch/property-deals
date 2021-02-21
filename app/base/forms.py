@@ -17,7 +17,6 @@ from wtforms.validators import Email, DataRequired, Length, ValidationError, Equ
 from flask_wtf.file import FileAllowed
 from wtforms.fields import MultipleFileField
 from flask_login import current_user
-from werkzeug.security import check_password_hash
 from app.base.models import User
 
 
@@ -36,8 +35,7 @@ class CreateAccountForm(FlaskForm):
         "Last Name", validators=[DataRequired(), Length(min=2, max=20)]
     )
     other_name = StringField("Other Name", validators=[Length(min=2, max=30)])
-    gender = SelectField("Gender",
-                            choices=["Select Gender", "Male", "", "Female"])
+    gender = SelectField("Gender", choices=["Select Gender", "Male", "Female"])
     address_1 = StringField(
         "Address 1", validators=[DataRequired(), Length(min=5, max=100)]
     )
@@ -45,15 +43,11 @@ class CreateAccountForm(FlaskForm):
         "Address 2", validators=[DataRequired(), Length(min=5, max=100)]
     )
     city = StringField("City", validators=[DataRequired(), Length(min=2, max=30)])
-    state = StringField(
-        "State/Province", validators=[DataRequired(), Length(min=2, max=30)]
-    )
+    state = StringField("State/Province", validators=[Length(min=0, max=30)])
     postal_code = StringField(
         "Postal Code", validators=[DataRequired(), Length(min=2, max=30)]
     )
-    phone_number = IntegerField(
-        "Phone Number", validators=[]
-    )
+    phone_number = IntegerField("Phone Number", validators=[])
     username = StringField(
         "Username", validators=[DataRequired(), Length(min=4, max=20)]
     )
@@ -73,24 +67,27 @@ class CreateAccountForm(FlaskForm):
         """ Will raise a validation error if the username submitted from the form already exists in the database """
         user = User.query.filter_by(username=username.data).first()
         if user:
-            raise ValidationError('The username is already taken. Please try a different one.')
+            raise ValidationError(
+                "The username is already taken. Please try a different one."
+            )
 
     def validate_email(self, email):
         """ Will raise a validation error if the email submitted from the form already exists in the database """
         user = User.query.filter_by(email=email.data).first()
         if user:
-            raise ValidationError('The email you entered is already registered. Please try a different one.')
+            raise ValidationError(
+                "The email you entered is already registered. Please try a different one."
+            )
 
 
-class UpdateAccountForm(FlaskForm):
-    username = StringField(
-        "Username", validators=[DataRequired(), Length(min=2, max=20)]
-    )
-    email = StringField(
-        "Email", validators=[DataRequired(), Email(), Length(min=5, max=40)]
-    )
+class UpdateAccountForm(CreateAccountForm):
     picture = FileField(
-        "Update your profile picture", validators=[FileAllowed(["jpg", "jpeg", "png"])]
+        "Change your profile picture", validators=[FileAllowed(["jpg", "jpeg", "png"])]
+    )
+    password = PasswordField("Password", validators=[Length(min=0, max=60)])
+    confirm_password = PasswordField(
+        "Confirm Password",
+        validators=[Length(min=0, max=60), EqualTo("confirm_password")],
     )
     submit = SubmitField("Update")
 
@@ -100,7 +97,9 @@ class UpdateAccountForm(FlaskForm):
         different than the current_user username and email address.
         """
         if username.data != current_user.username:
-            """ Will raise a validation errors if the username submitted from the form already exists in the database """
+            """
+            Will raise a validation errors if the username submitted from the form already exists in the database
+            """
             user = User.query.filter_by(username=username.data).first()
             if user:
                 raise ValidationError(
@@ -124,8 +123,21 @@ class PropertyForm(FlaskForm):
     prop_desc = TextAreaField(
         "Property Description", validators=[DataRequired(), Length(min=10, max=300)]
     )
-    prop_type = SelectField("Property type", choices=["Select Category", "Electronics", "Fashion", "Car and Auto Parts", "Real Estate"])
-    prop_condition = SelectField("Condition", choices=["Select Condition", "Used", "Refurbished"], validators=[DataRequired()])
+    prop_type = SelectField(
+        "Property type",
+        choices=[
+            "Select Category",
+            "Electronics",
+            "Fashion",
+            "Car and Auto Parts",
+            "Real Estate",
+        ],
+    )
+    prop_condition = SelectField(
+        "Condition",
+        choices=["Select Condition", "Used", "Refurbished"],
+        validators=[DataRequired()],
+    )
     prop_photos = MultipleFileField(
         "Upload photos of your property",
         validators=[

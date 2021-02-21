@@ -27,7 +27,7 @@ ALLOWED_IMG_EXT = [".png", ".jpg", ".jpeg"]
 
 @blueprint.route("/index")
 def index():
-    page = request.args.get('page', 1, type=int)
+    page = request.args.get("page", 1, type=int)
     property_photos = Property.query.order_by(Property.date.desc())
     photos = [json.loads(p.photos) for p in property_photos]
     paginate_properties = Property.query.paginate(page=page, per_page=5)
@@ -142,42 +142,6 @@ def user_listing(user_id):
     photos = [json.loads(p.photos) for p in user_listings]
     return render_template(
         "my_properties.html", properties=user_listings, photos_list=photos
-    )
-
-
-@blueprint.route("/account", methods=["GET", "POST"])
-@login_required
-def account():
-    form = UpdateAccountForm()
-    if form.validate_on_submit():
-        if form.picture.data:
-            filename = save_profile_picture(form.picture.data)
-            current_user.photo = filename
-
-        current_user.username = form.username.data
-        current_user.email = form.email.data
-        flash("Your account information has been updated.", "success")
-
-        db.session.commit()
-        return redirect(url_for("home_blueprint.account"))
-
-    elif request.method == "GET":
-        form.username.data = current_user.username
-        form.email.data = current_user.email
-    # get the path for the profile picture of the current user
-    profile_picture = url_for("static", filename=f"{current_user.photo}")
-
-    property_by_user = Property.query.filter_by(user_id=current_user.id).order_by(
-        Property.date.desc()
-    )
-    photos = [json.loads(p.photos) for p in property_by_user]
-
-    return render_template(
-        "account.html",
-        form=form,
-        property_by_user=property_by_user,
-        profile_picture=profile_picture,
-        photos_list=photos,
     )
 
 
