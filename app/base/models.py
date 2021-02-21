@@ -23,6 +23,7 @@ class User(db.Model, UserMixin):
     address_2 = db.Column(db.String(100), nullable=True)
     city = db.Column(db.String(50), nullable=False)
     postcode = db.Column(db.String(20), nullable=True)
+    state = db.Column(db.String(50), nullable=True)
     photo = db.Column(
         db.String(100), nullable=True, default="/profile_pictures/default.png"
     )

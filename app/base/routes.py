@@ -26,84 +26,54 @@ def feedback():
     return render_template("feedback.html")
 
 
-## Login & Registration
+# Login & Registration
 @blueprint.route("/login", methods=["GET", "POST"])
 def login():
-    login_form = LoginForm(request.form)
-    if "login" in request.form:
-
-        # read form data
-        username = request.form["username"]
-        password = request.form["password"]
-
-        # Locate user
+    form = LoginForm()
+    if request.method == "POST" and form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
         user = User.query.filter_by(username=username).first()
 
         # Check the password
         if user and check_password_hash(user.password, password):
+            user.is_active = True
             login_user(user)
-            return redirect(url_for("base_blueprint.route_default"))
+            return redirect(url_for("home_blueprint.index"))
 
-        # Something (user or pass) is not ok
-        return render_template(
-            "accounts/login.html", msg="Wrong user or password", form=login_form
-        )
-
-    if not current_user.is_authenticated:
-        return render_template("accounts/login.html", form=login_form)
-    return redirect(url_for("home_blueprint.index"))
+    return render_template("accounts/login.html", form=form)
 
 
 @blueprint.route("/register", methods=["GET", "POST"])
 def register():
-    login_form = LoginForm(request.form)
-    create_account_form = CreateAccountForm(request.form)
-    if "register" in request.form:
-
-        username = request.form["username"]
-        email = request.form["email"]
-        password = request.form["password"]
-
-        # Check usename exists
-        user = User.query.filter_by(username=username).first()
-        if user:
-            return render_template(
-                "accounts/register.html",
-                msg="Username already registered",
-                success=False,
-                form=create_account_form,
-            )
-
-        # Check email exists
-        user = User.query.filter_by(email=email).first()
-        if user:
-            return render_template(
-                "accounts/register.html",
-                msg="Email already registered",
-                success=False,
-                form=create_account_form,
-            )
-
+    form = CreateAccountForm()
+    if request.method == "POST" and form.validate_on_submit():
         # else we can create the user
         user = User(
-            username=username, email=email, password=generate_password_hash(password)
+            first_name=form.first_name.data,
+            last_name=form.last_name.data,
+            other_name=form.other_name.data,
+            gender=form.gender.data,
+            address_1=form.address_1.data,
+            address_2=form.address_2.data,
+            city=form.city.data,
+            state=form.state.data,
+            postcode=form.postal_code.data,
+            phone_number=form.phone_number.data,
+            username=form.username.data,
+            email=form.email.data,
+            password=generate_password_hash(form.password.data)
         )
         db.session.add(user)
         db.session.commit()
+        return redirect(url_for("base_blueprint.login"))
 
-        return render_template(
-            "accounts/register.html",
-            msg='User created please <a href="/login">login</a>',
-            success=True,
-            form=create_account_form,
-        )
-
-    else:
-        return render_template("accounts/register.html", form=create_account_form)
+    return render_template("accounts/register.html", form=form)
 
 
 @blueprint.route("/logout")
 def logout():
+    current_user.is_active = False
     logout_user()
     return redirect(url_for("base_blueprint.login"))
 

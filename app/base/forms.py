@@ -11,6 +11,7 @@ from wtforms import (
     SubmitField,
     FileField,
     IntegerField,
+    SelectField,
 )
 from wtforms.validators import Email, DataRequired, Length, ValidationError, EqualTo
 from flask_wtf.file import FileAllowed
@@ -19,10 +20,11 @@ from flask_login import current_user
 from app.base.models import User
 
 
-## login and registration
+# login and registration
 class LoginForm(FlaskForm):
-    username = StringField("Username", id="username_login", validators=[DataRequired()])
-    password = PasswordField("Password", id="pwd_login", validators=[DataRequired()])
+    username = StringField("Username", validators=[DataRequired()])
+    password = PasswordField("Password", validators=[DataRequired()])
+    submit = SubmitField("Sign Up")
 
 
 class CreateAccountForm(FlaskForm):
@@ -33,6 +35,8 @@ class CreateAccountForm(FlaskForm):
         "Last Name", validators=[DataRequired(), Length(min=2, max=20)]
     )
     other_name = StringField("Other Name", validators=[Length(min=2, max=30)])
+    gender = SelectField("Gender",
+                            choices=["Select Gender", "Male", "", "Female"])
     address_1 = StringField(
         "Address 1", validators=[DataRequired(), Length(min=5, max=100)]
     )
@@ -47,7 +51,7 @@ class CreateAccountForm(FlaskForm):
         "Postal Code", validators=[DataRequired(), Length(min=2, max=30)]
     )
     phone_number = IntegerField(
-        "Phone Number", validators=[DataRequired(), Length(min=10, max=10)]
+        "Phone Number", validators=[]
     )
     username = StringField(
         "Username", validators=[DataRequired(), Length(min=4, max=20)]
@@ -63,6 +67,18 @@ class CreateAccountForm(FlaskForm):
         validators=[DataRequired(), Length(min=6, max=60), EqualTo("confirm_password")],
     )
     submit = SubmitField("Sign Up")
+
+    def validate_username(self, username):
+        """ Will raise a validation error if the username submitted from the form already exists in the database """
+        user = User.query.filter_by(username=username.data).first()
+        if user:
+            raise ValidationError('The username is already taken. Please try a different one.')
+
+    def validate_email(self, email):
+        """ Will raise a validation error if the email submitted from the form already exists in the database """
+        user = User.query.filter_by(email=email.data).first()
+        if user:
+            raise ValidationError('The email you entered is already registered. Please try a different one.')
 
 
 class UpdateAccountForm(FlaskForm):
@@ -107,6 +123,8 @@ class PropertyForm(FlaskForm):
     prop_desc = TextAreaField(
         "Property Description", validators=[DataRequired(), Length(min=10, max=300)]
     )
+    prop_type = SelectField("Property type", choices=["Select Category", "Electronics", "Fashion", "Car and Auto Parts", "Real Estate"])
+    prop_condition = SelectField("Condition", choices=["Select Condition", "Used", "Refurbished"], validators=[DataRequired()])
     prop_photos = MultipleFileField(
         "Upload photos of your property",
         validators=[
