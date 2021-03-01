@@ -2,13 +2,15 @@
 """
 Copyright (c) 2020 - DevsBranch
 """
-from flask import render_template, redirect, request, url_for
-from flask_login import current_user, login_user, logout_user
+from flask import render_template, redirect, request, url_for, flash
+from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db, login_manager
 from app.base import blueprint
-from app.base.forms import LoginForm, CreateAccountForm
+from app.base.forms import LoginForm, CreateAccountForm, UpdateAccountForm
 from app.base.models import User
+from app.base.file_handler import save_profile_picture
+from wtforms.validators import ValidationError
 
 
 @blueprint.route("/")
@@ -26,84 +28,101 @@ def feedback():
     return render_template("feedback.html")
 
 
-## Login & Registration
+# Login & Registration
 @blueprint.route("/login", methods=["GET", "POST"])
 def login():
-    login_form = LoginForm(request.form)
-    if "login" in request.form:
-
-        # read form data
-        username = request.form["username"]
-        password = request.form["password"]
-
-        # Locate user
+    form = LoginForm()
+    if request.method == "POST" and form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
         user = User.query.filter_by(username=username).first()
 
         # Check the password
         if user and check_password_hash(user.password, password):
+            user.is_active = True
             login_user(user)
-            return redirect(url_for("base_blueprint.route_default"))
+            return redirect(url_for("home_blueprint.index"))
+        else:
+            flash("Invalid username or password.", "danger")
 
-        # Something (user or pass) is not ok
-        return render_template(
-            "accounts/login.html", msg="Wrong user or password", form=login_form
-        )
-
-    if not current_user.is_authenticated:
-        return render_template("accounts/login.html", form=login_form)
-    return redirect(url_for("home_blueprint.index"))
+    return render_template("accounts/login.html", form=form)
 
 
 @blueprint.route("/register", methods=["GET", "POST"])
 def register():
-    login_form = LoginForm(request.form)
-    create_account_form = CreateAccountForm(request.form)
-    if "register" in request.form:
-
-        username = request.form["username"]
-        email = request.form["email"]
-        password = request.form["password"]
-
-        # Check usename exists
-        user = User.query.filter_by(username=username).first()
-        if user:
-            return render_template(
-                "accounts/register.html",
-                msg="Username already registered",
-                success=False,
-                form=create_account_form,
-            )
-
-        # Check email exists
-        user = User.query.filter_by(email=email).first()
-        if user:
-            return render_template(
-                "accounts/register.html",
-                msg="Email already registered",
-                success=False,
-                form=create_account_form,
-            )
-
+    form = CreateAccountForm()
+    if request.method == "POST" and form.validate_on_submit():
         # else we can create the user
         user = User(
-            username=username, email=email, password=generate_password_hash(password)
+            first_name=form.first_name.data,
+            last_name=form.last_name.data,
+            other_name=form.other_name.data,
+            gender=form.gender.data,
+            address_1=form.address_1.data,
+            address_2=form.address_2.data,
+            city=form.city.data,
+            state=form.state.data,
+            postcode=form.postal_code.data,
+            phone_number=form.phone_number.data,
+            username=form.username.data,
+            email=form.email.data,
+            password=generate_password_hash(form.password.data),
         )
         db.session.add(user)
         db.session.commit()
+        return redirect(url_for("base_blueprint.login"))
 
-        return render_template(
-            "accounts/register.html",
-            msg='User created please <a href="/login">login</a>',
-            success=True,
-            form=create_account_form,
-        )
+    return render_template("accounts/register.html", form=form)
 
-    else:
-        return render_template("accounts/register.html", form=create_account_form)
+
+@blueprint.route("/account", methods=["GET", "POST"])
+@login_required
+def account():
+    form = UpdateAccountForm()
+    if form.validate_on_submit():
+        if form.picture.data:
+            filename = save_profile_picture(current_user.username, form.picture.data)
+            current_user.photo = filename
+        current_user.first_name = form.first_name.data
+        current_user.last_name = form.last_name.data
+        current_user.other_name = form.other_name.data
+        current_user.gender = form.gender.data
+        current_user.address_1 = form.address_1.data
+        current_user.address_2 = form.address_2.data
+        current_user.city = form.city.data
+        current_user.state = form.state.data
+        current_user.postal_code = form.postal_code.data
+        current_user.phone_number = form.phone_number.data
+        current_user.username = form.username.data
+        current_user.email = form.email.data
+        current_user.password = form.password.data
+        db.session.commit()
+        flash("Your account information has been updated.", "success")
+        return redirect(url_for("base_blueprint.account"))
+
+    elif request.method == "GET":
+        form.username.data = current_user.username
+        form.email.data = current_user.email
+        form.first_name.data = current_user.first_name
+        form.last_name.data = current_user.last_name
+        form.other_name.data = current_user.other_name
+        form.gender.data = current_user.gender
+        form.address_1.data = current_user.address_1
+        form.address_2.data = current_user.address_2
+        form.city.data = current_user.city
+        form.state.data = current_user.state
+        form.postal_code.data = current_user.postal_code
+        form.phone_number.data = current_user.phone_number
+        form.username.data = current_user.username
+        form.email.data = current_user.email
+    # get the path for the profile picture of the current user
+    profile_picture = url_for("static", filename=f"{current_user.photo}")
+    return render_template("account.html", form=form, profile_picture=profile_picture)
 
 
 @blueprint.route("/logout")
 def logout():
+    current_user.is_active = False
     logout_user()
     return redirect(url_for("base_blueprint.login"))
 

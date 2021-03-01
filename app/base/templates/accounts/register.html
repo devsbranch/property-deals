@@ -31,27 +31,27 @@
             <div class="col-sm-12 col-md-6 col-lg-6">
               {{ form.first_name.label }}
               {% if form.first_name.errors %}
-                {{ form.first_name(class="form-control is-invalid") }}
+                {{ form.first_name(class="form-control form-control-lg is-invalid") }}
                 <div class="invalid-feedback">
-                  {% for error in form.first_name.error %}
+                  {% for error in form.first_name.errors %}
                     <span>{{ error}} </span>
                   {% endfor %}
                 </div>
               {% else %}
-                {{ form.first_name(class="form-control") }}
+                {{ form.first_name(class="form-control form-control-lg") }}
               {% endif %}
             </div>
             <div class="col-sm-12 col-md-6 col-lg-6">
               {{ form.last_name.label }}
                 {% if form.last_name.errors %}
-                  {{ form.last_name(class="form-control is-invalid") }}
+                  {{ form.last_name(class="form-control form-control form-control-lg is-invalid") }}
                   <div class="invalid-feedback">
-                    {% for error in form.last_name.error %}
+                    {% for error in form.last_name.errors %}
                       <span>{{ error}} </span>
                     {% endfor %}
                   </div>
                 {% else %}
-                  {{ form.last_name(class="form-control") }}
+                  {{ form.last_name(class="form-control form-control-lg") }}
                 {% endif %}
             </div>
             <div class="col-sm-12 col-md-6 col-lg-6">
@@ -59,12 +59,25 @@
               {% if form.other_name.errors %}
                 {{ form.other_name(class="form-control form-control-lg is-invalid") }}
                 <div class="invalid-feedback">
-                  {% for error in form.other_name.error %}
+                  {% for error in form.other_name.errors %}
                     <span>{{ error}} </span>
                   {% endfor %}
                 </div>
               {% else %}
-                {{ form.other_name(class="form-control") }}
+                {{ form.other_name(class="form-control form-control-lg") }}
+              {% endif %}
+            </div>
+            <div class="col-sm-12 col-md-6 col-lg-6 mt-1">
+              {{ form.gender.label }}
+              {% if form.gender.errors %}
+                {{ form.gender(class="form-control form-control-lg is-invalid") }}
+                <div class="invalid-feedback">
+                  {% for error in form.gender.errors %}
+                    <span>{{ error}} </span>
+                  {% endfor %}
+                </div>
+              {% else %}
+                {{ form.gender(class="form-control form-control-lg") }}
               {% endif %}
             </div>
             <div class="col-sm-8 col-md-6 col-lg-6 mt-1">
@@ -72,22 +85,15 @@
               {% if form.phone_number.errors %}
                 {{ form.phone_number(class="form-control form-control-lg is-invalid") }}
                 <div class="invalid-feedback">
-                  {% for error in form.phone_number.error %}
+                  {% for error in form.phone_number.errors %}
                     <span>{{ error}} </span>
                   {% endfor %}
                 </div>
               {% else %}
-                {{ form.phone_number(class="form-control") }}
+                {{ form.phone_number(class="form-control form-control-lg") }}
               {% endif %}
             </div>
           </div>
-          <div class="col-sm-6 col-md-4 col-lg-4 mt-3 p-0">
-            <select class="form-control ">
-              <option>Select Gender</option>
-              <option>Male</option>
-              <option>Female</option>
-            </select>
-        </div>
           <br>
           <h5>Address</h5>
           <hr>
@@ -97,12 +103,12 @@
               {% if form.address_1.errors %}
                 {{ form.address_1(class="form-control form-control-lg is-invalid") }}
                 <div class="invalid-feedback">
-                  {% for error in form.address_1.error %}
+                  {% for error in form.address_1.errors %}
                     <span>{{ error}} </span>
                   {% endfor %}
                 </div>
               {% else %}
-                {{ form.address_1(class="form-control") }}
+                {{ form.address_1(class="form-control form-control-lg") }}
               {% endif %}
             </div>
             <div class="col-sm-12 col-md-6 col-lg-6 mt-1">
@@ -110,12 +116,12 @@
               {% if form.address_2.errors %}
                 {{ form.address_2(class="form-control form-control-lg is-invalid") }}
                 <div class="invalid-feedback">
-                  {% for error in form.address_2.error %}
+                  {% for error in form.address_2.errors %}
                     <span>{{ error}} </span>
                   {% endfor %}
                 </div>
               {% else %}
-                {{ form.address_2(class="form-control") }}
+                {{ form.address_2(class="form-control form-control-lg") }}
               {% endif %}
             </div>
             <div class="col-sm-12 col-md-6 col-lg-6 mt-1">
@@ -123,12 +129,12 @@
               {% if form.city.errors %}
                 {{ form.city(class="form-control form-control-lg is-invalid") }}
                 <div class="invalid-feedback">
-                  {% for error in form.city.error %}
+                  {% for error in form.city.errors %}
                     <span>{{ error}} </span>
                   {% endfor %}
                 </div>
               {% else %}
-                {{ form.city(class="form-control") }}
+                {{ form.city(class="form-control form-control-lg") }}
               {% endif %}
             </div>
             <div class="col-sm-12 col-md-6 col-lg-6 mt-1">
@@ -136,12 +142,12 @@
               {% if form.state.errors %}
                 {{ form.state(class="form-control form-control-lg is-invalid") }}
                 <div class="invalid-feedback">
-                  {% for error in form.state.error %}
+                  {% for error in form.state.errors %}
                     <span>{{ error}} </span>
                   {% endfor %}
                 </div>
               {% else %}
-                {{ form.state(class="form-control") }}
+                {{ form.state(class="form-control form-control-lg") }}
               {% endif %}
             </div>
             <div class="col-sm-12 col-md-6 col-lg-6 mt-1">
@@ -149,12 +155,12 @@
               {% if form.postal_code.errors %}
                 {{ form.postal_code(class="form-control form-control-lg is-invalid") }}
                 <div class="invalid-feedback">
-                  {% for error in form.postal_code.error %}
+                  {% for error in form.postal_code.errors %}
                     <span>{{ error}} </span>
                   {% endfor %}
                 </div>
               {% else %}
-                {{ form.postal_code(class="form-control") }}
+                {{ form.postal_code(class="form-control form-control-lg") }}
               {% endif %}
             </div>
           </div>
@@ -167,25 +173,25 @@
               {% if form.email.errors %}
                 {{ form.email(class="form-control form-control-lg is-invalid") }}
                 <div class="invalid-feedback">
-                  {% for error in form.email.error %}
+                  {% for error in form.email.errors %}
                     <span>{{ error}} </span>
                   {% endfor %}
                 </div>
               {% else %}
-                {{ form.email(class="form-control") }}
+                {{ form.email(class="form-control form-control-lg") }}
               {% endif %}
-            </div>
+              </div>
               <div class="col-sm-8 col-md-6 col-lg-8 mt-1">
                 {{ form.username.label }}
                 {% if form.username.errors %}
                   {{ form.username(class="form-control form-control-lg is-invalid") }}
                   <div class="invalid-feedback">
-                    {% for error in form.username.error %}
+                    {% for error in form.username.errors %}
                       <span>{{ error}} </span>
                     {% endfor %}
                   </div>
                 {% else %}
-                  {{ form.username(class="form-control") }}
+                  {{ form.username(class="form-control form-control-lg") }}
                 {% endif %}
               </div>
               <div class="col-sm-8 col-md-6 col-lg-8 mt-1">
@@ -193,12 +199,12 @@
                 {% if form.password.errors %}
                   {{ form.password(class="form-control form-control-lg is-invalid") }}
                   <div class="invalid-feedback">
-                    {% for error in form.password.error %}
+                    {% for error in form.password.errors %}
                       <span>{{ error}} </span>
                     {% endfor %}
                   </div>
                 {% else %}
-                  {{ form.password(class="form-control") }}
+                  {{ form.password(class="form-control form-control-lg") }}
                 {% endif %}
               </div>
               <div class="col-sm-8 col-md-6 col-lg-8 mt-1">
@@ -206,12 +212,12 @@
                 {% if form.confirm_password.errors %}
                   {{ form.confirm_password(class="form-control form-control-lg is-invalid") }}
                   <div class="invalid-feedback">
-                    {% for error in form.confirm_password.error %}
+                    {% for error in form.confirm_password.errors %}
                       <span>{{ error}} </span>
                     {% endfor %}
                   </div>
                 {% else %}
-                  {{ form.confirm_password(class="form-control") }}
+                  {{ form.confirm_password(class="form-control form-control-lg") }}
                 {% endif %}
               </div>
               <div class="form-group text-center m-3">
@@ -223,7 +229,7 @@
             </div>
           </div>
           <div align="center" class="form-group">
-              {{ form.submit(class="btn btn-primary") }}
+              {{ form.submit(class="btn btn-primary btn-square") }}
           </div>
         </form>
         <p class="mb-0 text-muted">Already have an account? <a href="{{ url_for('base_blueprint.login') }}">Login</a></p>

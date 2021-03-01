@@ -29,30 +29,63 @@
 
                     <br />
                     <br />
-
-                    <form role="form" method="post" action="">
+                    <div>
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                            {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">
+                                <p class="text-muted mb-2">{{ message }}</p>
+                            </div>
+                            {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+                    <form role="form" method="post" action="" enctype="multipart/form-data">
 
                         {{ form.hidden_tag() }}
+                         {{ form.csrf_token }}
+                        <div align="center" class="col col-12">
+                            <div class="form-group">
+                                {{ form.username.label(class="form-control-label") }}
+                                {% if form.username.errors %}
+                                {{ form.username(class="form-control form-control-lg is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.username.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.username(class="form-control form-control-lg") }}
+                                {% endif %}
+                            </div>
 
-                        <div class="input-group mb-3">
-                            {{ form.username(placeholder="Username", class="form-control") }}
-                        </div>
+                            <div class="form-group">
+                                {{ form.password.label(class="form-control-label") }}
+                                {% if form.password.errors %}
+                                {{ form.password(class="form-control form-control-lg is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.password.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.password(class="form-control form-control-lg") }}
+                                {% endif %}
+                            </div>
 
-                        <div class="input-group mb-4">
-                            {{ form.password(placeholder="Password", class="form-control", type="password") }}
-                        </div>
-
-                        <div class="form-group text-left">
-                            <div class="checkbox checkbox-fill d-inline">
-                                <input type="checkbox" name="checkbox-fill-1" id="checkbox-fill-a1" checked="">
-                                <label for="checkbox-fill-a1" class="cr"> Save Details</label>
+                            <div class="form-group text-left">
+                                <div class="checkbox checkbox-fill d-inline">
+                                    <input type="checkbox" name="checkbox-fill-1" id="checkbox-fill-a1" checked="">
+                                    <label for="checkbox-fill-a1" class="cr"> Save Details</label>
+                                </div>
+                            </div>
+                            <div align="center" class="form-group">
+                              {{ form.submit(class="btn btn-primary btn-square") }}
                             </div>
                         </div>
-                        <button type="submit" name="login" class="btn btn-primary shadow-2 mb-4">Login</button>
-
                     </form>
 
-                    <p class="mb-0 text-muted">Don’t have an account? <a href={{ url_for('base_blueprint.register') }} >Signup</a></p>
+                    <p class="mb-0 text-muted">Don’t have an account? <a href="{{ url_for('base_blueprint.register') }}">Signup</a></p>
                     <br />
                     <p class="mb-2 text-muted">
                         &copy; <a target="_blank" href="#/">DevsBranch</a>

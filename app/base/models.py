@@ -14,20 +14,24 @@ class User(db.Model, UserMixin):
     __tablename__ = "User"
 
     id = db.Column(db.Integer, primary_key=True)
-    first_name = db.Column(db.String, nullable=False)
-    last_name = db.Column(db.String, nullable=False)
-    other_name = db.Column(db.String, nullable=True)
-    gender = db.Column(db.String, nullable=False)
-    phone_number = db.Column(db.String, nullable=False)
-    address_1 = db.Column(db.String, nullable=False)
-    address_2 = db.Column(db.String, nullable=True)
-    city = db.Column(db.String, nullable=False)
-    postcode = db.Column(db.String, nullable=True)
+    first_name = db.Column(db.String(30), nullable=False)
+    last_name = db.Column(db.String(30), nullable=False)
+    other_name = db.Column(db.String(30), nullable=True)
+    gender = db.Column(db.String(20), nullable=False)
+    phone_number = db.Column(db.String(20), nullable=False)
+    address_1 = db.Column(db.String(100), nullable=False)
+    address_2 = db.Column(db.String(100), nullable=True)
+    city = db.Column(db.String(50), nullable=False)
+    postal_code = db.Column(db.String(20), nullable=True)
+    state = db.Column(db.String(50), nullable=True)
     photo = db.Column(
-        db.String(64), nullable=True, default="/profile_pictures/default.png"
+        db.String(100), nullable=True, default="/profile_pictures/default.png"
     )
+    is_active = db.Column(db.Boolean, default=False)
+    is_vendor = db.Column(db.Boolean, default=False)
+
     username = db.Column(db.String, unique=True, nullable=False)
-    email = db.Column(db.String, unique=True, nullable=False)
+    email = db.Column(db.String(60), unique=True, nullable=False)
     password = db.Column(db.String, nullable=False)
     user_properties = db.relationship("Property", backref="prop_owner", lazy=True)
 
@@ -103,6 +107,10 @@ class Property(db.Model):
         db.Text, nullable=True
     )  # Do we need this as a db attribute?
     photos = db.Column(db.Text)
+    type = db.Column(db.String(50), default="other", nullable=False)
+    is_available = db.Column(db.Boolean, default=True)
+    deal_done = db.Column(db.Boolean, default=False)
+    condition = db.Column(db.String(30), default="Used", nullable=False)
     user_id = db.Column(db.ForeignKey("User.id"), nullable=False)
     owner = db.relationship("User")
 

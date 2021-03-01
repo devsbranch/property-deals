@@ -23,6 +23,7 @@
                             <li class=""><a href="{{ url_for('home_blueprint.index') }}" class="">Listings</a></li>
                             <li class=""><a href="{{ url_for('home_blueprint.create_property') }}" class="">Create</a></li>
                             {% if current_user.is_authenticated %}
+                                <li class=""><a href="{{ url_for('base_blueprint.account', user_id=current_user.id) }}"  class="">My Account</a></li>
                                 <li class=""><a href="{{ url_for('home_blueprint.user_listing', user_id=current_user.id) }}"  class="">My Listings<span class="pcoded-badge label label-danger">NEW</span></a></li>
                             {% endif %}
                         </ul>
@@ -99,7 +100,7 @@
 
                     <li data-username="Table bootstrap datatable footable"
                         class="nav-item {% if 'ui-tables' in segment %} active {% endif %}">
-                        <a href="{{ url_for('home_blueprint.account') }}" class="nav-link "><span class="pcoded-micon"><i class="feather icon-server"></i></span><span class="pcoded-mtext">My Account</span></a>
+                        <a href="{{ url_for('base_blueprint.account') }}" class="nav-link "><span class="pcoded-micon"><i class="feather icon-server"></i></span><span class="pcoded-mtext">My Account</span></a>
                     </li>
 
                     <li class="nav-item pcoded-menu-caption">
