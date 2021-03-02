@@ -12,7 +12,7 @@ from flask import render_template, redirect, url_for, request, current_app, flas
 from flask_login import login_required, current_user
 from jinja2 import TemplateNotFound
 from app import db
-from app.base.forms import PropertyForm
+from app.base.forms import CreatePropertyForm, UpdatePropertyForm
 from app.base.models import Property
 from app.home import blueprint
 from app.base.file_handler import (
@@ -87,8 +87,8 @@ def read_dir_imgs(img_dir):
 @blueprint.route("/property/create", methods=["GET", "POST"])
 @login_required
 def create_property():
-    from app.tasks import save_property_data
-    form = PropertyForm()
+    from app import tasks
+    form = CreatePropertyForm()
     if form.validate_on_submit():
         img_files = request.files.getlist("prop_photos")
         imgs_folder = create_images_folder(current_user.username)
@@ -110,7 +110,7 @@ def create_property():
             "user_id": current_user.id,
         }
 
-        save_property_data.delay(prop_data)
+        tasks.save_property_data.delay(prop_data)
         flash("Your Property has been listed")
         return redirect(url_for("home_blueprint.index"))
     return render_template("create_property.html", form=form)
@@ -139,28 +139,29 @@ def user_listing(user_id):
 @blueprint.route("/property/update/<int:property_id>", methods=["GET", "POST"])
 @login_required
 def update_property(property_id):
-    from app.tasks import update_property_data
+    from app import tasks
     prop_to_update = Property.query.get_or_404(property_id)
-    form = PropertyForm()
-
+    form = UpdatePropertyForm()
     if request.method == "POST" and form.validate_on_submit():
-        img_files = request.files.getlist("prop_photos")
-        imgs_folder = prop_to_update.image_folder
-
-        img_list = read_dir_imgs(imgs_folder)
-        property_image_handler(current_user.username, img_files, imgs_folder)
-        image_list_to_json = json.dumps(img_list)
+        if request.files["prop_photos"].filename:
+            img_files = request.files.getlist("prop_photos")
+            imgs_folder = prop_to_update.image_folder
+            property_image_handler(current_user.username, img_files, imgs_folder)
+            img_list = read_dir_imgs(imgs_folder)
+            image_list_to_json = json.dumps(img_list)
+            prop_to_update.photos = image_list_to_json
+            db.session.commit()
+        current_datetime = datetime.utcnow()
         prop_data = {
             "name": form.prop_name.data,
             "desc": form.prop_desc.data,
             "price": form.prop_price.data,
-            "photos": image_list_to_json,
+            "photos": prop_to_update.photos,
             "type": form.prop_type.data,
             "condition": form.prop_condition.data,
             "location": form.prop_location.data,
-            "date": datetime.utcnow()
         }
-        update_property_data(prop_data, prop_to_update.id)
+        tasks.update_property_data.delay(prop_data, prop_to_update.id)
         flash("Your Property listing has been updated", "success")
         return redirect(url_for("home_blueprint.index"))
 
@@ -173,7 +174,7 @@ def update_property(property_id):
         form.prop_type.data = prop_to_update.type
         form.prop_condition.data = prop_to_update.condition
 
-    return render_template("create_property.html", form=form)
+    return render_template("update_property.html", form=form)
 
 
 @blueprint.route("/property/delete/<int:property_id>", methods=["POST"])

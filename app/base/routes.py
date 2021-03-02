@@ -99,7 +99,7 @@ def account():
             "email": form.email.data,
             "password": generate_password_hash(form.password.data)
         }
-        tasks.update_user_data(user_data, current_user.username)
+        tasks.update_user_data.delay(user_data, current_user.username)
         flash("Your account information has been updated.", "success")
         return redirect(url_for("base_blueprint.account"))
 

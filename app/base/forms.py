@@ -116,7 +116,7 @@ class UpdateAccountForm(CreateAccountForm):
                 )
 
 
-class PropertyForm(FlaskForm):
+class CreatePropertyForm(FlaskForm):
     prop_name = StringField(
         "Property Name", validators=[DataRequired(), Length(min=5, max=50)]
     )
@@ -155,3 +155,13 @@ class PropertyForm(FlaskForm):
         "Property location", validators=[DataRequired(), Length(min=5, max=50)]
     )
     submit = SubmitField("Create")
+
+
+class UpdatePropertyForm(CreatePropertyForm):
+    prop_photos = MultipleFileField(
+        "Upload photos of your property",
+        validators=[
+            FileAllowed(["jpeg", "jpg", "png"])
+        ],
+    )
+    submit = SubmitField("Update")

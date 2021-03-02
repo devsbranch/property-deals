@@ -1,4 +1,7 @@
-import os, random, string
+import os
+import random
+import string
+import shutil
 from PIL import Image
 from werkzeug.utils import secure_filename
 import secrets
@@ -25,6 +28,12 @@ def property_image_handler(username, image_files, save_to_folder):
     using the werkzeug utilities, then the filename is saved to the list of filenames in the
     dictionary object.
     """
+    # Delete images before before the property is updated with new images
+    dir_to_del = f"{current_app.root_path}/base/static/{save_to_folder}"
+    if os.path.exists(dir_to_del):
+        for filename in os.listdir(dir_to_del):
+            os.remove(os.path.join(dir_to_del, filename))
+
     images_list = [save_to_folder]
     for image_file in image_files:
         checked_filename = secure_filename(image_file.filename)
