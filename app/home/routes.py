@@ -25,8 +25,6 @@ ALLOWED_IMG_EXT = [".png", ".jpg", ".jpeg"]
 
 @blueprint.route("/index")
 def index():
-    from app import tasks
-    tasks.mul.delay(9000, 9000)
     page = request.args.get("page", 1, type=int)
     property_photos = Property.query.order_by(Property.date.desc())
     photos = [json.loads(p.photos) for p in property_photos]
@@ -108,15 +106,6 @@ def create_property():
             photos=img_list_to_json,
             user_id=current_user.id,
         )
-        # data = {
-        #     "name": form.prop_name.data,
-        #     "desc": form.prop_desc.data,
-        #     "price": form.prop_price.data,
-        #     "location": form.prop_location.data,
-        #     "image_folder": imgs_folder,
-        #     "photos": img_list_to_json,
-        #     "user_id": current_user.id
-        # }
 
         db.session.add(prop_info)
         db.session.commit()

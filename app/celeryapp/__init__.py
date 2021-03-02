@@ -7,16 +7,11 @@ CELERY_TASK_LIST = [
 
 
 def make_celery(app):
-    celery = Celery(
-        app.import_name,
-        # backend=app.config['CELERY_RESULT_BACKEND'],
-        # broker=app.config['CELERY_BROKER_URL'],
-        include=CELERY_TASK_LIST
-    )
+    celery = Celery(app.import_name, include=CELERY_TASK_LIST)
     celery.conf.update(app.config)
     celery.conf.update(
         broker_url="redis://localhost:6379/0",
-        result_backend="db+sqlite:///results.sqlite",
+        result_backend="redis://localhost:6379/0",
         timezone="UTC",
         task_serializer="json",
         accept_content=["json"],

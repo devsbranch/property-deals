@@ -21,6 +21,11 @@ migrate = Migrate()
 login_manager = LoginManager()
 jwt = JWTManager()
 
+
+DEBUG = db_config("DEBUG", default=True)
+get_config_mode = "Debug" if DEBUG else "Production"
+
+
 # importing from base module __init__
 from api.endpoints import user_endpoint
 from api.endpoints import property_endpoint
@@ -49,36 +54,18 @@ def configure_database(app):
         db.session.remove()
 
 
-from config import config_dict
-
-DEBUG = db_config("DEBUG", default=True)
-get_config_mode = "Debug" if DEBUG else "Production"
-app_config = config_dict[get_config_mode.capitalize()]
-
-celery_beat_schedule = {
-    "call-every-10": {
-        "task": "app.tasks.user_query",
-        "schedule": 4,
-        "args": (1,),
-    }
-}
-
-
-def create_app():
+def create_app(config):
     app = Flask(__name__, static_folder="base/static")
     app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
     app.config["SQLALCHEMY_DATABASE_URI"] = db_config("SQLALCHEMY_DATABASE_URI")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["beat_schedule"] = celery_beat_schedule
-    app.config.from_object(app_config)
+    app.config.from_object(config)
     db.init_app(app)
     register_extensions(app)
     register_blueprints(app)
     celery = celeryapp.make_celery(app)
-    print(type(celery))
     celeryapp.celery = celery
     app.register_blueprint(user_endpoint)
     app.register_blueprint(property_endpoint)
     configure_database(app)
     return app
-
