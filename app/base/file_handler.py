@@ -3,6 +3,7 @@ from PIL import Image
 from werkzeug.utils import secure_filename
 import secrets
 from flask import current_app
+from app import db
 
 
 def create_images_folder(username):
@@ -43,14 +44,14 @@ def property_image_handler(username, image_files, save_to_folder):
     return images_list
 
 
-def save_profile_picture(username, form_picture):
+def save_profile_picture(user, form_picture):
     """
     Handle the uploaded image file. The file is renamed to a random hex and then saved
     to the static/profile_pictures folder.
     """
     random_hex = secrets.token_hex(8)
     _, file_ext = os.path.splitext(form_picture.filename)
-    picture_file_name = f"{username}{random_hex}{file_ext}"
+    picture_file_name = f"{user.username}{random_hex}{file_ext}"
     picture_path = os.path.join(
         current_app.root_path, "base/static/profile_pictures", picture_file_name
     )
@@ -62,5 +63,5 @@ def save_profile_picture(username, form_picture):
     img = Image.open(form_picture)
     img.thumbnail((200, 250))
     img.save(picture_path)
-
-    return f"profile_pictures/{picture_file_name}"
+    user.photo = f"profile_pictures/{picture_file_name}"
+    db.session.commit()

@@ -77,13 +77,12 @@ def register():
 @blueprint.route("/account", methods=["GET", "POST"])
 @login_required
 def account():
+    from app import tasks
     form = UpdateAccountForm()
     if form.validate_on_submit():
         if form.picture.data:
-            filename = save_profile_picture(current_user.username, form.picture.data)
-            current_user.photo = filename
-        else:
-            filename = current_user.photo
+            image = form.picture.data
+            save_profile_picture(current_user, image)
         user_data = {
             "first_name": form.first_name.data,
             "last_name": form.last_name.data,
@@ -95,11 +94,12 @@ def account():
             "city": form.city.data,
             "postal_code": form.postal_code.data,
             "state": form.state.data,
-            "photo": filename,
+            "photo": current_user.photo,
             "username": form.username.data,
             "email": form.email.data,
-            "password": form.password.data,
+            "password": generate_password_hash(form.password.data)
         }
+        tasks.update_user_data(user_data, current_user.username)
         flash("Your account information has been updated.", "success")
         return redirect(url_for("base_blueprint.account"))
 
