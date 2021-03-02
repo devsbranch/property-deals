@@ -26,3 +26,9 @@ def save_property_data(data):
 def update_property_data(data, prop_id):
     Property.update_property(data, prop_id)
     return "Property Updated"
+
+
+@celery.task()
+def delete_property(prop_id):
+    Property.delete_property(prop_id)
+    return "Property Deleted"

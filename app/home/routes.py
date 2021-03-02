@@ -177,15 +177,10 @@ def update_property(property_id):
     return render_template("update_property.html", form=form)
 
 
-@blueprint.route("/property/delete/<int:property_id>", methods=["POST"])
+@blueprint.route("/property/delete/<int:prop_id>", methods=["POST"])
 @login_required
-def delete_property(property_id):
-    prop_to_delete = Property.query.get_or_404(property_id)
-    image_dir = os.path.join(
-        f"{current_app.root_path}/base/static/{prop_to_delete.image_folder}"
-    )
-    # delete the specified directory(image_dir) including it's contents from the file system
-    shutil.rmtree(image_dir)
-    db.session.delete(prop_to_delete)
-    db.session.commit()
+def delete_property(prop_id):
+    from app.tasks import delete_property
+
+    delete_property.delay(prop_id)
     return redirect(url_for("home_blueprint.index"))
