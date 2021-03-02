@@ -28,7 +28,7 @@ def index():
     page = request.args.get("page", 1, type=int)
     property_photos = Property.query.order_by(Property.date.desc())
     photos = [json.loads(p.photos) for p in property_photos]
-    paginate_properties = Property.query.paginate(page=page, per_page=5)
+    paginate_properties = Property.query.paginate(page=page, per_page=10)
     today = date.today()
     return render_template(
         "index.html",
@@ -87,6 +87,7 @@ def read_dir_imgs(img_dir):
 @blueprint.route("/property/create", methods=["GET", "POST"])
 @login_required
 def create_property():
+    from app import tasks
     form = PropertyForm()
     if form.validate_on_submit():
         img_files = request.files.getlist("prop_photos")
@@ -97,18 +98,19 @@ def create_property():
         img_list = read_dir_imgs(imgs_folder)
         img_list_to_json = json.dumps(img_list)
 
-        prop_info = Property(
-            name=form.prop_name.data,
-            desc=form.prop_desc.data,
-            price=form.prop_price.data,
-            location=form.prop_location.data,
-            image_folder=imgs_folder,
-            photos=img_list_to_json,
-            user_id=current_user.id,
-        )
+        prop_data = {
+            "name": form.prop_name.data,
+            "desc": form.prop_desc.data,
+            "price": form.prop_price.data,
+            "location": form.prop_location.data,
+            "image_folder": imgs_folder,
+            "photos": img_list_to_json,
+            "type": form.prop_type.data,
+            "condition": form.prop_condition.data,
+            "user_id": current_user.id,
+        }
 
-        db.session.add(prop_info)
-        db.session.commit()
+        tasks.save_property_data.delay(prop_data)
         flash("Your Property has been listed")
         return redirect(url_for("home_blueprint.index"))
     return render_template("create_property.html", form=form)

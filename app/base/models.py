@@ -144,17 +144,9 @@ class Property(db.Model):
 
     @classmethod
     def add_property(
-        cls, _name, _desc, _price, _location, _image_folder, _photos, _user_id
+        cls, prop_data
     ):
-        new_property = cls(
-            name=_name,
-            desc=_desc,
-            price=_price,
-            location=_location,
-            image_folder=_image_folder,
-            photos=_photos,
-            user_id=_user_id,
-        )
+        new_property = cls(**prop_data)
         db.session.add(new_property)
         db.session.commit()
 
