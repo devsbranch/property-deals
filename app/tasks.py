@@ -6,7 +6,5 @@ celery = celeryapp.celery
 
 @celery.task()
 def save_user_to_db(data):
-    user = User(**data)
-    db.session.add(user)
-    db.session.commit()
+    User.add_user(data)
     return "User added"

@@ -67,8 +67,8 @@ class User(db.Model, UserMixin):
         return bool(cls.query.filter_by(email=_email).first())
 
     @classmethod
-    def add_user(cls, _username, _email, _password):
-        new_user = cls(username=_username, email=_email, password=_password)
+    def add_user(cls, data):
+        new_user = cls(**data)
         db.session.add(new_user)
         db.session.commit()
 
