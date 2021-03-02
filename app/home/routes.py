@@ -11,14 +11,12 @@ from datetime import datetime
 from flask import render_template, redirect, url_for, request, current_app, flash
 from flask_login import login_required, current_user
 from jinja2 import TemplateNotFound
-
 from app import db
-from app.base.forms import PropertyForm, UpdateAccountForm
+from app.base.forms import PropertyForm
 from app.base.models import Property
 from app.home import blueprint
 from app.base.file_handler import (
     property_image_handler,
-    save_profile_picture,
     create_images_folder,
 )
 
@@ -27,6 +25,8 @@ ALLOWED_IMG_EXT = [".png", ".jpg", ".jpeg"]
 
 @blueprint.route("/index")
 def index():
+    from app import tasks
+    tasks.mul.delay(9000, 9000)
     page = request.args.get("page", 1, type=int)
     property_photos = Property.query.order_by(Property.date.desc())
     photos = [json.loads(p.photos) for p in property_photos]

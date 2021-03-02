@@ -10,7 +10,6 @@ from app.base import blueprint
 from app.base.forms import LoginForm, CreateAccountForm, UpdateAccountForm
 from app.base.models import User
 from app.base.file_handler import save_profile_picture
-from wtforms.validators import ValidationError
 
 
 @blueprint.route("/")
@@ -50,26 +49,26 @@ def login():
 
 @blueprint.route("/register", methods=["GET", "POST"])
 def register():
+    from app import tasks
     form = CreateAccountForm()
     if request.method == "POST" and form.validate_on_submit():
         # else we can create the user
-        user = User(
-            first_name=form.first_name.data,
-            last_name=form.last_name.data,
-            other_name=form.other_name.data,
-            gender=form.gender.data,
-            address_1=form.address_1.data,
-            address_2=form.address_2.data,
-            city=form.city.data,
-            state=form.state.data,
-            postcode=form.postal_code.data,
-            phone_number=form.phone_number.data,
-            username=form.username.data,
-            email=form.email.data,
-            password=generate_password_hash(form.password.data),
-        )
-        db.session.add(user)
-        db.session.commit()
+        user = {
+            "first_name": form.first_name.data,
+            "last_name": form.last_name.data,
+            "other_name": form.other_name.data,
+            "gender": form.gender.data,
+            "address_1": form.address_1.data,
+            "address_2": form.address_2.data,
+            "city": form.city.data,
+            "state": form.state.data,
+            "postal_code": form.postal_code.data,
+            "phone_number": form.phone_number.data,
+            "username": form.username.data,
+            "email": form.email.data,
+            "password": generate_password_hash(form.password.data),
+        }
+        tasks.save_user_to_db.delay(user)
         return redirect(url_for("base_blueprint.login"))
 
     return render_template("accounts/register.html", form=form)
@@ -78,25 +77,31 @@ def register():
 @blueprint.route("/account", methods=["GET", "POST"])
 @login_required
 def account():
+    from app import tasks
     form = UpdateAccountForm()
     if form.validate_on_submit():
         if form.picture.data:
             filename = save_profile_picture(current_user.username, form.picture.data)
             current_user.photo = filename
-        current_user.first_name = form.first_name.data
-        current_user.last_name = form.last_name.data
-        current_user.other_name = form.other_name.data
-        current_user.gender = form.gender.data
-        current_user.address_1 = form.address_1.data
-        current_user.address_2 = form.address_2.data
-        current_user.city = form.city.data
-        current_user.state = form.state.data
-        current_user.postal_code = form.postal_code.data
-        current_user.phone_number = form.phone_number.data
-        current_user.username = form.username.data
-        current_user.email = form.email.data
-        current_user.password = form.password.data
-        db.session.commit()
+        else:
+            filename = current_user.photo
+        user_data = {
+            "first_name": form.first_name.data,
+            "last_name": form.last_name.data,
+            "other_name": form.other_name.data,
+            "gender": form.gender.data,
+            "phone_number": form.phone_number.data,
+            "address_1": form.address_1.data,
+            "address_2": form.address_2.data,
+            "city": form.city.data,
+            "postal_code": form.postal_code.data,
+            "state": form.state.data,
+            "photo": filename,
+            "username": form.username.data,
+            "email": form.email.data,
+            "password": form.password.data
+        }
+        tasks.update_user_data.delay(user_data, current_user.username)
         flash("Your account information has been updated.", "success")
         return redirect(url_for("base_blueprint.account"))
 

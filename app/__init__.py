@@ -3,6 +3,7 @@
 Copyright (c) 2020 - DevsBranch
 """
 
+from __future__ import absolute_import, unicode_literals
 from flask import Flask
 from flask_marshmallow import Marshmallow
 from flask_login import LoginManager
@@ -11,6 +12,8 @@ from importlib import import_module
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from decouple import config as db_config
+from app import celeryapp
+
 
 db = SQLAlchemy()
 ma = Marshmallow()
@@ -46,16 +49,36 @@ def configure_database(app):
         db.session.remove()
 
 
-def create_app(config):
+from config import config_dict
+
+DEBUG = db_config("DEBUG", default=True)
+get_config_mode = "Debug" if DEBUG else "Production"
+app_config = config_dict[get_config_mode.capitalize()]
+
+celery_beat_schedule = {
+    "call-every-10": {
+        "task": "app.tasks.user_query",
+        "schedule": 4,
+        "args": (1,),
+    }
+}
+
+
+def create_app():
     app = Flask(__name__, static_folder="base/static")
     app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
     app.config["SQLALCHEMY_DATABASE_URI"] = db_config("SQLALCHEMY_DATABASE_URI")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config.from_object(config)
+    app.config["beat_schedule"] = celery_beat_schedule
+    app.config.from_object(app_config)
     db.init_app(app)
     register_extensions(app)
     register_blueprints(app)
+    celery = celeryapp.make_celery(app)
+    print(type(celery))
+    celeryapp.celery = celery
     app.register_blueprint(user_endpoint)
     app.register_blueprint(property_endpoint)
     configure_database(app)
     return app
+
