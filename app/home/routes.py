@@ -87,7 +87,7 @@ def read_dir_imgs(img_dir):
 @blueprint.route("/property/create", methods=["GET", "POST"])
 @login_required
 def create_property():
-    from app import tasks
+    from app.tasks import save_property_data
     form = PropertyForm()
     if form.validate_on_submit():
         img_files = request.files.getlist("prop_photos")
@@ -110,7 +110,7 @@ def create_property():
             "user_id": current_user.id,
         }
 
-        tasks.save_property_data.delay(prop_data)
+        save_property_data.delay(prop_data)
         flash("Your Property has been listed")
         return redirect(url_for("home_blueprint.index"))
     return render_template("create_property.html", form=form)
@@ -139,6 +139,7 @@ def user_listing(user_id):
 @blueprint.route("/property/update/<int:property_id>", methods=["GET", "POST"])
 @login_required
 def update_property(property_id):
+    from app.tasks import update_property_data
     prop_to_update = Property.query.get_or_404(property_id)
     form = PropertyForm()
 
@@ -149,14 +150,17 @@ def update_property(property_id):
         img_list = read_dir_imgs(imgs_folder)
         property_image_handler(current_user.username, img_files, imgs_folder)
         image_list_to_json = json.dumps(img_list)
-
-        prop_to_update.name = form.prop_name.data
-        prop_to_update.desc = form.prop_desc.data
-        prop_to_update.price = form.prop_price.data
-        prop_to_update.photos = image_list_to_json
-        prop_to_update.location = form.prop_location.data
-        prop_to_update.date = datetime.utcnow()
-        db.session.commit()
+        prop_data = {
+            "name": form.prop_name.data,
+            "desc": form.prop_desc.data,
+            "price": form.prop_price.data,
+            "photos": image_list_to_json,
+            "type": form.prop_type.data,
+            "condition": form.prop_condition.data,
+            "location": form.prop_location.data,
+            "date": datetime.utcnow()
+        }
+        update_property_data(prop_data, prop_to_update.id)
         flash("Your Property listing has been updated", "success")
         return redirect(url_for("home_blueprint.index"))
 
@@ -166,6 +170,8 @@ def update_property(property_id):
         form.prop_desc.data = prop_to_update.desc
         form.prop_price.data = prop_to_update.price
         form.prop_location.data = prop_to_update.location
+        form.prop_type.data = prop_to_update.type
+        form.prop_condition.data = prop_to_update.condition
 
     return render_template("create_property.html", form=form)
 

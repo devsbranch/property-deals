@@ -20,3 +20,9 @@ def update_user_data(data, username):
 def save_property_data(data):
     Property.add_property(data)
     return "Property Created"
+
+
+@celery.task()
+def update_property_data(data, prop_id):
+    Property.update_property(data, prop_id)
+    return "Property Updated"

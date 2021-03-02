@@ -151,18 +151,11 @@ class Property(db.Model):
         db.session.commit()
 
     @classmethod
-    def update_property(
-        cls, prop_id, _name, _desc, _price, _location, _image_folder, _photos, _user_id
-    ):
-        prop_ro_update = cls.query.get(prop_id)
-        prop_ro_update.name = (_name,)
-        prop_ro_update.desc = (_desc,)
-        prop_ro_update.price = (_price,)
-        prop_ro_update.location = (_location,)
-        prop_ro_update.image_folder = (_image_folder,)
-        prop_ro_update.photos = (_photos,)
-        prop_ro_update.user_id = _user_id
-        db.session.commit()
+    def update_property(cls, prop_data, prop_id):
+        property_to_update = Property.query.filter_by(id=prop_id)
+        for key, value in prop_data.items():
+            property_to_update.update({key: value})
+            db.session.commit()
 
     @classmethod
     def delete_property(cls, prop_id):
