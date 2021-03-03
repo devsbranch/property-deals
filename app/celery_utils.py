@@ -1,7 +1,5 @@
-from app import celeryapp
+from app.celery import celery
 from app.base.models import User, Property
-
-celery = celeryapp.celery
 
 
 @celery.task()

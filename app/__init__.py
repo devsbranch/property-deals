@@ -13,6 +13,32 @@ from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from decouple import config as db_config
 from app import celeryapp
+from celery import Celery
+
+CELERY_TASK_LIST = [
+    "app.tasks",
+]
+
+
+def make_celery(app):
+    celery = Celery(app.import_name, include=CELERY_TASK_LIST)
+    celery.conf.update(app.config)
+    celery.conf.update(
+        broker_url="redis://localhost:6379/0",
+        result_backend="redis://localhost:6379/0",
+        timezone="UTC",
+        task_serializer="json",
+        accept_content=["json"],
+        result_serializer="json",
+    )
+
+    class ContextTask(celery.Task):
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                return self.run(*args, **kwargs)
+
+    celery.Task = ContextTask
+    return celery
 
 
 db = SQLAlchemy()
@@ -63,8 +89,6 @@ def create_app(config):
     db.init_app(app)
     register_extensions(app)
     register_blueprints(app)
-    celery = celeryapp.make_celery(app)
-    celeryapp.celery = celery
     app.register_blueprint(user_endpoint)
     app.register_blueprint(property_endpoint)
     configure_database(app)
