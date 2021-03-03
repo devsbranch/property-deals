@@ -23,7 +23,7 @@ jwt = JWTManager()
 
 
 DEBUG = db_config("DEBUG", default=True)
-get_config_mode = "Debug" if DEBUG else "Production"
+get_config_mode = "Development" if DEBUG else "Production"
 
 
 # importing from base module __init__
