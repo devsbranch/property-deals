@@ -8,6 +8,7 @@ from flask import current_app
 from flask_login import UserMixin
 from app import db, login_manager
 from api.schema import property_schema, user_schema
+from app.base.file_handler import property_image_handler
 
 
 class User(db.Model, UserMixin):
@@ -107,7 +108,7 @@ class Property(db.Model):
     image_folder = db.Column(
         db.Text, nullable=True
     )  # Do we need this as a db attribute?
-    photos = db.Column(db.Text)
+    photos = db.Column(db.Text, nullable=True)
     type = db.Column(db.String(50), default="other", nullable=False)
     is_available = db.Column(db.Boolean, default=True)
     deal_done = db.Column(db.Boolean, default=False)
@@ -156,6 +157,14 @@ class Property(db.Model):
         for key, value in prop_data.items():
             property_to_update.update({key: value})
             db.session.commit()
+
+    @classmethod
+    def update_property_images(cls, image_dir, img_list, prop_id):
+        prop_to_update = Property.query.get(prop_id)
+        shutil.rmtree(f"{current_app.root_path}/base/static/{prop_to_update.image_folder}")
+        prop_to_update.image_folder = image_dir  # deletes old property image folder including contents
+        prop_to_update.photos = img_list
+        db.session.commit()
 
     @classmethod
     def delete_property(cls, prop_id):

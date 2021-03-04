@@ -3,8 +3,9 @@
 Copyright (c) 2020 - DevsBranch
 """
 
-from __future__ import absolute_import, unicode_literals
+# from __future__ import absolute_import, unicode_literals
 from flask import Flask
+from celery import Celery
 from flask_marshmallow import Marshmallow
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
@@ -12,16 +13,16 @@ from importlib import import_module
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from decouple import config as db_config
-from app import celeryapp
-from celery import Celery
+from config import config_dict
 
 CELERY_TASK_LIST = [
-    "app.tasks",
+    "app.celery_utils",
 ]
 
 
 def make_celery(app):
-    celery = Celery(app.import_name, include=CELERY_TASK_LIST)
+    celery = Celery(app.import_name,
+                    include=CELERY_TASK_LIST)
     celery.conf.update(app.config)
     celery.conf.update(
         broker_url="redis://localhost:6379/0",
@@ -86,10 +87,16 @@ def create_app(config):
     app.config["SQLALCHEMY_DATABASE_URI"] = db_config("SQLALCHEMY_DATABASE_URI")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config.from_object(config)
+    celery = make_celery(app)
     db.init_app(app)
     register_extensions(app)
     register_blueprints(app)
     app.register_blueprint(user_endpoint)
     app.register_blueprint(property_endpoint)
     configure_database(app)
-    return app
+    return app, celery
+
+
+app_config = config_dict[get_config_mode.capitalize()]
+
+_, celery = create_app(app_config)
