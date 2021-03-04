@@ -19,3 +19,4 @@ flask-jwt-extended==3.25.1
 sphinx
 rinohtype
 celery~=5.0.5
+redis==3.5.3
