@@ -39,18 +39,13 @@ def save_images_to_temp_folder(image_files):
     return f"property_images/{temp_dir}"
 
 
-def property_image_handler(temp_img_folder=None, img_folder=None):
+def property_image_handler(temp_img_folder=None):
     """
     Handles the images uploaded from the web form. The images are down sized using
     the Pillow image library and saved to the file system. The image filenames are checked
     using the werkzeug utilities, then the filename is appended to the list of filenames.
     """
     # Delete images before before the property is updated with new images
-    dir_to_del = f"{current_app.root_path}/base/static/property_images/{img_folder}"
-    if os.path.exists(dir_to_del):
-        for filename in os.listdir(dir_to_del):
-            os.remove(os.path.join(dir_to_del, filename))
-
     rand_dir_name = secrets.token_hex(16)
     save_to_folder = f"{current_app.root_path}/base/static/property_images/{rand_dir_name}"
     os.mkdir(save_to_folder)

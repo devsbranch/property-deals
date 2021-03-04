@@ -9,7 +9,6 @@ from datetime import date
 from flask import render_template, redirect, url_for, request, current_app, flash
 from flask_login import login_required, current_user
 from jinja2 import TemplateNotFound
-from app import db
 from app.base.forms import CreatePropertyForm, UpdatePropertyForm
 from app.base.models import Property
 from app.home import blueprint
@@ -125,29 +124,27 @@ def user_listing(user_id):
 @blueprint.route("/property/update/<int:property_id>", methods=["GET", "POST"])
 @login_required
 def update_property(property_id):
-    prop_to_update = Property.query.get_or_404(property_id)
+    from app.celery_utils import update_prop_images
     form = UpdatePropertyForm()
     if request.method == "POST" and form.validate_on_submit():
         if request.files["prop_photos"].filename:
             img_files = request.files.getlist("prop_photos")
-            imgs_folder = prop_to_update.image_folder
-            img_list = read_dir_imgs(imgs_folder)
-            image_list_to_json = json.dumps(img_list)
-            prop_to_update.photos = image_list_to_json
-            db.session.commit()
+            temp_folder = save_images_to_temp_folder(img_files)
+            update_prop_images.delay(temp_folder, property_id)
         prop_data = {
             "name": form.prop_name.data,
             "desc": form.prop_desc.data,
             "price": form.prop_price.data,
-            "photos": prop_to_update.photos,
             "type": form.prop_type.data,
             "condition": form.prop_condition.data,
             "location": form.prop_location.data,
         }
+        Property.update_property(prop_data, property_id)
         flash("Your Property listing has been updated", "success")
         return redirect(url_for("home_blueprint.index"))
 
     elif request.method == "GET":
+        prop_to_update = Property.query.get(property_id)
         # prefills the forms with the attributes to the property to be updated
         form.prop_name.data = prop_to_update.name
         form.prop_desc.data = prop_to_update.desc
