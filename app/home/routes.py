@@ -138,7 +138,6 @@ def update_property(property_id):
             "condition": form.prop_condition.data,
             "location": form.prop_location.data,
         }
-
         Property.update_property(prop_data, property_id)
         flash("Your Property listing has been updated", "success")
         return redirect(url_for("home_blueprint.index"))
