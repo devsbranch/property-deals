@@ -15,14 +15,14 @@ from flask_jwt_extended import JWTManager
 from decouple import config as db_config
 from config import config_dict
 
-CELERY_TASK_LIST = [
+TASK_LIST = [
     "app.celery_utils",
 ]
 
 
-def make_celery(app):
+def init_celery(app):
     celery = Celery(app.import_name,
-                    include=CELERY_TASK_LIST)
+                    include=TASK_LIST)
     celery.conf.update(app.config)
     celery.conf.update(
         broker_url=os.environ.get("REDIS_URL") or "redis://localhost:6379/0",
@@ -87,7 +87,7 @@ def create_app(config):
     app.config["SQLALCHEMY_DATABASE_URI"] = db_config("SQLALCHEMY_DATABASE_URI")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config.from_object(config)
-    celery = make_celery(app)
+    celery = init_celery(app)
     db.init_app(app)
     register_extensions(app)
     register_blueprints(app)
