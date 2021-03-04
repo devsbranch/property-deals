@@ -3,7 +3,7 @@
 Copyright (c) 2020 - DevsBranch
 """
 
-# from __future__ import absolute_import, unicode_literals
+import os
 from flask import Flask
 from celery import Celery
 from flask_marshmallow import Marshmallow
@@ -25,8 +25,8 @@ def make_celery(app):
                     include=CELERY_TASK_LIST)
     celery.conf.update(app.config)
     celery.conf.update(
-        broker_url="redis://localhost:6379/0",
-        result_backend="redis://localhost:6379/0",
+        broker_url=os.environ.get("REDIS_URL") or "redis://localhost:6379/0",
+        result_backend=os.environ.get("REDIS_URL") or "redis://localhost:6379/0",
         timezone="UTC",
         task_serializer="json",
         accept_content=["json"],
