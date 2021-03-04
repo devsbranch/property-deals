@@ -24,7 +24,7 @@ from app.base.models import User
 class LoginForm(FlaskForm):
     username = StringField("Username", validators=[DataRequired()])
     password = PasswordField("Password", validators=[DataRequired()])
-    submit = SubmitField("Sign Up")
+    submit = SubmitField("Sign In")
 
 
 class CreateAccountForm(FlaskForm):
@@ -82,7 +82,7 @@ class CreateAccountForm(FlaskForm):
 
 class UpdateAccountForm(CreateAccountForm):
     picture = FileField(
-        "Change your profile picture", validators=[FileAllowed(["jpg", "jpeg", "png"])]
+        "Change your profile picture", validators=[FileAllowed(["iso", "jpg", "jpeg", "png"])]
     )
     password = PasswordField("Password", validators=[Length(min=0, max=60)])
     confirm_password = PasswordField(

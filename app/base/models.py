@@ -8,6 +8,7 @@ from flask import current_app
 from flask_login import UserMixin
 from app import db, login_manager
 from api.schema import property_schema, user_schema
+from app.base.file_handler import property_image_handler
 
 
 class User(db.Model, UserMixin):
@@ -107,7 +108,7 @@ class Property(db.Model):
     image_folder = db.Column(
         db.Text, nullable=True
     )  # Do we need this as a db attribute?
-    photos = db.Column(db.Text)
+    photos = db.Column(db.Text, nullable=True)
     type = db.Column(db.String(50), default="other", nullable=False)
     is_available = db.Column(db.Boolean, default=True)
     deal_done = db.Column(db.Boolean, default=False)

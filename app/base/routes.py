@@ -49,8 +49,6 @@ def login():
 
 @blueprint.route("/register", methods=["GET", "POST"])
 def register():
-    from app import tasks
-
     form = CreateAccountForm()
     if request.method == "POST" and form.validate_on_submit():
         user = {
@@ -68,7 +66,6 @@ def register():
             "email": form.email.data,
             "password": generate_password_hash(form.password.data),
         }
-        tasks.save_user_to_db.delay(user)
         return redirect(url_for("base_blueprint.login"))
 
     return render_template("accounts/register.html", form=form)
@@ -77,7 +74,6 @@ def register():
 @blueprint.route("/account", methods=["GET", "POST"])
 @login_required
 def account():
-    from app import tasks
     form = UpdateAccountForm()
     if form.validate_on_submit():
         if form.picture.data:
@@ -97,9 +93,7 @@ def account():
             "photo": current_user.photo,
             "username": form.username.data,
             "email": form.email.data,
-            "password": generate_password_hash(form.password.data)
         }
-        tasks.update_user_data.delay(user_data, current_user.username)
         flash("Your account information has been updated.", "success")
         return redirect(url_for("base_blueprint.account"))
 
