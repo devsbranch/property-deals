@@ -99,11 +99,11 @@ class Property(db.Model):
     __tablename__ = "property"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Text(64), nullable=False)
-    desc = db.Column(db.Text(256), nullable=False)
+    name = db.Column(db.Text, nullable=False)
+    desc = db.Column(db.Text, nullable=False)
     date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     price = db.Column(db.Integer, nullable=False)
-    location = db.Column(db.Text(64), nullable=False)
+    location = db.Column(db.Text, nullable=False)
     image_folder = db.Column(
         db.Text, nullable=True
     )  # Do we need this as a db attribute?
