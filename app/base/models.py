@@ -67,21 +67,22 @@ class User(db.Model, UserMixin):
         return bool(cls.query.filter_by(email=_email).first())
 
     @classmethod
-    def add_user(cls, _username, _email, _password):
-        new_user = cls(username=_username, email=_email, password=_password)
+    def add_user(cls, data):
+        new_user = cls(**data)
         db.session.add(new_user)
         db.session.commit()
 
-    @classmethod
-    def update_user(cls, _username, _email, _password, _photo):
-        user_to_update = cls(
-            username=_username,
-            email=_email,
-            password=_password,
-            photo=_photo,
-        )
-        db.session.add(user_to_update)
-        db.session.commit()
+    @staticmethod
+    def update_user(data, username):
+        """
+        This function will update the user in the database. Here, the .first() function is not called
+        on the user_to_update object because we want the object to have the .update() method which we will use
+        update the user_to_update object by iterating through the data object and getting a key=value pair.
+        """
+        user_to_update = User.query.filter_by(username=username)
+        for key, value in data.items():
+            user_to_update.update({key: value})
+            db.session.commit()
 
     @staticmethod
     def delete_user(_user_id):
@@ -106,7 +107,7 @@ class Property(db.Model):
     image_folder = db.Column(
         db.Text, nullable=True
     )  # Do we need this as a db attribute?
-    photos = db.Column(db.Text)
+    photos = db.Column(db.Text, nullable=True)
     type = db.Column(db.String(50), default="other", nullable=False)
     is_available = db.Column(db.Boolean, default=True)
     deal_done = db.Column(db.Boolean, default=False)
@@ -142,33 +143,28 @@ class Property(db.Model):
         return property_schema.dump(query)
 
     @classmethod
-    def add_property(
-        cls, _name, _desc, _price, _location, _image_folder, _photos, _user_id
-    ):
-        new_property = cls(
-            name=_name,
-            desc=_desc,
-            price=_price,
-            location=_location,
-            image_folder=_image_folder,
-            photos=_photos,
-            user_id=_user_id,
-        )
+    def add_property(cls, prop_data):
+        new_property = cls(**prop_data)
         db.session.add(new_property)
         db.session.commit()
 
     @classmethod
-    def update_property(
-        cls, prop_id, _name, _desc, _price, _location, _image_folder, _photos, _user_id
-    ):
-        prop_ro_update = cls.query.get(prop_id)
-        prop_ro_update.name = (_name,)
-        prop_ro_update.desc = (_desc,)
-        prop_ro_update.price = (_price,)
-        prop_ro_update.location = (_location,)
-        prop_ro_update.image_folder = (_image_folder,)
-        prop_ro_update.photos = (_photos,)
-        prop_ro_update.user_id = _user_id
+    def update_property(cls, prop_data, prop_id):
+        property_to_update = Property.query.filter_by(id=prop_id)
+        for key, value in prop_data.items():
+            property_to_update.update({key: value})
+            db.session.commit()
+
+    @classmethod
+    def update_property_images(cls, image_dir, img_list, prop_id):
+        prop_to_update = Property.query.get(prop_id)
+        shutil.rmtree(
+            f"{current_app.root_path}/base/static/{prop_to_update.image_folder}"
+        )
+        prop_to_update.image_folder = (
+            image_dir  # deletes old property image folder including contents
+        )
+        prop_to_update.photos = img_list
         db.session.commit()
 
     @classmethod

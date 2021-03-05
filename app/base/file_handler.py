@@ -1,8 +1,14 @@
-import os, random, string
+import os
+import uuid
+import calendar
+import random
+import string
+import shutil
+from datetime import datetime
 from PIL import Image
 from werkzeug.utils import secure_filename
-import secrets
 from flask import current_app
+from app import db
 
 
 def create_images_folder(username):
@@ -17,40 +23,73 @@ def create_images_folder(username):
     return property_img_folder
 
 
-def property_image_handler(username, image_files, save_to_folder):
+def save_images_to_temp_folder(image_files):
     """
-    Handles the docs uploaded from the web form. The docs are down sized using
-    the Pillow image library and saved to the file system. The image filenames are checked
-    using the werkzeug utilities, then the filename is saved to the list of filenames in the
-    dictionary object.
+    Generates a temporary folder for storing image files of property.
     """
-    images_list = [save_to_folder]
+    rand_dir_name = str(uuid.uuid4())
+    temp_dir = rand_dir_name[:18]
+    os.mkdir(f"{current_app.root_path}/base/static/property_images/{temp_dir}")
+
     for image_file in image_files:
+        rand_name = str(uuid.uuid4())
+        filename = rand_name[:13]
         checked_filename = secure_filename(image_file.filename)
-        random_hex = secrets.token_hex(15)
-        _, file_extension = os.path.splitext(checked_filename)
-        clean_filename = f"{username}{random_hex}{file_extension}"
-        images_list.append(clean_filename)
-
-        image = Image.open(image_file)
-        # reduce image size down to 15%
-        image.thumbnail((3000, 3000))
-
-        file_path = os.path.join(
-            f"{current_app.root_path}/base/static/{save_to_folder}", clean_filename
+        _, file_ext = os.path.splitext(checked_filename)
+        checked_filename = f"{filename}{file_ext}"
+        image_file.save(
+            f"{current_app.root_path}/base/static/property_images/{temp_dir}/{checked_filename}"
         )
-        image.save(file_path)
-    return images_list
+
+    return f"property_images/{temp_dir}"
 
 
-def save_profile_picture(username, form_picture):
+def property_image_handler(temp_img_folder=None):
+    """
+    Handles the images uploaded from the web form. The images are down sized using
+    the Pillow image library and saved to the file system. The image filenames are checked
+    using the werkzeug utilities, then the filename is appended to the list of filenames.
+    """
+    suffix = str(uuid.uuid4())
+    current_date = datetime.utcnow()
+    time, date = (
+        current_date.strftime("%H-%M-%S"),
+        current_date.strftime("%d-%B-%Y"),
+    )
+    timestamped_dir_name = f"property_{suffix[:13]}_{date}_{time}"
+    save_to_folder = (
+        f"{current_app.root_path}/base/static/property_images/{timestamped_dir_name}"
+    )
+    os.mkdir(save_to_folder)
+    images_list = [f"property_images/{timestamped_dir_name}"]
+    tmp_dir = f"{current_app.root_path}/base/static/{temp_img_folder}"
+
+    for image_filename in os.listdir(tmp_dir):
+        images_list.append(image_filename)
+        image_path = f"{tmp_dir}/{image_filename}"
+        image_file = Image.open(image_path)
+        image_file.thumbnail((3000, 3000))
+        path = f"{save_to_folder}/{image_filename}"
+        image_file.save(path)
+
+    shutil.rmtree(tmp_dir)
+    return f"property_images/{timestamped_dir_name}", images_list
+
+
+def save_profile_picture(user, form_picture):
     """
     Handle the uploaded image file. The file is renamed to a random hex and then saved
     to the static/profile_pictures folder.
     """
-    random_hex = secrets.token_hex(8)
+    current_date = datetime.utcnow()
+    time, date, month_name = (
+        current_date.strftime("%H:%M:%S"),
+        current_date.strftime("%d-%m-%Y"),
+        calendar.month_name[int(current_date.strftime("%m"))],
+    )
+    timestamped_dir_name = f"property_{time}-{month_name}-{date}"
     _, file_ext = os.path.splitext(form_picture.filename)
-    picture_file_name = f"{username}{random_hex}{file_ext}"
+    picture_file_name = f"{user.username}{timestamped_dir_name}{file_ext}"
     picture_path = os.path.join(
         current_app.root_path, "base/static/profile_pictures", picture_file_name
     )
@@ -62,5 +101,5 @@ def save_profile_picture(username, form_picture):
     img = Image.open(form_picture)
     img.thumbnail((200, 250))
     img.save(picture_path)
-
-    return f"profile_pictures/{picture_file_name}"
+    user.photo = f"profile_pictures/{picture_file_name}"
+    db.session.commit()
