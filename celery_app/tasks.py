@@ -5,6 +5,8 @@ from random import choice
 @celery.task
 def add(x, y):
     return x + y
+
+
 #
 #
 # @cel_app.task
@@ -20,5 +22,7 @@ def add(x, y):
 @celery.task
 def calculate(r):
     for i in range(r):
-        data = "".join(choice("ABCDE" + f"{((i ** i) ** (i ** i)) ** i}") for i in range(0))
+        data = "".join(
+            choice("ABCDE" + f"{((i ** i) ** (i ** i)) ** i}") for i in range(0)
+        )
     return "Done"

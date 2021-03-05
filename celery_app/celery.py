@@ -4,7 +4,7 @@ from celery import Celery
 #                     backend='db+sqlite:///results.sqlite',
 #                     include=['celery_app.tasks']
 
-celery_app = Celery('celery_app')
+celery_app = Celery("celery_app")
 
 celery_beat_schedule = {
     "call-every-10": {
@@ -22,8 +22,8 @@ celery_app.conf.update(
     accept_content=["json"],
     result_serializer="json",
     beat_schedule=celery_beat_schedule,
-    include=['celery_app.tasks']
+    include=["celery_app.tasks"],
 )
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     celery_app.start()

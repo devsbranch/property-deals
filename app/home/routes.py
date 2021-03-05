@@ -16,6 +16,7 @@ from app.base.file_handler import save_images_to_temp_folder
 @blueprint.route("/index")
 def index():
     from app import tasks
+
     tasks.mul.delay(9000, 9000)
     page = request.args.get("page", 1, type=int)
     property_photos = Property.query.order_by(Property.date.desc())
