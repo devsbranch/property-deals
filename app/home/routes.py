@@ -4,7 +4,7 @@ Copyright (c) 2020 - DevsBranch
 """
 import json
 from datetime import date
-from flask import render_template, redirect, url_for, request, current_app, flash
+from flask import render_template, redirect, url_for, request, flash
 from flask_login import login_required, current_user
 from jinja2 import TemplateNotFound
 from app.base.forms import CreatePropertyForm, UpdatePropertyForm
@@ -65,7 +65,7 @@ def get_segment(request):
 @login_required
 def create_property():
     form = CreatePropertyForm()
-    from app.celery_utils import save_property_data
+    from app.tasks import save_property_data
 
     if form.validate_on_submit():
         for file in form.prop_photos.data:
@@ -110,7 +110,7 @@ def user_listing(user_id):
 @blueprint.route("/property/update/<int:property_id>", methods=["GET", "POST"])
 @login_required
 def update_property(property_id):
-    from app.celery_utils import update_prop_images
+    from app.tasks import update_prop_images
 
     form = UpdatePropertyForm()
     if request.method == "POST" and form.validate_on_submit():
