@@ -23,5 +23,3 @@ def update_prop_images(temp_folder, prop_id):
     img_list_to_json = json.dumps(images_list)
     Property.update_property_images(prop_images_dir, img_list_to_json, prop_id)
     return "Images Updated"
-
-

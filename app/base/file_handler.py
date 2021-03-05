@@ -37,7 +37,9 @@ def save_images_to_temp_folder(image_files):
         checked_filename = secure_filename(image_file.filename)
         _, file_ext = os.path.splitext(checked_filename)
         checked_filename = f"{filename}{file_ext}"
-        image_file.save(f"{current_app.root_path}/base/static/property_images/{temp_dir}/{checked_filename}")
+        image_file.save(
+            f"{current_app.root_path}/base/static/property_images/{temp_dir}/{checked_filename}"
+        )
 
     return f"property_images/{temp_dir}"
 
@@ -50,9 +52,14 @@ def property_image_handler(temp_img_folder=None):
     """
     suffix = str(uuid.uuid4())
     current_date = datetime.utcnow()
-    time, date = current_date.strftime("%H-%M-%S"), current_date.strftime("%d-%B-%Y"),
+    time, date = (
+        current_date.strftime("%H-%M-%S"),
+        current_date.strftime("%d-%B-%Y"),
+    )
     timestamped_dir_name = f"property_{suffix[:13]}_{date}_{time}"
-    save_to_folder = f"{current_app.root_path}/base/static/property_images/{timestamped_dir_name}"
+    save_to_folder = (
+        f"{current_app.root_path}/base/static/property_images/{timestamped_dir_name}"
+    )
     os.mkdir(save_to_folder)
     images_list = [f"property_images/{timestamped_dir_name}"]
     tmp_dir = f"{current_app.root_path}/base/static/{temp_img_folder}"
@@ -75,9 +82,11 @@ def save_profile_picture(user, form_picture):
     to the static/profile_pictures folder.
     """
     current_date = datetime.utcnow()
-    time, date, month_name = current_date.strftime("%H:%M:%S"), \
-                             current_date.strftime("%d-%m-%Y"), \
-                             calendar.month_name[int(current_date.strftime("%m"))]
+    time, date, month_name = (
+        current_date.strftime("%H:%M:%S"),
+        current_date.strftime("%d-%m-%Y"),
+        calendar.month_name[int(current_date.strftime("%m"))],
+    )
     timestamped_dir_name = f"property_{time}-{month_name}-{date}"
     _, file_ext = os.path.splitext(form_picture.filename)
     picture_file_name = f"{user.username}{timestamped_dir_name}{file_ext}"

@@ -21,8 +21,7 @@ TASK_LIST = [
 
 
 def init_celery(app):
-    celery = Celery(app.import_name,
-                    include=TASK_LIST)
+    celery = Celery(app.import_name, include=TASK_LIST)
     celery.conf.update(app.config)
     celery.conf.update(
         broker_url="redis://localhost:6379/0" or os.environ.get("REDIS_URL"),

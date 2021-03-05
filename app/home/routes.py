@@ -13,6 +13,7 @@ from app.base.forms import CreatePropertyForm, UpdatePropertyForm
 from app.base.models import Property
 from app.home import blueprint
 from app.base.file_handler import save_images_to_temp_folder
+
 ALLOWED_IMG_EXT = [".png", ".jpg", ".jpeg"]
 
 
@@ -82,6 +83,7 @@ def read_dir_imgs(img_dir):
 def create_property():
     form = CreatePropertyForm()
     from app.celery_utils import save_property_data
+
     if form.validate_on_submit():
         img_files = request.files.getlist("prop_photos")
         temp_folder = save_images_to_temp_folder(img_files)
@@ -124,6 +126,7 @@ def user_listing(user_id):
 @login_required
 def update_property(property_id):
     from app.celery_utils import update_prop_images
+
     form = UpdatePropertyForm()
     if request.method == "POST" and form.validate_on_submit():
         if request.files["prop_photos"].filename:
