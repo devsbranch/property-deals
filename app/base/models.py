@@ -8,7 +8,6 @@ from flask import current_app
 from flask_login import UserMixin
 from app import db, login_manager
 from api.schema import property_schema, user_schema
-from app.base.file_handler import property_image_handler
 
 
 class User(db.Model, UserMixin):
