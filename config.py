@@ -9,7 +9,7 @@ class Config(object):
 
     # Set up the App SECRET_KEY
     SECRET_KEY = config("SECRET_KEY", default="S#perS3crEt_007")
-    SQLALCHEMY_DATABASE_URI = "{}://{}:{}@{}:{}/{}".format(
+    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL") or "{}://{}:{}@{}:{}/{}".format(
         config("DB_ENGINE", default="postgresql"),
         config("DB_USERNAME", default="postgres"),
         config("DB_PASS", default="pass"),
