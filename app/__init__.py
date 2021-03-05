@@ -16,7 +16,7 @@ from decouple import config as db_config
 from config import config_dict
 
 TASK_LIST = [
-    "app.celery_utils",
+    "app.tasks",
 ]
 
 
