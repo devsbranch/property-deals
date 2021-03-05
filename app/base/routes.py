@@ -53,8 +53,6 @@ def register():
 
     form = CreateAccountForm()
     if request.method == "POST" and form.validate_on_submit():
-        for k, v in request.form.items():
-            print(f"'{k}'='{v}'")
         user_data = {
             "first_name": form.first_name.data,
             "last_name": form.last_name.data,
