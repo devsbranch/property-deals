@@ -85,20 +85,12 @@ DEBUG = db_config("DEBUG", default=True)
 get_config_mode = "Development" if DEBUG else "Production"
 app_config = config_dict[get_config_mode.capitalize()]
 
-celery_beat_schedule = {
-    "call-every-10": {
-        "task": "app.tasks.user_query",
-        "schedule": 4,
-        "args": (1,),
-    }
-}
-
 
 def create_app(config):
     app = Flask(__name__, static_folder="base/static")
     app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
-    # app.config["SQLALCHEMY_DATABASE_URI"] = db_config("SQLALCHEMY_DATABASE_URI")
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+    app.config["SQLALCHEMY_DATABASE_URI"] = db_config("SQLALCHEMY_DATABASE_URI")
+    # app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config.from_object(config)
     celery = init_celery(app)

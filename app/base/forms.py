@@ -83,7 +83,7 @@ class CreateAccountForm(FlaskForm):
 class UpdateAccountForm(CreateAccountForm):
     picture = FileField(
         "Change your profile picture",
-        validators=[FileAllowed(["iso", "jpg", "jpeg", "png"])],
+        validators=[FileAllowed(["jpg", "jpeg", "png"])],
     )
     password = PasswordField("Password", validators=[Length(min=0, max=60)])
     confirm_password = PasswordField(
