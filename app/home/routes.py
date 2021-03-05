@@ -2,9 +2,7 @@
 """
 Copyright (c) 2020 - DevsBranch
 """
-import os
 import json
-from pathlib import Path
 from datetime import date
 from flask import render_template, redirect, url_for, request, current_app, flash
 from flask_login import login_required, current_user
@@ -13,8 +11,6 @@ from app.base.forms import CreatePropertyForm, UpdatePropertyForm
 from app.base.models import Property
 from app.home import blueprint
 from app.base.file_handler import save_images_to_temp_folder
-
-ALLOWED_IMG_EXT = [".png", ".jpg", ".jpeg"]
 
 
 @blueprint.route("/index")
@@ -65,19 +61,6 @@ def get_segment(request):
         return None
 
 
-def read_dir_imgs(img_dir):
-    """
-    Gets a directory name and recursively reads images and validates them before saving to list.
-    """
-    path = f"{current_app.root_path}/base/static/{img_dir}"
-    image_list = [img_dir]
-    for img in os.listdir(path):
-        if Path(img).suffix in ALLOWED_IMG_EXT:
-            image_list.append(img)
-        continue
-    return image_list
-
-
 @blueprint.route("/property/create", methods=["GET", "POST"])
 @login_required
 def create_property():
@@ -85,6 +68,8 @@ def create_property():
     from app.celery_utils import save_property_data
 
     if form.validate_on_submit():
+        for file in form.prop_photos.data:
+            print(file.filename.endswith(".jpg" or "png" or "jpeg"))
         img_files = request.files.getlist("prop_photos")
         temp_folder = save_images_to_temp_folder(img_files)
         prop_data = {

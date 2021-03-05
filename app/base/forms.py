@@ -157,10 +157,21 @@ class CreatePropertyForm(FlaskForm):
     )
     submit = SubmitField("Create")
 
+    def validate_prop_photos(self, prop_photos):
+        for file in prop_photos.data:
+            if not file.filename.endswith(".jpg" or ".png" or ".jpeg"):
+                raise ValidationError("Only Images are allowed e.g jpg, jpeg, png")
+
 
 class UpdatePropertyForm(CreatePropertyForm):
     prop_photos = MultipleFileField(
         "Upload photos of your property",
         validators=[FileAllowed(["jpeg", "jpg", "png"])],
     )
+
+    def validate_prop_photos(self, prop_photos):
+        for file in prop_photos.data:
+            if not file.filename.endswith(".jpg" or ".png" or ".jpeg"):
+                raise ValidationError("Only Images are allowed e.g jpg, jpeg, png")
+
     submit = SubmitField("Update")
