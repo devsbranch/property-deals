@@ -5,7 +5,7 @@ Copyright (c) 2020 - DevsBranch
 from flask import render_template, redirect, request, url_for, flash
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.security import generate_password_hash, check_password_hash
-from app import db, login_manager
+from app import login_manager
 from app.base import blueprint
 from app.base.forms import LoginForm, CreateAccountForm, UpdateAccountForm
 from app.base.models import User
@@ -52,8 +52,9 @@ def register():
     from app import tasks
     form = CreateAccountForm()
     if request.method == "POST" and form.validate_on_submit():
-        # else we can create the user
-        user = {
+        for k, v in request.form.items():
+            print(f"'{k}'='{v}'")
+        user_data = {
             "first_name": form.first_name.data,
             "last_name": form.last_name.data,
             "other_name": form.other_name.data,
@@ -68,7 +69,7 @@ def register():
             "email": form.email.data,
             "password": generate_password_hash(form.password.data),
         }
-        tasks.save_user_to_db.delay(user)
+        User.add_user(user_data)
         return redirect(url_for("base_blueprint.login"))
 
     return render_template("accounts/register.html", form=form)
@@ -81,10 +82,8 @@ def account():
     form = UpdateAccountForm()
     if form.validate_on_submit():
         if form.picture.data:
-            filename = save_profile_picture(current_user.username, form.picture.data)
-            current_user.photo = filename
-        else:
-            filename = current_user.photo
+            image = form.picture.data
+            save_profile_picture(current_user, image)
         user_data = {
             "first_name": form.first_name.data,
             "last_name": form.last_name.data,
@@ -96,12 +95,11 @@ def account():
             "city": form.city.data,
             "postal_code": form.postal_code.data,
             "state": form.state.data,
-            "photo": filename,
+            "photo": current_user.photo,
             "username": form.username.data,
             "email": form.email.data,
-            "password": form.password.data
         }
-        tasks.update_user_data.delay(user_data, current_user.username)
+        User.update_user(user_data, current_user.username)
         flash("Your account information has been updated.", "success")
         return redirect(url_for("base_blueprint.account"))
 

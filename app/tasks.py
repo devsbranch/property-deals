@@ -1,31 +1,25 @@
-from app import celeryapp, db
-from app.base.models import User
-celery = celeryapp.celery
+import json
+from app import celery
+from app.base.file_handler import property_image_handler
 
 
 @celery.task()
-def save_user_to_db(data):
-    user = User(**data)
-    db.session.add(user)
-    db.session.commit()
-    return "User added"
+def save_property_data(temp_folder, form_data):
+    from app.base.models import Property
+
+    prop_images_dir, images_list = property_image_handler(temp_folder)
+    img_list_to_json = json.dumps(images_list)
+    prop_images = {"photos": img_list_to_json, "image_folder": prop_images_dir}
+    form_data.update(prop_images)
+    Property.add_property(form_data)
+    return "Property Created"
 
 
-# @celery.task()
-# def update_user_data(data, user):
-#     user = User.query.filter_by(username=user).first()
-#     user.first_name = data["first_name"]
-#     # user.last_name = data["last_name"],
-#     # user.other_name = data["other_name"],
-#     # user.gender = data["gender"],
-#     # user.phone_number = data["phone_number"],
-#     # user.address_1 = data["address_1"],
-#     # user.address_2 = data["address_2"],
-#     # user.city = data["city"],
-#     # user.postal_code = data["postal_code"],
-#     # user.state = data["state"],
-#     # user.photo = data["photo"],
-#     # user.username = data["username"],
-#     # user.email = data["email"],
-#     # user.password = data["password"]
-#     db.session.commit()
+@celery.task()
+def update_prop_images(temp_folder, prop_id):
+    from app.base.models import Property
+
+    prop_images_dir, images_list = property_image_handler(temp_folder)
+    img_list_to_json = json.dumps(images_list)
+    Property.update_property_images(prop_images_dir, img_list_to_json, prop_id)
+    return "Images Updated"
