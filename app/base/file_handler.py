@@ -1,10 +1,12 @@
 import os
+import uuid
+import calendar
 import random
 import string
 import shutil
+from datetime import datetime
 from PIL import Image
 from werkzeug.utils import secure_filename
-import secrets
 from flask import current_app
 from app import db
 
@@ -25,15 +27,16 @@ def save_images_to_temp_folder(image_files):
     """
     Generates a temporary folder for storing image files of property.
     """
-    rand_dir_name = secrets.token_hex(16)
-    temp_dir = rand_dir_name
+    rand_dir_name = str(uuid.uuid4())
+    temp_dir = rand_dir_name[:18]
     os.mkdir(f"{current_app.root_path}/base/static/property_images/{temp_dir}")
 
     for image_file in image_files:
-        filename_hex = secrets.token_hex(10)
+        rand_name = str(uuid.uuid4())
+        filename = rand_name[:13]
         checked_filename = secure_filename(image_file.filename)
         _, file_ext = os.path.splitext(checked_filename)
-        checked_filename = f"{filename_hex}{file_ext}"
+        checked_filename = f"{filename}{file_ext}"
         image_file.save(f"{current_app.root_path}/base/static/property_images/{temp_dir}/{checked_filename}")
 
     return f"property_images/{temp_dir}"
@@ -45,11 +48,13 @@ def property_image_handler(temp_img_folder=None):
     the Pillow image library and saved to the file system. The image filenames are checked
     using the werkzeug utilities, then the filename is appended to the list of filenames.
     """
-    # Delete images before before the property is updated with new images
-    rand_dir_name = secrets.token_hex(16)
-    save_to_folder = f"{current_app.root_path}/base/static/property_images/{rand_dir_name}"
+    suffix = str(uuid.uuid4())
+    current_date = datetime.utcnow()
+    time, date = current_date.strftime("%H-%M-%S"), current_date.strftime("%d-%B-%Y"),
+    timestamped_dir_name = f"property_{suffix[:13]}_{date}_{time}"
+    save_to_folder = f"{current_app.root_path}/base/static/property_images/{timestamped_dir_name}"
     os.mkdir(save_to_folder)
-    images_list = [f"property_images/{rand_dir_name}"]
+    images_list = [f"property_images/{timestamped_dir_name}"]
     tmp_dir = f"{current_app.root_path}/base/static/{temp_img_folder}"
 
     for image_filename in os.listdir(tmp_dir):
@@ -61,7 +66,7 @@ def property_image_handler(temp_img_folder=None):
         image_file.save(path)
 
     shutil.rmtree(tmp_dir)
-    return f"property_images/{rand_dir_name}", images_list
+    return f"property_images/{timestamped_dir_name}", images_list
 
 
 def save_profile_picture(user, form_picture):
@@ -69,9 +74,13 @@ def save_profile_picture(user, form_picture):
     Handle the uploaded image file. The file is renamed to a random hex and then saved
     to the static/profile_pictures folder.
     """
-    random_hex = secrets.token_hex(8)
+    current_date = datetime.utcnow()
+    time, date, month_name = current_date.strftime("%H:%M:%S"), \
+                             current_date.strftime("%d-%m-%Y"), \
+                             calendar.month_name[int(current_date.strftime("%m"))]
+    timestamped_dir_name = f"property_{time}-{month_name}-{date}"
     _, file_ext = os.path.splitext(form_picture.filename)
-    picture_file_name = f"{user.username}{random_hex}{file_ext}"
+    picture_file_name = f"{user.username}{timestamped_dir_name}{file_ext}"
     picture_path = os.path.join(
         current_app.root_path, "base/static/profile_pictures", picture_file_name
     )

@@ -25,8 +25,8 @@ def init_celery(app):
                     include=TASK_LIST)
     celery.conf.update(app.config)
     celery.conf.update(
-        broker_url=os.environ.get("REDIS_URL") or "redis://localhost:6379/0",
-        result_backend=os.environ.get("REDIS_URL") or "redis://localhost:6379/0",
+        broker_url="redis://localhost:6379/0" or os.environ.get("REDIS_URL"),
+        result_backend="redis://localhost:6379/0" or os.environ.get("REDIS_URL"),
         timezone="UTC",
         task_serializer="json",
         accept_content=["json"],
