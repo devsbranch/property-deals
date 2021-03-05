@@ -51,7 +51,9 @@ def login():
 def register():
     form = CreateAccountForm()
     if request.method == "POST" and form.validate_on_submit():
-        user = {
+        for k, v in request.form.items():
+            print(f"'{k}'='{v}'")
+        user_data = {
             "first_name": form.first_name.data,
             "last_name": form.last_name.data,
             "other_name": form.other_name.data,
@@ -66,6 +68,7 @@ def register():
             "email": form.email.data,
             "password": generate_password_hash(form.password.data),
         }
+        User.add_user(user_data)
         return redirect(url_for("base_blueprint.login"))
 
     return render_template("accounts/register.html", form=form)
@@ -94,6 +97,7 @@ def account():
             "username": form.username.data,
             "email": form.email.data,
         }
+        User.update_user(user_data, current_user.username)
         flash("Your account information has been updated.", "success")
         return redirect(url_for("base_blueprint.account"))
 
