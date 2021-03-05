@@ -97,7 +97,8 @@ celery_beat_schedule = {
 def create_app(config):
     app = Flask(__name__, static_folder="base/static")
     app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
-    app.config["SQLALCHEMY_DATABASE_URI"] = db_config("SQLALCHEMY_DATABASE_URI")
+    # app.config["SQLALCHEMY_DATABASE_URI"] = db_config("SQLALCHEMY_DATABASE_URI")
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config.from_object(config)
     celery = init_celery(app)
