@@ -35,3 +35,4 @@ package-lock.json
 
 # flask eviroment variables
 *.flaskenv
+.env
