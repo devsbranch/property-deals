@@ -49,7 +49,6 @@ def login():
 
 @blueprint.route("/register", methods=["GET", "POST"])
 def register():
-    from app import tasks
 
     form = CreateAccountForm()
     if request.method == "POST" and form.validate_on_submit():
@@ -77,7 +76,6 @@ def register():
 @blueprint.route("/account", methods=["GET", "POST"])
 @login_required
 def account():
-    from app import tasks
 
     form = UpdateAccountForm()
     if form.validate_on_submit():
