@@ -73,7 +73,7 @@ def property_image_handler(temp_img_folder=None):
         image_file.save(path)
 
     # shutil.rmtree(tmp_dir)
-    return f"property_images/{timestamped_dir_name}", images_list
+    return images_list
 
 
 def save_profile_picture(user, form_picture):

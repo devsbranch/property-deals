@@ -7,9 +7,9 @@ from app.base.file_handler import property_image_handler
 def save_property_data(temp_folder, form_data):
     from app.base.models import Property
 
-    prop_images_dir, images_list = property_image_handler(temp_folder)
+    images_list = property_image_handler(temp_folder)
     img_list_to_json = json.dumps(images_list)
-    prop_images = {"photos": img_list_to_json, "image_folder": prop_images_dir}
+    prop_images = {"photos": img_list_to_json, "image_folder": images_list[0]}
     form_data.update(prop_images)
     Property.add_property(form_data)
     return "Property Created"
