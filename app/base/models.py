@@ -158,9 +158,9 @@ class Property(db.Model):
     @classmethod
     def update_property_images(cls, image_dir, img_list, prop_id):
         prop_to_update = Property.query.get(prop_id)
-        shutil.rmtree(
-            f"{current_app.root_path}/base/static/{prop_to_update.image_folder}"
-        )
+        # shutil.rmtree(
+        #     f"{current_app.root_path}/base/static/{prop_to_update.image_folder}"
+        # )
         prop_to_update.image_folder = (
             image_dir  # deletes old property image folder including contents
         )
@@ -171,10 +171,10 @@ class Property(db.Model):
     def delete_property(cls, prop_id):
         prop_to_delete = cls.query.get(prop_id)
         if prop_to_delete:
-            # images_folder = os.path.join(
-            #     f"{current_app.root_path}/base/static/{prop_to_delete.image_folder}"
-            # )
-            # shutil.rmtree(images_folder)
+            images_folder = os.path.join(
+                f"{current_app.root_path}/base/static/{prop_to_delete.image_folder}"
+            )
+            shutil.rmtree(images_folder)
             db.session.delete(prop_to_delete)
             db.session.commit()
             return True

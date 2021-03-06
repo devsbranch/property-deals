@@ -160,12 +160,8 @@ class CreatePropertyForm(FlaskForm):
     def validate_prop_photos(self, prop_photos):
         ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png"]
         for file in prop_photos.data:
-            for file in prop_photos.data:
-                print(os.path.splitext(file.filename)[1] in ALLOWED_EXTENSIONS)
-                if os.path.splitext(file.filename)[1] not in ALLOWED_EXTENSIONS:
-                    raise ValidationError("Only Images are allowed e.g jpg, jpeg, png")
-            # if not file.filename.endswith(".jpg" or ".png" or ".jpeg"):
-            #     raise ValidationError("Only Images are allowed e.g jpg, jpeg, png")
+            if os.path.splitext(file.filename)[1] not in ALLOWED_EXTENSIONS:
+                raise ValidationError("Only Images are allowed e.g jpg, jpeg, png")
 
 
 class UpdatePropertyForm(CreatePropertyForm):

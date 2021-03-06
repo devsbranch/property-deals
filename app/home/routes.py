@@ -79,7 +79,7 @@ def create_property():
             "condition": form.prop_condition.data,
             "user_id": current_user.id,
         }
-        save_property_data.delay(temp_folder, prop_data)
+        save_property_data(temp_folder, prop_data)
         flash("Your Property has been listed")
         return redirect(url_for("home_blueprint.index"))
     return render_template("create_property.html", form=form)
@@ -115,7 +115,7 @@ def update_property(property_id):
         if request.files["prop_photos"].filename:
             img_files = request.files.getlist("prop_photos")
             temp_folder = save_images_to_temp_folder(img_files)
-            update_prop_images.delay(temp_folder, property_id)
+            update_prop_images(temp_folder, property_id)
         prop_data = {
             "name": form.prop_name.data,
             "desc": form.prop_desc.data,
