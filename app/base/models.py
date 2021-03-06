@@ -171,10 +171,10 @@ class Property(db.Model):
     def delete_property(cls, prop_id):
         prop_to_delete = cls.query.get(prop_id)
         if prop_to_delete:
-            images_folder = os.path.join(
-                f"{current_app.root_path}/base/static/{prop_to_delete.image_folder}"
-            )
-            shutil.rmtree(images_folder)
+            # images_folder = os.path.join(
+            #     f"{current_app.root_path}/base/static/{prop_to_delete.image_folder}"
+            # )
+            # shutil.rmtree(images_folder)
             db.session.delete(prop_to_delete)
             db.session.commit()
             return True

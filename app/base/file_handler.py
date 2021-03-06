@@ -72,7 +72,7 @@ def property_image_handler(temp_img_folder=None):
         path = f"{save_to_folder}/{image_filename}"
         image_file.save(path)
 
-    shutil.rmtree(tmp_dir)
+    # shutil.rmtree(tmp_dir)
     return f"property_images/{timestamped_dir_name}", images_list
 
 
@@ -87,7 +87,7 @@ def save_profile_picture(user, form_picture):
         current_date.strftime("%d-%m-%Y"),
         calendar.month_name[int(current_date.strftime("%m"))],
     )
-    timestamped_dir_name = f"property_{time}-{month_name}-{date}"
+    timestamped_dir_name = f"image_{time}-{month_name}-{date}"
     _, file_ext = os.path.splitext(form_picture.filename)
     picture_file_name = f"{user.username}{timestamped_dir_name}{file_ext}"
     picture_path = os.path.join(
