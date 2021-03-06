@@ -63,6 +63,8 @@ def property_image_handler(temp_img_folder=None):
     os.mkdir(save_to_folder)
     images_list = [f"property_images/{timestamped_dir_name}"]
     tmp_dir = f"{current_app.root_path}/base/static/{temp_img_folder}"
+    print(f"Save to folder {save_to_folder}")
+    print(f"Temporary folder {tmp_dir}")
 
     for image_filename in os.listdir(tmp_dir):
         images_list.append(image_filename)

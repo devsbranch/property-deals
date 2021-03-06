@@ -70,6 +70,7 @@ def create_property():
     if form.validate_on_submit():
         img_files = request.files.getlist("prop_photos")
         temp_folder = save_images_to_temp_folder(img_files)
+        print(f"Temporary folder {temp_folder}")
         prop_data = {
             "name": form.prop_name.data,
             "desc": form.prop_desc.data,
