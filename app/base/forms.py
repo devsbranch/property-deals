@@ -2,7 +2,7 @@
 """
 Copyright (c) 2020 - DevsBranch
 """
-
+import os
 from flask_wtf import FlaskForm
 from wtforms import (
     StringField,
@@ -83,7 +83,7 @@ class CreateAccountForm(FlaskForm):
 class UpdateAccountForm(CreateAccountForm):
     picture = FileField(
         "Change your profile picture",
-        validators=[FileAllowed(["iso", "jpg", "jpeg", "png"])],
+        validators=[FileAllowed(["jpg", "jpeg", "png"])],
     )
     password = PasswordField("Password", validators=[Length(min=0, max=60)])
     confirm_password = PasswordField(
@@ -143,7 +143,7 @@ class CreatePropertyForm(FlaskForm):
         "Upload photos of your property",
         validators=[
             DataRequired(),
-            FileAllowed(["jpeg", "jpg", "png"]),
+            # FileAllowed(["jpeg", "jpg", "png"]),
             Length(
                 min=3, max=15, message="Upload 3 or more photos and not more that 15"
             ),
@@ -158,20 +158,23 @@ class CreatePropertyForm(FlaskForm):
     submit = SubmitField("Create")
 
     def validate_prop_photos(self, prop_photos):
+        ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png"]
         for file in prop_photos.data:
-            if not file.filename.endswith(".jpg" or ".png" or ".jpeg"):
+            if os.path.splitext(file.filename)[1] not in ALLOWED_EXTENSIONS:
                 raise ValidationError("Only Images are allowed e.g jpg, jpeg, png")
 
 
 class UpdatePropertyForm(CreatePropertyForm):
     prop_photos = MultipleFileField(
         "Upload photos of your property",
-        validators=[FileAllowed(["jpeg", "jpg", "png"])],
+        # validators=[FileAllowed(["jpeg", "jpg", "png"])],
     )
 
     def validate_prop_photos(self, prop_photos):
+        ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png"]
         for file in prop_photos.data:
-            if not file.filename.endswith(".jpg" or ".png" or ".jpeg"):
+            print(os.path.splitext(file.filename)[1] in ALLOWED_EXTENSIONS)
+            if os.path.splitext(file.filename)[1] not in ALLOWED_EXTENSIONS:
                 raise ValidationError("Only Images are allowed e.g jpg, jpeg, png")
 
     submit = SubmitField("Update")

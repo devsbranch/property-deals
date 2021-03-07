@@ -35,4 +35,4 @@ package-lock.json
 
 # flask eviroment variables
 *.flaskenv
-results.sqlite
+.env

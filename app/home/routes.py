@@ -68,8 +68,6 @@ def create_property():
     from app.tasks import save_property_data
 
     if form.validate_on_submit():
-        for file in form.prop_photos.data:
-            print(file.filename.endswith(".jpg" or "png" or "jpeg"))
         img_files = request.files.getlist("prop_photos")
         temp_folder = save_images_to_temp_folder(img_files)
         prop_data = {

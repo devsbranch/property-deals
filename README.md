@@ -60,7 +60,33 @@ PS> pip install -r requirememts.txt
 PS> python run.py
 
 ```
-##### Once your server has started, go to this url `http://localhost:5000/` and you will see the website running on a Development Server and will show you a login page.
+
+##Setting Up the Database
+Once you run the application for the first time, it will automatically create an SQlite database file if that's what is configured. 
+Otherwise, you have to create a database. A Postgres database is preferred but feel free to use whichever you want. See the 
+examples below on how to create a Postgres database using the command line or using Valentina Studio. You can use whatever 
+database management tool you prefer. I will be using Valentina Studio.
+### Using Command line
+Ensure Postgres is properly installed on your machine.
+
+![](docs/images/Create_postgres_db_cli.gif)
+
+### Using Valentina Studio
+Valentina Studio is available on Linux,Windows and Mac. So the steps here will work on these platforms
+
+![](docs/images/create_psql_db_vstudio.gif)
+
+### Connection String
+In your application, you have to configure the flask application to use the Postgres database.
+Your connection string format should be like this: 
+`postgresql+psycopg2://<user>:<password>@<host>:<port>/<database>`
+You have to set a password for connecting to Postgres or else Valentina Studio won't connect.
+Here is an example on a connection string `postgresql+psycopg2://postgres:postgres@localhost:5432/property_deals`
+
+
+#### As you can see in the above steps, the app automatically creates the tables once its run for the first time after you create the database.
+
+##### To start using the app, start the server has and go to this url `http://localhost:5000/` and you will see the website running on a Development Server and will show you a login page.
 ![](docs/images/login.png)
 
 ##### Click on Sign up to register and then login. You can post items to test things out by clicking on the sidebar then click List my property. Your listed items you look something like this:
@@ -69,8 +95,10 @@ PS> python run.py
 
 ## Technologies used 🛠️
 - [Flask](https://flask.palletsprojects.com/en/1.1.x/) - A Python Web Development Framework
-- [SQLAlchemy](https://www.sqlalchemy.org)- The Python SQL Toolkit and Object Relational Mapper
+- [SQLAlchemy](https://www.sqlalchemy.org) - The Python SQL Toolkit and Object Relational Mapper
 - [Bootstrap 4](https://getbootstrap.com/docs/4.3/getting-started/introduction/) - Front-end component library
+- [PostgreSQL](https://www.postgresql.org/about/) - PostgreSQL is a free and open-source relational database management system system that uses and extends the SQL language combined with many 
+  features that safely store and scale the most complicated data workloads.
 
 ## Authors
 
