@@ -3,6 +3,7 @@
 Copyright (c) 2020 - DevsBranch
 """
 import os
+import boto3
 from flask import Flask
 from celery import Celery
 from flask_marshmallow import Marshmallow
@@ -12,7 +13,6 @@ from importlib import import_module
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from decouple import config as db_config
-from config import config_dict
 
 TASK_LIST = [
     "app.tasks",
@@ -45,6 +45,12 @@ ma = Marshmallow()
 migrate = Migrate()
 login_manager = LoginManager()
 jwt = JWTManager()
+
+s3 = boto3.client(
+    "s3",
+    aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"),
+    aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY"),
+)
 
 
 DEBUG = db_config("DEBUG", default=True)
