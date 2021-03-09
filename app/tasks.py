@@ -2,12 +2,13 @@ import json
 import os
 from PIL import Image
 from app import celery, s3
-from app.base.file_handler import update_property_images
+from app.base.utils import update_property_images
 from config import S3_BUCKET_CONFIG
 
 bucket = S3_BUCKET_CONFIG["S3_BUCKET"]
 s3_prop_image_dir = S3_BUCKET_CONFIG["PROP_ASSETS"]
 s3_temp_dir = S3_BUCKET_CONFIG["TEMP_DIR"]
+s3_user_image_dir = S3_BUCKET_CONFIG["USER_ASSETS"]
 
 
 @celery.task()
@@ -49,6 +50,20 @@ def update_prop_images(temp_dir, image_file_list, prop_id):
     img_list_to_json = json.dumps(images_list)
     Property.update_property_images(images_list[0], img_list_to_json, prop_id)
     return "Images Updated"
+
+
+@celery.task()
+def update_profile_image(dir_name, filename, content_type):
+    s3.upload_fileobj(
+        open(filename, "rb"),
+        bucket,
+        f"{s3_user_image_dir}{dir_name}{filename}",
+        ExtraArgs={
+            "ACL": "public-read",
+            "ContentType": content_type
+        }
+    )
+    os.remove(filename)
 
 
 @celery.task()

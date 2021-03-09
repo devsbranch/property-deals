@@ -75,13 +75,13 @@ class User(db.Model, UserMixin):
         db.session.commit()
 
     @staticmethod
-    def update_user(data, username):
+    def update_user(data, user_id):
         """
         This function will update the user in the database. Here, the .first() function is not called
         on the user_to_update object because we want the object to have the .update() method which we will use
         update the user_to_update object by iterating through the data object and getting a key=value pair.
         """
-        user_to_update = User.query.filter_by(username=username)
+        user_to_update = User.query.filter_by(id=user_id)
         for key, value in data.items():
             user_to_update.update({key: value})
             db.session.commit()

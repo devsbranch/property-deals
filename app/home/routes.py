@@ -11,7 +11,7 @@ from app.base.forms import CreatePropertyForm, UpdatePropertyForm
 from app.base.models import Property
 from app.home import blueprint
 from config import S3_BUCKET_CONFIG
-from app.base.file_handler import save_images_to_temp_folder, save_property_data
+from app.base.utils import save_images_to_temp_folder, property_image_handler
 
 bucket = S3_BUCKET_CONFIG["S3_BUCKET"]
 image_path = S3_BUCKET_CONFIG["S3_URL"] + "/" + S3_BUCKET_CONFIG["PROP_ASSETS"]
@@ -74,17 +74,24 @@ def create_property():
 
     if form.validate_on_submit():
         img_files = request.files.getlist("prop_photos")
-        temp_dir, image_file_list = save_images_to_temp_folder(img_files)
+        temp_dir, temp_file_list = save_images_to_temp_folder(img_files)
+
+        images_list = property_image_handler(temp_dir, temp_file_list)
+        img_list_to_json = json.dumps(images_list)
+
         prop_data = {
             "name": form.prop_name.data,
             "desc": form.prop_desc.data,
             "price": form.prop_price.data,
+            "image_folder": images_list[0],
+            "photos": img_list_to_json,
             "location": form.prop_location.data,
             "type": form.prop_type.data,
             "condition": form.prop_condition.data,
             "user_id": current_user.id,
         }
-        save_property_data(prop_data, temp_dir, image_file_list)
+
+        Property.add_property(prop_data)
         flash("Your Property has been listed")
         return redirect(url_for("home_blueprint.index"))
     return render_template("create_property.html", form=form)
@@ -152,7 +159,3 @@ def update_property(property_id):
 def delete_property(prop_id):
     Property.delete_property(prop_id)
     return redirect(url_for("home_blueprint.index"))
-
-"""
-<img class="example-image" src="https://propertydeals-zm.s3.amazonaws.com/media/property-images/property_17a15ff5-cc79_08-March-2021_22-04-47/ad3b9b926b4f.jpeg" alt="" style="width: 150px; height: 100px;">
-"""

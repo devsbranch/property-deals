@@ -9,7 +9,11 @@ from app import login_manager
 from app.base import blueprint
 from app.base.forms import LoginForm, CreateAccountForm, UpdateAccountForm
 from app.base.models import User
-from app.base.file_handler import save_profile_picture
+from app.base.utils import save_profile_picture
+from config import S3_BUCKET_CONFIG
+
+s3_url = S3_BUCKET_CONFIG["S3_URL"]
+s3_user_image_dir = S3_BUCKET_CONFIG["USER_ASSETS"]
 
 
 @blueprint.route("/")
@@ -75,11 +79,12 @@ def register():
 @blueprint.route("/account", methods=["GET", "POST"])
 @login_required
 def account():
+    user_id = current_user.id
     form = UpdateAccountForm()
     if form.validate_on_submit():
         if form.picture.data:
             image = form.picture.data
-            save_profile_picture(current_user, image)
+            save_profile_picture(image)
         user_data = {
             "first_name": form.first_name.data,
             "last_name": form.last_name.data,
@@ -91,11 +96,10 @@ def account():
             "city": form.city.data,
             "postal_code": form.postal_code.data,
             "state": form.state.data,
-            "photo": current_user.photo,
             "username": form.username.data,
             "email": form.email.data,
         }
-        User.update_user(user_data, current_user.username)
+        User.update_user(user_data, user_id)
         flash("Your account information has been updated.", "success")
         return redirect(url_for("base_blueprint.account"))
 
@@ -115,7 +119,7 @@ def account():
         form.username.data = current_user.username
         form.email.data = current_user.email
     # get the path for the profile picture of the current user
-    profile_picture = url_for("static", filename=f"{current_user.photo}")
+    profile_picture = s3_url + "/" + current_user.photo
     return render_template("account.html", form=form, profile_picture=profile_picture)
 
 
