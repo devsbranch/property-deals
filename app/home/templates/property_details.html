@@ -22,7 +22,7 @@
           <div class="row">
             {% for photo in photos_list[1:] %}
               <div class="col- m-1 px-0">
-                <a class="example-image-link" href="{{image_path + prop_data.image_folder + photo }}" data-lightbox="example-set">
+                <a class="example-image-link" href="{{image_path + prop_data.image_folder + photo }}" data-lightbox="example-set" data-title="{{prop_data.date.strftime('%m/%d/%Y')}} | Available">
                   <img class="example-image"
                        src="{{ image_path + prop_data.image_folder + photo }}"
                        alt=""
