@@ -1,7 +1,4 @@
 {% extends 'layouts/base.html' %}
-{% block scripts %}
-    <script src="{{url_for('static', filename='assets/js/lightbox-plus-jquery.js')}}"></script>
-{% endblock %}
 <!-- Specific CSS goes HERE -->
 {% block stylesheets %}
     <link rel="stylesheet" href="{{url_for('static', filename='assets/css/lightbox.css')}}">
@@ -82,4 +79,9 @@
     </div>
   </div>
 </div>
+
+{% block scripts %}
+    <script src="{{url_for('static', filename='assets/js/lightbox-plus-jquery.min.js')}}"></script>
+{% endblock %}
+
 {% endblock content %}
