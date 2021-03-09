@@ -4,7 +4,7 @@ Copyright (c) 2020 - DevsBranch
 """
 import json
 from datetime import date
-from flask import render_template, redirect, url_for, request, flash, jsonify
+from flask import render_template, redirect, url_for, request, flash
 from flask_login import login_required, current_user
 from jinja2 import TemplateNotFound
 from app.base.forms import CreatePropertyForm, UpdatePropertyForm

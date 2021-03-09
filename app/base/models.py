@@ -3,11 +3,9 @@
 Copyright (c) 2020 - DevsBranch
 """
 import json
-import shutil
 from datetime import datetime
-from flask import current_app
 from flask_login import UserMixin
-from app import db, login_manager, s3
+from app import db, login_manager
 from api.schema import property_schema, user_schema
 from config import S3_BUCKET_CONFIG
 
