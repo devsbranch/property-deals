@@ -145,7 +145,7 @@ class CreatePropertyForm(FlaskForm):
             DataRequired(),
             # FileAllowed(["jpeg", "jpg", "png"]),
             Length(
-                min=3, max=15, message="Upload 3 or more photos and not more that 15"
+                min=1, max=15, message="Upload 3 or more photos and not more that 15"
             ),
         ],
     )
@@ -171,9 +171,10 @@ class UpdatePropertyForm(CreatePropertyForm):
     )
 
     def validate_prop_photos(self, prop_photos):
+        if prop_photos.data[0].filename == "":
+            return True  # Means the user hasn't updated the images
         ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png"]
         for file in prop_photos.data:
-            print(os.path.splitext(file.filename)[1] in ALLOWED_EXTENSIONS)
             if os.path.splitext(file.filename)[1] not in ALLOWED_EXTENSIONS:
                 raise ValidationError("Only Images are allowed e.g jpg, jpeg, png")
 

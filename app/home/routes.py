@@ -4,13 +4,17 @@ Copyright (c) 2020 - DevsBranch
 """
 import json
 from datetime import date
-from flask import render_template, redirect, url_for, request, flash
+from flask import render_template, redirect, url_for, request, flash, jsonify
 from flask_login import login_required, current_user
 from jinja2 import TemplateNotFound
 from app.base.forms import CreatePropertyForm, UpdatePropertyForm
 from app.base.models import Property
 from app.home import blueprint
-from app.base.file_handler import save_images_to_temp_folder
+from config import S3_BUCKET_CONFIG
+from app.base.file_handler import save_images_to_temp_folder, save_property_data
+
+bucket = S3_BUCKET_CONFIG["S3_BUCKET"]
+image_path = S3_BUCKET_CONFIG["S3_URL"] + "/" + S3_BUCKET_CONFIG["PROP_ASSETS"]
 
 
 @blueprint.route("/index")
@@ -20,12 +24,14 @@ def index():
     photos = [json.loads(p.photos) for p in property_photos]
     paginate_properties = Property.query.paginate(page=page, per_page=10)
     today = date.today()
+
     return render_template(
         "index.html",
         segment="index",
         properties=paginate_properties,
         photos_list=photos,
         today=today,
+        image_path=image_path
     )
 
 
@@ -65,11 +71,10 @@ def get_segment(request):
 @login_required
 def create_property():
     form = CreatePropertyForm()
-    from app.tasks import save_property_data
 
     if form.validate_on_submit():
         img_files = request.files.getlist("prop_photos")
-        temp_folder = save_images_to_temp_folder(img_files)
+        temp_dir, image_file_list = save_images_to_temp_folder(img_files)
         prop_data = {
             "name": form.prop_name.data,
             "desc": form.prop_desc.data,
@@ -79,7 +84,7 @@ def create_property():
             "condition": form.prop_condition.data,
             "user_id": current_user.id,
         }
-        save_property_data.delay(temp_folder, prop_data)
+        save_property_data(prop_data, temp_dir, image_file_list)
         flash("Your Property has been listed")
         return redirect(url_for("home_blueprint.index"))
     return render_template("create_property.html", form=form)
@@ -91,7 +96,7 @@ def details(property_id):
     # converts the json object from the db to a python dictionary
     photos = json.loads(prop_data.photos)
     return render_template(
-        "property_details.html", prop_data=prop_data, photos_list=photos
+        "property_details.html", prop_data=prop_data, photos_list=photos, image_path=image_path
     )
 
 
@@ -114,8 +119,9 @@ def update_property(property_id):
     if request.method == "POST" and form.validate_on_submit():
         if request.files["prop_photos"].filename:
             img_files = request.files.getlist("prop_photos")
-            temp_folder = save_images_to_temp_folder(img_files)
-            update_prop_images.delay(temp_folder, property_id)
+            temp_dir, image_file_list = save_images_to_temp_folder(img_files)
+            update_prop_images(temp_dir, image_file_list, property_id)
+
         prop_data = {
             "name": form.prop_name.data,
             "desc": form.prop_desc.data,
@@ -146,3 +152,7 @@ def update_property(property_id):
 def delete_property(prop_id):
     Property.delete_property(prop_id)
     return redirect(url_for("home_blueprint.index"))
+
+"""
+<img class="example-image" src="https://propertydeals-zm.s3.amazonaws.com/media/property-images/property_17a15ff5-cc79_08-March-2021_22-04-47/ad3b9b926b4f.jpeg" alt="" style="width: 150px; height: 100px;">
+"""

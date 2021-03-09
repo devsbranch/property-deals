@@ -2,12 +2,14 @@
 """
 Copyright (c) 2020 - DevsBranch
 """
-import shutil, os
+import json
+import shutil
 from datetime import datetime
 from flask import current_app
 from flask_login import UserMixin
-from app import db, login_manager
+from app import db, login_manager, s3
 from api.schema import property_schema, user_schema
+from config import S3_BUCKET_CONFIG
 
 
 class User(db.Model, UserMixin):
@@ -158,9 +160,6 @@ class Property(db.Model):
     @classmethod
     def update_property_images(cls, image_dir, img_list, prop_id):
         prop_to_update = Property.query.get(prop_id)
-        shutil.rmtree(
-            f"{current_app.root_path}/base/static/{prop_to_update.image_folder}"
-        )
         prop_to_update.image_folder = (
             image_dir  # deletes old property image folder including contents
         )
@@ -169,16 +168,18 @@ class Property(db.Model):
 
     @classmethod
     def delete_property(cls, prop_id):
+        from app.tasks import delete_img_objs
+
         prop_to_delete = cls.query.get(prop_id)
-        if prop_to_delete:
-            images_folder = os.path.join(
-                f"{current_app.root_path}/base/static/{prop_to_delete.image_folder}"
-            )
-            shutil.rmtree(images_folder)
-            db.session.delete(prop_to_delete)
-            db.session.commit()
-            return True
-        return False
+        bucket = S3_BUCKET_CONFIG["S3_BUCKET"]
+        path_to_delete = S3_BUCKET_CONFIG["PROP_ASSETS"] + prop_to_delete.image_folder
+        image_list = json.loads(prop_to_delete.photos)
+
+        delete_img_objs(bucket, path_to_delete, image_list)
+
+        db.session.delete(prop_to_delete)
+        db.session.commit()
+        return "Done"
 
 
 class TokenBlacklist(db.Model):

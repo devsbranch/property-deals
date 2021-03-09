@@ -1,80 +1,97 @@
+import json
 import os
 import uuid
 import calendar
-import random
-import string
-import shutil
 from datetime import datetime
 from PIL import Image
 from werkzeug.utils import secure_filename
 from flask import current_app
-from app import db
+from app import db, s3
+from config import S3_BUCKET_CONFIG
+from app.base.models import Property
 
-
-def create_images_folder(username):
-    """
-    Generates a random string which will be used as a folder name for storing image files
-    of properties uploaded by user.
-    """
-    s = string.ascii_letters
-    output_str = "".join(random.choice(s) for i in range(10))
-    property_img_folder = f"property_images/{username}-property{output_str}"
-    os.mkdir(f"{current_app.root_path}/base/static/{property_img_folder}")
-    return property_img_folder
+bucket = S3_BUCKET_CONFIG["S3_BUCKET"]
+s3_prop_image_dir = S3_BUCKET_CONFIG["PROP_ASSETS"]
+s3_temp_dir = S3_BUCKET_CONFIG["TEMP_DIR"]
 
 
 def save_images_to_temp_folder(image_files):
     """
-    Generates a temporary folder for storing image files of property.
+    Creates a temporary folder for storing image objects and returns
+    name of the temporary folder and the list of the filenames that were saved to S3 in the
+    same folder.
     """
-    rand_dir_name = str(uuid.uuid4())
-    temp_dir = rand_dir_name[:18]
-    os.mkdir(f"{current_app.root_path}/base/static/property_images/{temp_dir}")
+    dir_name = str(uuid.uuid4())[:8] + "/"
 
+    image_list = []
     for image_file in image_files:
-        rand_name = str(uuid.uuid4())
-        filename = rand_name[:13]
+        random_str = str(uuid.uuid4())[:13].replace("-", "")
         checked_filename = secure_filename(image_file.filename)
-        _, file_ext = os.path.splitext(checked_filename)
-        checked_filename = f"{filename}{file_ext}"
-        image_file.save(
-            f"{current_app.root_path}/base/static/property_images/{temp_dir}/{checked_filename}"
-        )
+        _, file_ext = os.path.splitext(checked_filename)  # get file extension
+        clean_filename = f"{random_str}{file_ext}"
+        image_list.append(clean_filename)
+        try:
+            s3.upload_fileobj(
+                image_file,
+                bucket,
+                f"{s3_temp_dir}{dir_name}{clean_filename}",
+                ExtraArgs={
+                    "ACL": "public-read",
+                    "ContentType": image_file.content_type
+                }
+            )
+        except Exception as e:
+            return e
 
-    return f"property_images/{temp_dir}"
+    return dir_name, image_list
 
 
-def property_image_handler(temp_img_folder=None):
-    """
-    Handles the images uploaded from the web form. The images are down sized using
-    the Pillow image library and saved to the file system. The image filenames are checked
-    using the werkzeug utilities, then the filename is appended to the list of filenames.
-    """
+def generate_prop_img_dir_name():
     suffix = str(uuid.uuid4())
     current_date = datetime.utcnow()
     time, date = (
         current_date.strftime("%H-%M-%S"),
         current_date.strftime("%d-%B-%Y"),
     )
-    timestamped_dir_name = f"property_{suffix[:13]}_{date}_{time}"
-    save_to_folder = (
-        f"{current_app.root_path}/base/static/property_images/{timestamped_dir_name}"
-    )
-    os.mkdir(save_to_folder)
-    images_list = [f"property_images/{timestamped_dir_name}"]
-    tmp_dir = f"{current_app.root_path}/base/static/{temp_img_folder}"
-    print(f"Save to folder {save_to_folder}")
-    print(f"Temporary folder {tmp_dir}")
+    dir_name = f"property_{suffix[:13]}_{date}_{time}/"
+    return dir_name
 
-    for image_filename in os.listdir(tmp_dir):
-        images_list.append(image_filename)
-        image_path = f"{tmp_dir}/{image_filename}"
-        image_file = Image.open(image_path)
-        image_file.thumbnail((3000, 3000))
-        path = f"{save_to_folder}/{image_filename}"
-        image_file.save(path)
 
-    # shutil.rmtree(tmp_dir)
+def save_property_data(form_data, temp_dir, image_file_list):
+    from app.base.models import Property
+
+    images_list = property_image_handler(temp_dir, image_file_list)
+    img_list_to_json = json.dumps(images_list)
+    prop_images = {"photos": img_list_to_json, "image_folder": images_list[0]}
+    form_data.update(prop_images)
+    Property.add_property(form_data)
+    return "Property Created"
+
+
+def property_image_handler(temp_dir, image_file_list):
+    from app.tasks import process_images
+    generated_dirname = generate_prop_img_dir_name()
+    images_list = [generated_dirname]
+    for filename in image_file_list:
+        images_list.append(filename)
+        process_images.delay(filename, temp_dir, generated_dirname)
+    return images_list
+
+
+def update_property_images(temp_dir, image_file_list, prop_id):
+    from app.tasks import process_images, delete_img_objs
+
+    prop_to_update = Property.query.get(prop_id)
+    prop_images = json.loads(prop_to_update.photos)
+    path_to_del = s3_prop_image_dir + prop_to_update.image_folder
+    delete_img_objs.delay(bucket, path_to_del, prop_images)
+
+    generated_dir_name = generate_prop_img_dir_name()
+
+    images_list = [generated_dir_name]
+    for filename in image_file_list:
+        images_list.append(filename)
+        process_images.delay(filename, temp_dir, generated_dir_name)
     return images_list
 
 
