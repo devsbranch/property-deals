@@ -28,7 +28,7 @@ h5, p {
     <div class="row justify-content-center">
         <div class="card border border-info rounded " style="width: 18rem;">
           <div class="bg-info">
-            <img class="img-thumbnail m-2" alt="profile_pic" src="{{ url_for('static', filename=current_user.photo) }}" style="width: 50%; height: auto;">
+            <img class="img-thumbnail m-2" alt="profile_pic" src="{{ profile_picture }}" style="width: 50%; height: auto;">
             <h4 class="text-color">{{ current_user.first_name }} {{ current_user.last_name }}</h4>
           </div>
           <hr class="my-1">

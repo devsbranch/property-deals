@@ -2,8 +2,8 @@
 """
 Copyright (c) 2020 - DevsBranch
 """
-
 import os
+import boto3
 from flask import Flask
 from celery import Celery
 from flask_marshmallow import Marshmallow
@@ -47,6 +47,12 @@ migrate = Migrate()
 login_manager = LoginManager()
 jwt = JWTManager()
 
+s3 = boto3.client(
+    "s3",
+    aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"),
+    aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY"),
+)
+
 
 DEBUG = db_config("DEBUG", default=True)
 get_config_mode = "Development" if DEBUG else "Production"
@@ -83,8 +89,6 @@ def configure_database(app):
 def create_app(config):
     app = Flask(__name__, static_folder="base/static")
     app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
-    app.config["SQLALCHEMY_DATABASE_URI"] = db_config("SQLALCHEMY_DATABASE_URI")
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config.from_object(config)
     celery = init_celery(app)
     db.init_app(app)

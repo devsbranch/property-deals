@@ -1,10 +1,7 @@
 {% extends 'layouts/base.html' %}
-{% block scripts %}
-    <script src="{{url_for('static', filename='assets/js/lightbox-plus-jquery.min.js')}}"></script>
-{% endblock %}
 <!-- Specific CSS goes HERE -->
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{url_for('static', filename='assets/css/lightbox.min.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='assets/css/lightbox.css')}}">
 {% endblock stylesheets %}
 
 {% block content %}
@@ -16,7 +13,7 @@
           <h3 class="text-left font-weight-bold">{{ prop_data.name }}</h3>
           <hr>
           {% if prop_data.user_id == current_user.id %}
-            <a  class="btn btn-square btn-secondary" href="{{ url_for('home_blueprint.update_property', property_id=prop_data.id) }}">Update Property</a>
+            <a class="btn btn-square btn-secondary" href="{{ url_for('home_blueprint.update_property', property_id=prop_data.id) }}">Update Property</a>
             <button type="button" class="btn btn-square btn-danger btn-sm" data-toggle="modal" data-target="#deleteModal">Delete Property</button>
           {% endif %}
         </div>
@@ -25,10 +22,10 @@
           <div class="row">
             {% for photo in photos_list[1:] %}
               <div class="col- m-1 px-0">
-                <a class="example-image-link" href="{{ url_for('static', filename='/'+ prop_data.image_folder+ '/'+ photo) }}" data-lightbox="example-set">
-                  <img class="img-thumbnail example-image"
-                       src="{{ url_for('static', filename='/'+ prop_data.image_folder+ '/'+ photo) }}"
-                       alt="Card image cap"
+                <a class="example-image-link" href="{{image_path + prop_data.image_folder + photo }}" data-lightbox="example-set" data-title="{{prop_data.date.strftime('%m/%d/%Y')}} | Available">
+                  <img class="example-image"
+                       src="{{ image_path + prop_data.image_folder + photo }}"
+                       alt=""
                        style="width: 150px; height: 100px;">
                 </a>
               </div>
@@ -82,8 +79,9 @@
     </div>
   </div>
 </div>
-{% endblock content %}
 
-{% block javascripts %}
-  <script src="{{url_for('static', filename='assets/dist/js/lightbox-plus-jquery.min.js')}}"></script>
-{% endblock javascripts %}
+{% block scripts %}
+    <script src="{{url_for('static', filename='assets/js/lightbox-plus-jquery.min.js')}}"></script>
+{% endblock %}
+
+{% endblock content %}

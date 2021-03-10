@@ -4,13 +4,17 @@ Copyright (c) 2020 - DevsBranch
 """
 import json
 from datetime import date
-from flask import render_template, redirect, url_for, request, flash
+from flask import render_template, redirect, url_for, request, flash, jsonify
 from flask_login import login_required, current_user
 from jinja2 import TemplateNotFound
 from app.base.forms import CreatePropertyForm, UpdatePropertyForm
 from app.base.models import Property
 from app.home import blueprint
-from app.base.file_handler import save_images_to_temp_folder
+from config import S3_BUCKET_CONFIG
+from app.base.utils import save_images_to_temp_folder, property_image_handler
+
+bucket = S3_BUCKET_CONFIG["S3_BUCKET"]
+image_path = S3_BUCKET_CONFIG["S3_URL"] + "/" + S3_BUCKET_CONFIG["PROP_ASSETS"]
 
 
 @blueprint.route("/index")
@@ -20,12 +24,14 @@ def index():
     photos = [json.loads(p.photos) for p in property_photos]
     paginate_properties = Property.query.paginate(page=page, per_page=10)
     today = date.today()
+
     return render_template(
         "index.html",
         segment="index",
         properties=paginate_properties,
         photos_list=photos,
         today=today,
+        image_path=image_path
     )
 
 
@@ -65,23 +71,27 @@ def get_segment(request):
 @login_required
 def create_property():
     form = CreatePropertyForm()
-    from app.tasks import save_property_data
 
     if form.validate_on_submit():
-        for file in form.prop_photos.data:
-            print(file.filename.endswith(".jpg" or "png" or "jpeg"))
         img_files = request.files.getlist("prop_photos")
-        temp_folder = save_images_to_temp_folder(img_files)
+        temp_dir, temp_file_list = save_images_to_temp_folder(img_files)
+
+        images_list = property_image_handler(temp_dir, temp_file_list)
+        img_list_to_json = json.dumps(images_list)
+
         prop_data = {
             "name": form.prop_name.data,
             "desc": form.prop_desc.data,
             "price": form.prop_price.data,
+            "image_folder": images_list[0],
+            "photos": img_list_to_json,
             "location": form.prop_location.data,
             "type": form.prop_type.data,
             "condition": form.prop_condition.data,
             "user_id": current_user.id,
         }
-        save_property_data.delay(temp_folder, prop_data)
+
+        Property.add_property(prop_data)
         flash("Your Property has been listed")
         return redirect(url_for("home_blueprint.index"))
     return render_template("create_property.html", form=form)
@@ -93,7 +103,7 @@ def details(property_id):
     # converts the json object from the db to a python dictionary
     photos = json.loads(prop_data.photos)
     return render_template(
-        "property_details.html", prop_data=prop_data, photos_list=photos
+        "property_details.html", prop_data=prop_data, photos_list=photos, image_path=image_path
     )
 
 
@@ -116,8 +126,9 @@ def update_property(property_id):
     if request.method == "POST" and form.validate_on_submit():
         if request.files["prop_photos"].filename:
             img_files = request.files.getlist("prop_photos")
-            temp_folder = save_images_to_temp_folder(img_files)
-            update_prop_images.delay(temp_folder, property_id)
+            temp_dir, image_file_list = save_images_to_temp_folder(img_files)
+            update_prop_images(temp_dir, image_file_list, property_id)
+
         prop_data = {
             "name": form.prop_name.data,
             "desc": form.prop_desc.data,

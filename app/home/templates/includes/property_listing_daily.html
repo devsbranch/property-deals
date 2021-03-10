@@ -15,6 +15,13 @@
                           <div class="card shadow p-1 mb-1 bg-white rounded border" style="max-width: 650px;">
                             <div class="row">
                               <div class="col-md-4">
+                                {% for photo_list in photos_list %}
+                                  {% if photo_list[0] == property.image_folder %}
+                                  <a class="example-image-link m-1" href="{{image_path + property.image_folder + photo_list[1]}}" data-lightbox="example-2" data-title="{{property.date.strftime('%m/%d/%Y')}} | Available">
+                                    <img class="example-image img-thumbnail" src="{{image_path + property.image_folder + photo_list[1]}}" alt="image-1"/>
+                                  </a>
+                                  {% endif %}
+                                {% endfor %}
                               </div>
                               <div class="col-md-8">
                                 <div class="card-body p-0">
