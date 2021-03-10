@@ -5,7 +5,7 @@ Copyright (c) 2020 - DevsBranch
 import json
 from datetime import datetime
 from flask_login import UserMixin
-from app import db, login_manager
+from app import db, login_manager, s3
 from api.schema import property_schema, user_schema
 from config import S3_BUCKET_CONFIG
 
@@ -173,7 +173,7 @@ class Property(db.Model):
         path_to_delete = S3_BUCKET_CONFIG["PROP_ASSETS"] + prop_to_delete.image_folder
         image_list = json.loads(prop_to_delete.photos)
 
-        delete_img_objs(bucket, path_to_delete, image_list)
+        delete_img_objs.delay(bucket, path_to_delete, image_list)
 
         db.session.delete(prop_to_delete)
         db.session.commit()

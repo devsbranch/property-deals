@@ -27,15 +27,7 @@ def process_images(filename, tmp_dir, dir_to_save):
         pil_image_obj.save(filename)
 
         with open(filename, "rb") as data_obj:
-            s3.upload_fileobj(
-                data_obj,
-                bucket,
-                f"{s3_prop_image_dir}{dir_to_save}{filename}",
-                ExtraArgs={
-                    "ACL": "public-read",
-                    "ContentType": "image/jpeg"
-                }
-            )
+            image_uploader(data_obj, s3_prop_image_dir + dir_to_save + filename)
         os.remove(filename)
         delete_img_objs(bucket, s3_temp_dir + tmp_dir, file_obj=filename)
     except Exception as e:
@@ -67,6 +59,22 @@ def update_profile_image(dir_name, filename, content_type):
 
 
 @celery.task()
+def image_uploader(image_file, path_to_save):
+    try:
+        s3.upload_fileobj(
+            image_file,
+            bucket,
+            path_to_save,
+            ExtraArgs={
+                "ACL": "public-read",
+                "ContentType": "image/jpeg"
+            }
+        )
+    except Exception as e:
+        return e
+
+
+@celery.task()
 def delete_img_objs(bucket, dir_to_del, image_list=None, file_obj=None):
     """
     Deletes objects on S3 either by iterating through the image_list and concatenating the
@@ -85,4 +93,3 @@ def delete_img_objs(bucket, dir_to_del, image_list=None, file_obj=None):
             Key=dir_to_del + file_obj
         )
     return "deletion task completed"
-
