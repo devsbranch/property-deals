@@ -175,7 +175,7 @@ class Property(db.Model):
         path_to_delete = S3_BUCKET_CONFIG["PROP_ASSETS"] + prop_to_delete.image_folder
         image_list = json.loads(prop_to_delete.photos)
 
-        delete_img_objs(bucket, path_to_delete, image_list)
+        delete_img_objs.delay(bucket, path_to_delete, image_list)
 
         db.session.delete(prop_to_delete)
         db.session.commit()

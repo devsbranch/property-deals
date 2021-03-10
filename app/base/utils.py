@@ -21,6 +21,7 @@ def save_images_to_temp_folder(image_files):
     name of the temporary folder and the list of the filenames that were saved to S3 in the
     same folder.
     """
+    from app.tasks import image_uploader
     dir_name = str(uuid.uuid4())[:8] + "/"
 
     image_list = []
@@ -30,18 +31,7 @@ def save_images_to_temp_folder(image_files):
         _, file_ext = os.path.splitext(checked_filename)  # get file extension
         clean_filename = f"{random_str}{file_ext}"
         image_list.append(clean_filename)
-        try:
-            s3.upload_fileobj(
-                image_file,
-                bucket,
-                f"{s3_temp_dir}{dir_name}{clean_filename}",
-                ExtraArgs={
-                    "ACL": "public-read",
-                    "ContentType": image_file.content_type
-                }
-            )
-        except Exception as e:
-            return e
+        image_uploader(image_file, s3_temp_dir + dir_name + clean_filename)
 
     return dir_name, image_list
 

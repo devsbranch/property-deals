@@ -13,6 +13,7 @@ from importlib import import_module
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from decouple import config as db_config
+from config import config_dict
 
 TASK_LIST = [
     "app.tasks",
@@ -83,13 +84,6 @@ def configure_database(app):
     @app.teardown_request
     def shutdown_session(exception=None):
         db.session.remove()
-
-
-from config import config_dict
-
-DEBUG = db_config("DEBUG", default=True)
-get_config_mode = "Development" if DEBUG else "Production"
-app_config = config_dict[get_config_mode.capitalize()]
 
 
 def create_app(config):
