@@ -3,7 +3,6 @@ import os
 import io
 from PIL import Image
 from app import celery, s3, redis_client
-from app.base.utils import update_property_images
 from config import S3_BUCKET_CONFIG
 
 bucket = S3_BUCKET_CONFIG["S3_BUCKET"]
