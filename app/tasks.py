@@ -7,7 +7,6 @@ from config import S3_BUCKET_CONFIG
 
 bucket = S3_BUCKET_CONFIG["S3_BUCKET"]
 s3_prop_image_dir = S3_BUCKET_CONFIG["PROP_ASSETS"]
-s3_temp_dir = S3_BUCKET_CONFIG["TEMP_DIR"]
 s3_user_image_dir = S3_BUCKET_CONFIG["USER_ASSETS"]
 
 

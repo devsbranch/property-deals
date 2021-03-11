@@ -5,7 +5,7 @@ Copyright (c) 2020 - DevsBranch
 import json
 from datetime import datetime
 from flask_login import UserMixin
-from app import db, login_manager, s3
+from app import db, login_manager
 from api.schema import property_schema, user_schema
 from config import S3_BUCKET_CONFIG
 
