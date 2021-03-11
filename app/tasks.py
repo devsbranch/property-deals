@@ -1,4 +1,4 @@
-import json
+
 import os
 import io
 from PIL import Image
@@ -30,7 +30,7 @@ def image_process(redis_img, upload_dir, filename):
                 "ContentType": "image/jpeg"
             }
         )
-        os.remove(redis_img)  # Delete the file that was saved temporary on local
+        os.remove(redis_img + ".jpg")  # Delete the file that was saved temporary on local
         redis_client.delete(redis_img)
     except Exception as err:
         return err
