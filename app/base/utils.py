@@ -9,7 +9,7 @@ s3_prop_image_dir = S3_BUCKET_CONFIG["PROP_ASSETS"]
 s3_user_image_dir = S3_BUCKET_CONFIG["USER_ASSETS"]
 
 
-def generate_img_dir_name():
+def generate_dir_name():
     """
     This function generates a random string tobe used as a directory name where images will be saved on S3
     """

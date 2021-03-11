@@ -7,14 +7,16 @@ from datetime import date
 from flask import render_template, redirect, url_for, request, flash, jsonify
 from flask_login import login_required, current_user
 from jinja2 import TemplateNotFound
+from app import db
 from app.base.forms import CreatePropertyForm, UpdatePropertyForm
 from app.base.models import Property
 from app.home import blueprint
 from config import S3_BUCKET_CONFIG
-from app.base.utils import save_images_to_temp_folder, property_image_handler
+from app.base.utils import generate_dir_name, resize_images, save_to_redis
 
 bucket = S3_BUCKET_CONFIG["S3_BUCKET"]
 image_path = S3_BUCKET_CONFIG["S3_URL"] + "/" + S3_BUCKET_CONFIG["PROP_ASSETS"]
+s3_prop_img_dir = S3_BUCKET_CONFIG["PROP_ASSETS"]
 
 
 @blueprint.route("/index")
@@ -74,16 +76,17 @@ def create_property():
 
     if form.validate_on_submit():
         img_files = request.files.getlist("prop_photos")
-        temp_dir, temp_file_list = save_images_to_temp_folder(img_files)
+        redis_img_key = save_to_redis(img_files)
 
-        images_list = property_image_handler(temp_dir, temp_file_list)
-        img_list_to_json = json.dumps(images_list)
+        s3_upload_dir = generate_dir_name()
+        output_filenames = resize_images(redis_img_key, s3_upload_dir)
+        img_list_to_json = json.dumps(output_filenames)
 
         prop_data = {
             "name": form.prop_name.data,
             "desc": form.prop_desc.data,
             "price": form.prop_price.data,
-            "image_folder": images_list[0],
+            "image_folder": output_filenames[0],
             "photos": img_list_to_json,
             "location": form.prop_location.data,
             "type": form.prop_type.data,
@@ -120,14 +123,30 @@ def user_listing(user_id):
 @blueprint.route("/property/update/<int:property_id>", methods=["GET", "POST"])
 @login_required
 def update_property(property_id):
-    from app.tasks import update_prop_images
+    from app.tasks import delete_img_obj
+    prop_to_update = Property.query.get(property_id)
 
     form = UpdatePropertyForm()
     if request.method == "POST" and form.validate_on_submit():
         if request.files["prop_photos"].filename:
-            img_files = request.files.getlist("prop_photos")
-            temp_dir, image_file_list = save_images_to_temp_folder(img_files)
-            update_prop_images(temp_dir, image_file_list, property_id)
+            if request.files["prop_photos"].filename:
+                # delete previous images before
+                delete_img_obj.delay(
+                    bucket,
+                    s3_prop_img_dir + prop_to_update.image_folder,
+                    json.loads(prop_to_update.photos)
+                )
+
+                img_files = request.files.getlist("prop_photos")
+                redis_img_keys = save_to_redis(img_files)
+
+                s3_upload_dir = generate_dir_name()
+                output_filenames = resize_images(redis_img_keys, s3_upload_dir)
+                img_list_to_json = json.dumps(output_filenames)
+
+                prop_to_update.image_folder = output_filenames[0]
+                prop_to_update.photos = img_list_to_json
+                db.session.commit()
 
         prop_data = {
             "name": form.prop_name.data,
