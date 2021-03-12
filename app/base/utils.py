@@ -9,40 +9,33 @@ s3_prop_image_dir = S3_BUCKET_CONFIG["PROP_ASSETS"]
 s3_user_image_dir = S3_BUCKET_CONFIG["USER_ASSETS"]
 
 
-def generate_dir_name():
+def generate_dir_name(username):
     """
-    This function generates a random string tobe used as a directory name where images will be saved on S3
+    This function generates a random string to be used as a directory name where images will be saved on S3
     """
-    suffix = str(uuid.uuid4())[:15].replace("-", "")
+    suffix = str(uuid.uuid4())[:5].replace("-", "")
     current_date = datetime.utcnow()
     time, date = (
-        current_date.strftime("%H-%M-%S"),
-        current_date.strftime("%d-%B-%Y"),
+        current_date.strftime("%H"),
+        current_date.strftime("%d-%m-%Y"),
     )
-    dir_name = f"{suffix}_{date}_{time}/"
+    dir_name = f"{username}_{date}_{time}_{suffix}"
     return dir_name
 
 
-def save_to_redis(image_file_list):
+def save_to_redis(image_file_list, username):
     """
-    Saves the images to redis by converting it to bytes. Returns the keys of each imagein a list.
+    Create a dictionary which will contain folder_name as key and rand_str/img_to_bytes as value then push to redis.
+    to redis.
     """
-    redis_img_keys = []
+    folder_name = generate_dir_name(username)
+    img_dict = {}
     for file in image_file_list:
-        rand_str = str(uuid.uuid4())[:8]  # generate a random string to set as key for the object in redis
-        redis_img_keys.append(rand_str)
+        rand_str = str(uuid.uuid4())[
+            :8
+        ]  # generate a random string to set as key for the image in img_dict
         # convert file to bytes
         img_to_bytes = np.array(np.frombuffer(file.read(), np.uint8)).tobytes()
-        redis_client.set(rand_str, img_to_bytes)
-    return redis_img_keys
-
-
-def resize_images(key_list, upload_dir):
-    from app.tasks import image_process
-
-    filenames = [upload_dir]  # will contain list of image filenames in the destination folder
-    for r_key in key_list:
-        rand_str = str(uuid.uuid4())[:8] + ".jpg"  # will be used as filename for the file when uploading to S3
-        image_process.delay(r_key, s3_prop_image_dir + upload_dir, rand_str)  # uploads the image file to S3
-        filenames.append(rand_str)
-    return filenames
+        img_dict[rand_str] = img_to_bytes
+    redis_client.hmset(folder_name, img_dict)
+    return folder_name

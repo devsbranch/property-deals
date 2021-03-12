@@ -4,15 +4,15 @@ Copyright (c) 2020 - DevsBranch
 """
 import json
 from datetime import date
-from flask import render_template, redirect, url_for, request, flash, jsonify
+from flask import render_template, redirect, url_for, request, flash
 from flask_login import login_required, current_user
 from jinja2 import TemplateNotFound
-from app import db
+from app import db, redis_client
 from app.base.forms import CreatePropertyForm, UpdatePropertyForm
 from app.base.models import Property
 from app.home import blueprint
 from config import S3_BUCKET_CONFIG
-from app.base.utils import generate_dir_name, resize_images, save_to_redis
+from app.base.utils import save_to_redis
 
 bucket = S3_BUCKET_CONFIG["S3_BUCKET"]
 image_path = S3_BUCKET_CONFIG["S3_URL"] + "/" + S3_BUCKET_CONFIG["PROP_ASSETS"]
@@ -33,7 +33,7 @@ def index():
         properties=paginate_properties,
         photos_list=photos,
         today=today,
-        image_path=image_path
+        image_path=image_path,
     )
 
 
@@ -72,21 +72,27 @@ def get_segment(request):
 @blueprint.route("/property/create", methods=["GET", "POST"])
 @login_required
 def create_property():
+    from app.tasks import image_process
+
     form = CreatePropertyForm()
 
     if form.validate_on_submit():
         img_files = request.files.getlist("prop_photos")
-        redis_img_key = save_to_redis(img_files)
+        folder_name = save_to_redis(img_files, current_user.username)
 
-        s3_upload_dir = generate_dir_name()
-        output_filenames = resize_images(redis_img_key, s3_upload_dir)
-        img_list_to_json = json.dumps(output_filenames)
+        image_process.delay(folder_name, s3_prop_img_dir)
+        image_names = redis_client.hgetall(folder_name)
+        image_list = [
+            f"{image_name.decode('utf-8')}.jpg" for image_name in image_names.keys()
+        ]
+        image_list.insert(0, f"{folder_name}/")
+        img_list_to_json = json.dumps(image_list)
 
         prop_data = {
             "name": form.prop_name.data,
             "desc": form.prop_desc.data,
             "price": form.prop_price.data,
-            "image_folder": output_filenames[0],
+            "image_folder": f"{folder_name}/",
             "photos": img_list_to_json,
             "location": form.prop_location.data,
             "type": form.prop_type.data,
@@ -106,7 +112,10 @@ def details(property_id):
     # converts the json object from the db to a python dictionary
     photos = json.loads(prop_data.photos)
     return render_template(
-        "property_details.html", prop_data=prop_data, photos_list=photos, image_path=image_path
+        "property_details.html",
+        prop_data=prop_data,
+        photos_list=photos,
+        image_path=image_path,
     )
 
 
@@ -123,7 +132,8 @@ def user_listing(user_id):
 @blueprint.route("/property/update/<int:property_id>", methods=["GET", "POST"])
 @login_required
 def update_property(property_id):
-    from app.tasks import delete_img_obj
+    from app.tasks import delete_img_obj, image_process
+
     prop_to_update = Property.query.get(property_id)
 
     form = UpdatePropertyForm()
@@ -134,17 +144,24 @@ def update_property(property_id):
                 delete_img_obj.delay(
                     bucket,
                     s3_prop_img_dir + prop_to_update.image_folder,
-                    json.loads(prop_to_update.photos)
+                    json.loads(prop_to_update.photos),
                 )
 
                 img_files = request.files.getlist("prop_photos")
-                redis_img_keys = save_to_redis(img_files)
+                folder_name = save_to_redis(img_files, current_user.username)
 
-                s3_upload_dir = generate_dir_name()
-                output_filenames = resize_images(redis_img_keys, s3_upload_dir)
-                img_list_to_json = json.dumps(output_filenames)
+                image_process.delay(folder_name, s3_prop_img_dir)
+                image_names = redis_client.hgetall(
+                    folder_name
+                )  # Returns dictionary object
+                image_list = [
+                    f"{image_name.decode('utf-8')}.jpg"
+                    for image_name in image_names.keys()
+                ]
+                image_list.insert(0, f"{folder_name}/")
+                img_list_to_json = json.dumps(image_list)
 
-                prop_to_update.image_folder = output_filenames[0]
+                prop_to_update.image_folder = f"{folder_name}/"
                 prop_to_update.photos = img_list_to_json
                 db.session.commit()
 

@@ -2,11 +2,10 @@
 """
 Copyright (c) 2020 - DevsBranch
 """
-import uuid
 from flask import render_template, redirect, request, url_for, flash
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.security import generate_password_hash, check_password_hash
-from app import db, login_manager
+from app import db, login_manager, redis_client
 from app.base import blueprint
 from app.base.forms import LoginForm, CreateAccountForm, UpdateAccountForm
 from app.base.models import User
@@ -87,14 +86,21 @@ def account():
     form = UpdateAccountForm()
     if form.validate_on_submit():
         if form.picture.data:
-            # delete previous image
-            delete_img_obj.delay(s3_bucket, s3_user_img_dir, filename=current_user.photo)
+            # delete previous profile image
+            delete_img_obj.delay(
+                s3_bucket, s3_user_img_dir, filename=current_user.photo
+            )
 
             image = request.files["picture"]
-            redis_img_key = save_to_redis([image])
-            rand_str = str(uuid.uuid4())[:13].replace("-", "") + ".jpg"
-            image_process.delay(redis_img_key[0], s3_user_img_dir, rand_str)
-            current_user.photo = rand_str
+            folder_name = save_to_redis([image], current_user.username)
+
+            image_process.delay(folder_name, s3_user_img_dir)
+            image_names = redis_client.hgetall(folder_name)
+            image_list = [
+                f"{image_name.decode('utf-8')}.jpg" for image_name in image_names.keys()
+            ]
+
+            current_user.photo = folder_name + "/" + image_list[0]
             db.session.commit()
 
         user_data = {
@@ -106,7 +112,6 @@ def account():
             "address_1": form.address_1.data,
             "address_2": form.address_2.data,
             "city": form.city.data,
-            "postal_code": form.postal_code.data,
             "state": form.state.data,
             "username": form.username.data,
             "email": form.email.data,
@@ -116,7 +121,6 @@ def account():
         return redirect(url_for("base_blueprint.account"))
 
     elif request.method == "GET":
-        form.username.data = current_user.username
         form.email.data = current_user.email
         form.first_name.data = current_user.first_name
         form.last_name.data = current_user.last_name

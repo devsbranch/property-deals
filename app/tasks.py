@@ -1,4 +1,3 @@
-
 import os
 import io
 from PIL import Image
@@ -11,26 +10,36 @@ s3_user_image_dir = S3_BUCKET_CONFIG["USER_ASSETS"]
 
 
 @celery.task()
-def image_process(redis_img, upload_dir, filename):
+def image_process(folder_name, s3_dir):
     """
-    Process image files, using the PIL image library, upload to S3 and delete the image from redis.
+    Resize the image files, using the PIL image library
     """
-    bytes_img = redis_client.get(redis_img)
-    img = Image.open(io.BytesIO(bytes_img))
-    img.thumbnail((800, 800))
-    img.save(redis_img + ".jpg", format="JPEG")
+    img_data = redis_client.hgetall(folder_name)
+    for r_key in img_data.keys():
+        byte_key_to_str = r_key.decode("utf-8")
+        # Get image byte object from redis with r_key as object key
+        byte_img_obj = redis_client.hget(folder_name, byte_key_to_str)
+        decoded = Image.open(io.BytesIO(byte_img_obj))
+        decoded.thumbnail((800, 800))
+        decoded.save(byte_key_to_str + ".jpg", format="JPEG")
+        upload_to_s3.delay(byte_key_to_str, s3_dir, folder_name)
+
+
+@celery.task()
+def upload_to_s3(img_obj, s3_dir, folder_name):
+    """
+    Upload to S3 and delete the image from redis.
+    """
     try:
         s3.upload_fileobj(
-            open(redis_img + ".jpg", "rb"),  # This is the name of the file saved on line 23
+            open(img_obj + ".jpg", "rb"),
             bucket,
-            upload_dir + filename,
-            ExtraArgs={
-                "ACL": "public-read",
-                "ContentType": "image/jpeg"
-            }
+            s3_dir + folder_name + "/" + img_obj + ".jpg",
+            ExtraArgs={"ACL": "public-read", "ContentType": "image/jpeg"},
         )
-        os.remove(redis_img + ".jpg")  # Delete the file that was saved temporary on local
-        redis_client.delete(redis_img)
+        os.remove(img_obj + ".jpg")
+        redis_client.hdel(folder_name, img_obj)  # clean up by deleting in redis
+        return "file uploaded"
     except Exception as err:
         return err
 
@@ -42,13 +51,20 @@ def delete_img_obj(bucket, dir_to_del, image_list=None, filename=None):
     """
     if image_list:
         for filename in image_list:
-            s3.delete_object(
-                Bucket=bucket,
-                Key=dir_to_del + filename
-            )
+            s3.delete_object(Bucket=bucket, Key=dir_to_del + filename)
     else:
-        s3.delete_object(
-            Bucket=bucket,
-            Key=dir_to_del + filename
-        )
+        s3.delete_object(Bucket=bucket, Key=dir_to_del + filename)
     return "deletion task completed"
+
+
+@celery.task()
+def profile_img_process(folder_name):
+    img_data = redis_client.hgetall(folder_name)
+    for r_key in img_data.keys():
+        byte_key_to_str = r_key.decode("utf-8")
+        # Get image byte object from redis with r_key as object key
+        byte_img_obj = redis_client.hget(folder_name, byte_key_to_str)
+        decoded = Image.open(io.BytesIO(byte_img_obj))
+        decoded.thumbnail((800, 800))
+        decoded.save(byte_key_to_str + ".jpg", format="JPEG")
+        upload_to_s3.delay(byte_key_to_str, s3_dir, folder_name)
