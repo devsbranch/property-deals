@@ -100,7 +100,7 @@ def account():
                 f"{image_name.decode('utf-8')}.jpg" for image_name in image_names.keys()
             ]
 
-            current_user.photo = folder_name + "/" + image_list[0]
+            current_user.photo = f"{folder_name}/{image_list[0]}"
             db.session.commit()
 
         user_data = {
@@ -135,7 +135,7 @@ def account():
         form.username.data = current_user.username
         form.email.data = current_user.email
     # get the path for the profile picture of the current user
-    profile_picture = s3_url + "/" + s3_user_img_dir + current_user.photo
+    profile_picture = f"{s3_url}/{s3_user_img_dir}{current_user.photo}"
     return render_template("account.html", form=form, profile_picture=profile_picture)
 
 
