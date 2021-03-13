@@ -5,15 +5,16 @@ Copyright (c) 2020 - DevsBranch
 from flask import render_template, redirect, request, url_for, flash
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.security import generate_password_hash, check_password_hash
-from app import login_manager
+from app import db, login_manager, redis_client
 from app.base import blueprint
 from app.base.forms import LoginForm, CreateAccountForm, UpdateAccountForm
 from app.base.models import User
-from app.base.utils import save_profile_picture
+from app.base.utils import save_to_redis
 from config import S3_BUCKET_CONFIG
 
 s3_url = S3_BUCKET_CONFIG["S3_URL"]
-s3_user_image_dir = S3_BUCKET_CONFIG["USER_ASSETS"]
+s3_bucket = S3_BUCKET_CONFIG["S3_BUCKET"]
+s3_user_img_dir = S3_BUCKET_CONFIG["USER_ASSETS"]
 
 
 @blueprint.route("/")
@@ -79,12 +80,29 @@ def register():
 @blueprint.route("/account", methods=["GET", "POST"])
 @login_required
 def account():
+    from app.tasks import image_process, delete_img_obj
+
     user_id = current_user.id
     form = UpdateAccountForm()
     if form.validate_on_submit():
         if form.picture.data:
-            image = form.picture.data
-            save_profile_picture(image)
+            # delete previous profile image
+            delete_img_obj.delay(
+                s3_bucket, s3_user_img_dir, filename=current_user.photo
+            )
+
+            image = request.files["picture"]
+            folder_name = save_to_redis([image], current_user.username)
+
+            image_process.delay(folder_name, s3_user_img_dir)
+            image_names = redis_client.hgetall(folder_name)
+            image_list = [
+                f"{image_name.decode('utf-8')}" for image_name in image_names.keys()
+            ]
+
+            current_user.photo = f"{folder_name}/{image_list[0]}"
+            db.session.commit()
+
         user_data = {
             "first_name": form.first_name.data,
             "last_name": form.last_name.data,
@@ -94,7 +112,6 @@ def account():
             "address_1": form.address_1.data,
             "address_2": form.address_2.data,
             "city": form.city.data,
-            "postal_code": form.postal_code.data,
             "state": form.state.data,
             "username": form.username.data,
             "email": form.email.data,
@@ -104,7 +121,6 @@ def account():
         return redirect(url_for("base_blueprint.account"))
 
     elif request.method == "GET":
-        form.username.data = current_user.username
         form.email.data = current_user.email
         form.first_name.data = current_user.first_name
         form.last_name.data = current_user.last_name
@@ -119,7 +135,7 @@ def account():
         form.username.data = current_user.username
         form.email.data = current_user.email
     # get the path for the profile picture of the current user
-    profile_picture = s3_url + "/" + current_user.photo
+    profile_picture = f"{s3_url}/{s3_user_img_dir}{current_user.photo}"
     return render_template("account.html", form=form, profile_picture=profile_picture)
 
 

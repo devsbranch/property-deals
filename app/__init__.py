@@ -4,6 +4,7 @@ Copyright (c) 2020 - DevsBranch
 """
 import os
 import boto3
+import redis
 from flask import Flask
 from celery import Celery
 from flask_marshmallow import Marshmallow
@@ -46,6 +47,7 @@ ma = Marshmallow()
 migrate = Migrate()
 login_manager = LoginManager()
 jwt = JWTManager()
+redis_client = redis.StrictRedis.from_url(os.environ.get("REDIS_URL"))
 
 s3 = boto3.client(
     "s3",
