@@ -12,7 +12,7 @@ def generate_dir_name(username):
     """
     This function generates a random string to be used as a directory name where images will be saved on S3
     """
-    suffix = uuid.uuid4().__str__()[:5].replace("-", "")
+    suffix = uuid.uuid4().__str__()[:5]
     current_date = datetime.utcnow()
     time, date = (
         current_date.strftime("%H"),

@@ -19,7 +19,7 @@ def image_process(folder_name, s3_dir):
         byte_img_obj = redis_client.hget(folder_name, byte_key_to_str)
         decoded = Image.open(io.BytesIO(byte_img_obj))
         decoded.thumbnail((800, 800))
-        decoded.save(byte_key_to_str, format="JPEG")
+        decoded.save(byte_key_to_str)
         upload_to_s3.delay(byte_key_to_str, s3_dir, folder_name)
 
 
@@ -28,12 +28,14 @@ def upload_to_s3(img_obj, s3_dir, folder_name):
     """
     Upload to S3 and delete the image from redis.
     """
+    jpeg_extensions = [".jpg", ".jpeg"]
+    _, file_ext = os.path.splitext(img_obj)
     try:
         s3.upload_fileobj(
             open(img_obj, "rb"),
             bucket,
             f"{s3_dir}{folder_name}/{img_obj}",
-            ExtraArgs={"ACL": "public-read", "ContentType": "image/jpeg"},
+            ExtraArgs={"ACL": "public-read", "ContentType": "image/jpeg" if file_ext in jpeg_extensions else "image/png"}
         )
         os.remove(img_obj)
         redis_client.hdel(folder_name, img_obj)  # clean up by deleting in redis

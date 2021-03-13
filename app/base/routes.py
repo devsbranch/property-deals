@@ -97,7 +97,7 @@ def account():
             image_process.delay(folder_name, s3_user_img_dir)
             image_names = redis_client.hgetall(folder_name)
             image_list = [
-                f"{image_name.decode('utf-8')}.jpg" for image_name in image_names.keys()
+                f"{image_name.decode('utf-8')}" for image_name in image_names.keys()
             ]
 
             current_user.photo = f"{folder_name}/{image_list[0]}"
