@@ -68,7 +68,7 @@ def delete_img_obj(bucket, dir_to_del, image_list=None, filename=None):
 @celery.task()
 def send_email(to, subject, template, email_type):
     message = Mail(
-        from_email=config("FROM_MAIL"),
+        from_email=os.environ.get("FROM_EMAIL"),
         to_emails=to,
         subject=subject,
         html_content=template,
