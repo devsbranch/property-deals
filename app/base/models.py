@@ -29,6 +29,8 @@ class User(db.Model, UserMixin):
     )
     is_active = db.Column(db.Boolean, default=False)
     is_vendor = db.Column(db.Boolean, default=False)
+    is_verified = db.Column(db.Boolean, nullable=True, default=False)
+    date_verified = db.Column(db.DateTime, nullable=True)
 
     username = db.Column(db.String, unique=True, nullable=False)
     email = db.Column(db.String(60), unique=True, nullable=False)
