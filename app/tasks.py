@@ -66,19 +66,17 @@ def delete_img_obj(bucket, dir_to_del, image_list=None, filename=None):
 
 
 @celery.task()
-def send_email(to, subject, template):
+def send_email(to, subject, template, email_type):
     message = Mail(
-        from_email=config("FROM_EMAIL"),
+        from_email=config("FROM_MAIL"),
         to_emails=to,
         subject=subject,
         html_content=template,
     )
     try:
         sg = SendGridAPIClient(os.environ.get("SENDGRID_API_KEY"))
-        response = sg.send(message)
-        print(response.status_code)
-        print(response.body)
-        print(response.headers)
-        return "Email has been sent."
+        sg.send(message)
+        return f"A {email_type} email has been sent."
     except Exception as err:
-        print(err)
+        return err
+

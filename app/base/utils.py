@@ -10,17 +10,15 @@ from app import redis_client
 from config import S3_BUCKET_CONFIG
 
 bucket = S3_BUCKET_CONFIG["S3_BUCKET"]
+serializer = URLSafeTimedSerializer(os.environ.get("SECRET_KEY"))
+salt = os.environ.get("SECURITY_PASSWORD_SALT")
 
 
-def generate_confirmation_token(user_email):
+def generate_url_token(user_data):
     """
     Generates a token and with user email as encoded data
     """
-    serializer = URLSafeTimedSerializer(
-        os.environ.get("SECRET_KEY")
-    )
-    salt = os.environ.get("SECURITY_PASSWORD_SALT")
-    token = serializer.dumps(user_email, salt=salt)
+    token = serializer.dumps(user_data, salt=salt)
     return token
 
 
@@ -29,10 +27,6 @@ def confirm_token(token, expiration=3600):
     Decodes the data in the token, return False if token is not valid or has expired and return
     decoded data if token is valid.
     """
-    serializer = URLSafeTimedSerializer(
-        os.environ.get("SECRET_KEY")
-    )
-    salt = os.environ.get("SECURITY_PASSWORD_SALT")
     try:
         email = serializer.loads(token, salt=salt, max_age=expiration)
     except:
@@ -44,7 +38,6 @@ def email_verification_required(function):
     """
     Checks if the user email has been verified
     """
-
     @wraps(function)
     def decorated_function(*args, **kwargs):
         if current_user.is_verified is False:
@@ -77,9 +70,7 @@ def save_to_redis(image_file_list, username):
     img_dict = {}
     for file in image_file_list:
         _, file_ext = os.path.splitext(file.filename)  # Get file extension
-        new_img_name = uuid.uuid4().__str__()[
-            :8
-        ]  # generate a random string to set as key for the image in img_dict
+        new_img_name = uuid.uuid4().__str__()[:8]  # generate a random string to set as key for the image in img_dict
         # convert file to bytes
         img_to_bytes = np.array(np.frombuffer(file.read(), np.uint8)).tobytes()
         img_dict[f"{new_img_name}{file_ext}"] = img_to_bytes
