@@ -2,10 +2,49 @@ import os
 import uuid
 import numpy as np
 from datetime import datetime
+from functools import wraps
+from flask import redirect, url_for
+from itsdangerous import URLSafeTimedSerializer
+from flask_login import current_user
 from app import redis_client
 from config import S3_BUCKET_CONFIG
 
 bucket = S3_BUCKET_CONFIG["S3_BUCKET"]
+serializer = URLSafeTimedSerializer(os.environ.get("SECRET_KEY"))
+salt = os.environ.get("SECURITY_PASSWORD_SALT")
+
+
+def generate_url_token(user_data):
+    """
+    Generates a token and with user email as encoded data
+    """
+    token = serializer.dumps(user_data, salt=salt)
+    return token
+
+
+def confirm_token(token, expiration=3600):
+    """
+    Decodes the data in the token, return False if token is not valid or has expired and return
+    decoded data if token is valid.
+    """
+    try:
+        email = serializer.loads(token, salt=salt, max_age=expiration)
+    except:
+        return False
+    return email
+
+
+def email_verification_required(function):
+    """
+    Checks if the user email has been verified
+    """
+    @wraps(function)
+    def decorated_function(*args, **kwargs):
+        if current_user.is_verified is False:
+            return redirect(url_for("base_blueprint.unverified"))
+        return function(*args, **kwargs)
+
+    return decorated_function
 
 
 def generate_dir_name(username):

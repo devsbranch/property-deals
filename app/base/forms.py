@@ -117,6 +117,28 @@ class UpdateAccountForm(CreateAccountForm):
                 )
 
 
+class RequestResetPasswordForm(FlaskForm):
+    email = StringField(
+        "Email", validators=[DataRequired(), Email(), Length(min=5, max=60)]
+    )
+    submit = SubmitField("Request Password Reset")
+
+    def validate_email(self, email):
+        user = User.query.filter_by(email=email.data).first()
+        if user is None:
+            raise ValidationError("The account with the email you have provided doesn't exist.")
+
+
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField("Password", validators=[Length(min=6, max=60), EqualTo("confirm_password",
+                                                                                    message="Passwords must be equal")])
+    confirm_password = PasswordField(
+        "Confirm Password",
+        validators=[DataRequired(), Length(min=6, max=60)]
+    )
+    submit = SubmitField("Reset Password")
+
+
 class CreatePropertyForm(FlaskForm):
     prop_name = StringField(
         "Property Name", validators=[DataRequired(), Length(min=5, max=50)]

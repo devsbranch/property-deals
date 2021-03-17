@@ -1,6 +1,9 @@
 import os
 import io
 from PIL import Image
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+from decouple import config
 from app import celery, s3, redis_client
 from config import S3_BUCKET_CONFIG
 
@@ -35,7 +38,12 @@ def upload_to_s3(img_obj, s3_dir, folder_name):
             open(img_obj, "rb"),
             bucket,
             f"{s3_dir}{folder_name}/{img_obj}",
-            ExtraArgs={"ACL": "public-read", "ContentType": "image/jpeg" if file_ext in jpeg_extensions else "image/png"}
+            ExtraArgs={
+                "ACL": "public-read",
+                "ContentType": "image/jpeg"
+                if file_ext in jpeg_extensions
+                else "image/png",
+            },
         )
         os.remove(img_obj)
         redis_client.hdel(folder_name, img_obj)  # clean up by deleting in redis
@@ -55,4 +63,20 @@ def delete_img_obj(bucket, dir_to_del, image_list=None, filename=None):
     else:
         s3.delete_object(Bucket=bucket, Key=dir_to_del + filename)
     return "deletion task completed"
+
+
+@celery.task()
+def send_email(to, subject, template, email_type):
+    message = Mail(
+        from_email=os.environ.get("FROM_EMAIL"),
+        to_emails=to,
+        subject=subject,
+        html_content=template,
+    )
+    try:
+        sg = SendGridAPIClient(os.environ.get("SENDGRID_API_KEY"))
+        sg.send(message)
+        return f"A {email_type} email has been sent."
+    except Exception as err:
+        return err
 

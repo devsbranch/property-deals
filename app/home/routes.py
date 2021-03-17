@@ -12,7 +12,7 @@ from app.base.forms import CreatePropertyForm, UpdatePropertyForm
 from app.base.models import Property
 from app.home import blueprint
 from config import S3_BUCKET_CONFIG
-from app.base.utils import save_to_redis
+from app.base.utils import save_to_redis, email_verification_required
 
 bucket = S3_BUCKET_CONFIG["S3_BUCKET"]
 image_path = S3_BUCKET_CONFIG["S3_URL"] + "/" + S3_BUCKET_CONFIG["PROP_ASSETS"]
@@ -51,7 +51,7 @@ def route_template(template):
         return render_template(template, segment=segment)
 
     except TemplateNotFound:
-        return render_template("404.html"), 404
+        return render_template("errors/404.html"), 404
 
 
 # Helper - Extract current page name from request
@@ -71,6 +71,7 @@ def get_segment(request):
 
 @blueprint.route("/property/create", methods=["GET", "POST"])
 @login_required
+@email_verification_required
 def create_property():
     from app.tasks import image_process
 
@@ -131,6 +132,7 @@ def user_listing(user_id):
 
 @blueprint.route("/property/update/<int:property_id>", methods=["GET", "POST"])
 @login_required
+@email_verification_required
 def update_property(property_id):
     from app.tasks import delete_img_obj, image_process
 
@@ -155,7 +157,7 @@ def update_property(property_id):
                     folder_name
                 )  # Returns dictionary object
                 image_list = [
-                    f"{image_name.decode('utf-8')}.jpg"
+                    f"{image_name.decode('utf-8')}"
                     for image_name in image_names.keys()
                 ]
                 image_list.insert(0, f"{folder_name}/")
