@@ -77,6 +77,7 @@ def verify_email(token):
 @login_required
 def resend_verification_email():
     from app.tasks import send_email
+
     user_data = user_data_to_generate_token(current_user.email, "verify_email")
     token = generate_url_token(user_data)
 
