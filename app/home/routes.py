@@ -157,7 +157,7 @@ def update_property(property_id):
                     folder_name
                 )  # Returns dictionary object
                 image_list = [
-                    f"{image_name.decode('utf-8')}.jpg"
+                    f"{image_name.decode('utf-8')}"
                     for image_name in image_names.keys()
                 ]
                 image_list.insert(0, f"{folder_name}/")
