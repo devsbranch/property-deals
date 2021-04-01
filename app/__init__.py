@@ -5,7 +5,7 @@ Copyright (c) 2020 - DevsBranch
 import os
 import boto3
 import redis
-from flask import Flask
+from flask import Flask, g
 from celery import Celery
 from flask_marshmallow import Marshmallow
 from flask_login import LoginManager
@@ -64,6 +64,7 @@ get_config_mode = "Development" if DEBUG else "Production"
 # importing from base module __init__
 from api.endpoints import user_endpoint
 from api.endpoints import property_endpoint
+from app.base.forms import SearchForm
 
 
 def register_extensions(app):
@@ -109,3 +110,12 @@ def create_app(config):
 app_config = config_dict[get_config_mode.capitalize()]
 
 _, celery = create_app(app_config)
+
+
+@_.before_request
+def before_request():
+    """
+    This function make the Search form global, accessible in any template without
+    passing it in render_template().
+    """
+    g.search_form = SearchForm()

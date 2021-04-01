@@ -4,7 +4,7 @@ Copyright (c) 2020 - DevsBranch
 """
 import json
 from datetime import date
-from flask import render_template, redirect, url_for, request, flash
+from flask import render_template, redirect, url_for, request, flash, current_app, g
 from flask_login import login_required, current_user
 from jinja2 import TemplateNotFound
 from app import db, redis_client
@@ -197,3 +197,27 @@ def update_property(property_id):
 def delete_property(prop_id):
     Property.delete_property(prop_id)
     return redirect(url_for("home_blueprint.index"))
+
+
+@blueprint.route("/search")
+def search():
+    if not g.search_form.validate():
+        return redirect(url_for("home_blueprint.index"))
+    page = request.args.get("page", 1, type=int)
+    search_results, total = Property.search(g.search_form.q.data, page, current_app.config["RESULTS_PER_PAGE"])
+    photos = [json.loads(p.photos) for p in search_results]
+
+    next_url = url_for('home_blueprint.search', q=g.search_form.q.data, page=page + 1) \
+        if total > page * current_app.config['RESULTS_PER_PAGE'] else None
+    prev_url = url_for('home_blueprint.search', q=g.search_form.q.data, page=page - 1) \
+        if page > 1 else None
+    return render_template(
+        "search.html",
+        title="search",
+        search_results=search_results,
+        total=total,
+        image_path=image_path,
+        photos_list=photos,
+        next_url=next_url,
+        prev_url=prev_url
+    )
