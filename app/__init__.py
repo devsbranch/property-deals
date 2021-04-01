@@ -13,6 +13,7 @@ from flask_sqlalchemy import SQLAlchemy
 from importlib import import_module
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
+from elasticsearch import Elasticsearch
 from decouple import config as db_config
 from config import config_dict
 
@@ -92,6 +93,9 @@ def create_app(config):
     app = Flask(__name__, static_folder="base/static")
     app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
     app.config.from_object(config)
+    # Search will be disable if the url is not set
+    app.elasticsearch = Elasticsearch([app.config['ELASTICSEARCH_URL']]) \
+        if app.config['ELASTICSEARCH_URL'] else None
     celery = init_celery(app)
     db.init_app(app)
     register_extensions(app)

@@ -24,6 +24,7 @@ class Config(object):
     JWT_BLACKLIST_ENABLED = True
     JWT_BLACKLIST_TOKEN_CHECKS = ["access", "refresh"]
     JWT_ACCESS_TOKEN_EXPIRES = 43200
+    ELASTICSEARCH_URL = os.environ.get("ELASTICSEARCH_URL")
 
 
 class ProductionConfig(Config):

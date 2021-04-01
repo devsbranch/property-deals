@@ -8,6 +8,61 @@ from flask_login import UserMixin
 from app import db, login_manager
 from api.schema import property_schema, user_schema
 from config import S3_BUCKET_CONFIG
+from app.search import add_to_index, remove_from_index, query_index
+
+
+class SearchableMixin(object):
+    @classmethod
+    def search(cls, search_term, page, per_page):
+        ids, total = query_index(cls.__tablename__, search_term, page, per_page)
+        if total == 0:
+            return cls.query.filter_by(id=0), 0
+        when = []
+        for i in range(len(ids)):
+            when.append((ids[i], i))
+        # retrieves the list of objects by their IDs
+        return cls.query.filter(cls.id.in_(ids)).order_by(db.case(when, value=cls.id)), total
+
+    @classmethod
+    def before_commit(cls, session):
+        """
+         Saves objects that are going to be added, modified and deleted, available as session.new, session.dirty
+         and session.deleted before a a session has been committed since they won't be available after a session commit.
+        """
+        session._changes = {
+            "add": list(session.new),
+            "update": list(session.dirty),
+            "delete": list(session.deleted)
+        }
+
+    @classmethod
+    def after_commit(cls, session):
+        """
+        This method iterates over the added, modified and deleted objects, and make the corresponding calls
+        to the indexing functions in app/search.py to update the Elastic search index.
+        """
+        for obj in session._changes["add"]:
+            if isinstance(obj, SearchableMixin):
+                add_to_index(obj.__tablename__, obj)
+        for obj in session._changes["update"]:
+            if isinstance(obj, SearchableMixin):
+                add_to_index(obj.__tablename__, obj)
+        for obj in session._changes["delete"]:
+            if isinstance(obj, SearchableMixin):
+                remove_from_index(obj.__tablename__, obj)
+        session._changes = None
+
+    @classmethod
+    def reindex(cls):
+        """
+        This method can be used to refresh an index with all the data from the sql database.
+        """
+        for obj in cls.query:
+            add_to_index(obj.__tablename__, obj)
+
+
+db.event.listen(db.session, "before_commit", SearchableMixin.before_commit)
+db.event.listen(db.session, "after_commit", SearchableMixin.after_commit)
 
 
 class User(db.Model, UserMixin):
@@ -96,10 +151,11 @@ class User(db.Model, UserMixin):
         return bool(is_successful)
 
 
-class Property(db.Model):
+class Property(SearchableMixin, db.Model):
 
     __tablename__ = "property"
 
+    __searchable__ = ["name", "desc", "location"]  # fields that will be indexed in Elasticsearch
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, nullable=False)
     desc = db.Column(db.Text, nullable=False)
