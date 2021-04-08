@@ -3,7 +3,6 @@ import io
 from PIL import Image
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
-from decouple import config
 from app import celery, s3, redis_client
 from config import S3_BUCKET_CONFIG
 
@@ -49,7 +48,7 @@ def upload_to_s3(img_obj, s3_dir, folder_name):
         redis_client.hdel(folder_name, img_obj)  # clean up by deleting in redis
         return "file uploaded"
     except Exception as err:
-        return err
+        print(err)
 
 
 @celery.task()

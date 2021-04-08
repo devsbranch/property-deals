@@ -8,6 +8,7 @@ from flask_login import UserMixin
 from app import db, login_manager
 from api.schema import property_schema, user_schema
 from config import S3_BUCKET_CONFIG
+from app.search import add_to_index, delete_from_index, search_docs
 
 
 class User(db.Model, UserMixin):
@@ -145,10 +146,30 @@ class Property(db.Model):
         return property_schema.dump(query)
 
     @classmethod
+    def search_property(cls, search_term, page, per_page):
+        """
+        This method queries for properties in database matching the ids returned by the search_docs().
+        """
+        ids, total = search_docs(search_term, page, per_page)
+        if total == 0:
+            return cls.query.filter_by(id=0), 0
+        ids_to_query = []
+        for i in range(len(ids)):
+            ids_to_query.append((ids[i], i))
+        results = cls.query.filter(cls.id.in_(ids)).order_by(
+            db.case(ids_to_query, value=cls.id)
+        )
+        return results, total
+
+    @classmethod
     def add_property(cls, prop_data):
         new_property = cls(**prop_data)
         db.session.add(new_property)
         db.session.commit()
+        # Add property to ElasticSearch index
+        add_to_index(
+            new_property.id, prop_data["name"], prop_data["desc"], prop_data["location"]
+        )
 
     @classmethod
     def update_property(cls, prop_data, prop_id):
@@ -156,6 +177,9 @@ class Property(db.Model):
         for key, value in prop_data.items():
             property_to_update.update({key: value})
             db.session.commit()
+        add_to_index(
+            prop_id, prop_data["name"], prop_data["desc"], prop_data["location"]
+        )
 
     @classmethod
     def update_property_images(cls, image_dir, img_list, prop_id):
@@ -176,6 +200,7 @@ class Property(db.Model):
         image_list = json.loads(prop_to_delete.photos)
 
         delete_img_obj.delay(bucket, path_to_delete, image_list)
+        delete_from_index(prop_to_delete.id)  # Delete property in ElasticSearch index
 
         db.session.delete(prop_to_delete)
         db.session.commit()

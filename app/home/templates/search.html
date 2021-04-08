@@ -1,0 +1,33 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+  <div class="container">
+    <div>
+      {% include "includes/_search_bar.html" %}
+    </div>
+    <div class="text-center">
+      {% if total > 1 %}
+      <h4>{{total}} results matching "{{ search_term }}" were found</h4>
+      {% elif total == 1%}
+      <h4>{{total}} result matching "{{ search_term }}"  was found</h4>
+      {% else %}
+      <h4>No results matching "{{ search_term }}" results were found</h4>
+      {% endif %}
+    </div>
+    <div class="content">
+      {% include "includes/_search_results.html" %}
+    </div>
+
+<!--    PAGINATION-->
+    <div class="col-12" align="center">
+      <a class="btn btn-info {% if not prev_url %} btn btn-outline disabled{% endif %}" href="{{ prev_url or '#' }}">
+            <span aria-hidden="true">&larr;</span>
+            Previous results
+        </a>
+        <a class="btn btn-info {% if not next_url %} btn btn-outline disabled{% endif %}" href="{{ next_url or '#' }}">
+            Next results
+            <span aria-hidden="true">&rarr;</span>
+        </a>
+    </div>
+  </div>
+{% endblock %}
