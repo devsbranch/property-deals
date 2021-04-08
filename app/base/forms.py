@@ -205,7 +205,8 @@ class UpdatePropertyForm(CreatePropertyForm):
 
 
 class SearchForm(FlaskForm):
-    q = StringField("search", validators=[DataRequired()])
+    q = StringField("search property", validators=[DataRequired()])
+    search = SubmitField("search")
 
     def __init__(self, *args, **kwargs):
         """

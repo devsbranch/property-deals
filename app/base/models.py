@@ -8,61 +8,7 @@ from flask_login import UserMixin
 from app import db, login_manager
 from api.schema import property_schema, user_schema
 from config import S3_BUCKET_CONFIG
-from app.search import add_to_index, remove_from_index, query_index
-
-
-class SearchableMixin(object):
-    @classmethod
-    def search(cls, search_term, page, per_page):
-        ids, total = query_index(cls.__tablename__, search_term, page, per_page)
-        if total == 0:
-            return cls.query.filter_by(id=0), 0
-        when = []
-        for i in range(len(ids)):
-            when.append((ids[i], i))
-        # retrieves the list of objects by their IDs
-        return cls.query.filter(cls.id.in_(ids)).order_by(db.case(when, value=cls.id)), total
-
-    @classmethod
-    def before_commit(cls, session):
-        """
-         Saves objects that are going to be added, modified and deleted, available as session.new, session.dirty
-         and session.deleted before a a session has been committed since they won't be available after a session commit.
-        """
-        session._changes = {
-            "add": list(session.new),
-            "update": list(session.dirty),
-            "delete": list(session.deleted)
-        }
-
-    @classmethod
-    def after_commit(cls, session):
-        """
-        This method iterates over the added, modified and deleted objects, and make the corresponding calls
-        to the indexing functions in app/search.py to update the Elastic search index.
-        """
-        for obj in session._changes["add"]:
-            if isinstance(obj, SearchableMixin):
-                add_to_index(obj.__tablename__, obj)
-        for obj in session._changes["update"]:
-            if isinstance(obj, SearchableMixin):
-                add_to_index(obj.__tablename__, obj)
-        for obj in session._changes["delete"]:
-            if isinstance(obj, SearchableMixin):
-                remove_from_index(obj.__tablename__, obj)
-        session._changes = None
-
-    @classmethod
-    def reindex(cls):
-        """
-        This method can be used to refresh an index with all the data from the sql database.
-        """
-        for obj in cls.query:
-            add_to_index(obj.__tablename__, obj)
-
-
-db.event.listen(db.session, "before_commit", SearchableMixin.before_commit)
-db.event.listen(db.session, "after_commit", SearchableMixin.after_commit)
+from app.search import add_to_index, delete_from_index, search_docs
 
 
 class User(db.Model, UserMixin):
@@ -151,11 +97,10 @@ class User(db.Model, UserMixin):
         return bool(is_successful)
 
 
-class Property(SearchableMixin, db.Model):
+class Property(db.Model):
 
     __tablename__ = "property"
 
-    __searchable__ = ["name", "desc", "location"]  # fields that will be indexed in Elasticsearch
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, nullable=False)
     desc = db.Column(db.Text, nullable=False)
@@ -201,10 +146,30 @@ class Property(SearchableMixin, db.Model):
         return property_schema.dump(query)
 
     @classmethod
+    def search_property(cls, search_term, page, per_page):
+        """
+        This method queries for properties in database matching the ids returned by the search_docs().
+        """
+        ids, total = search_docs(search_term, page, per_page)
+        if total == 0:
+            return cls.query.filter_by(id=0), 0
+        ids_to_query = []
+        for i in range(len(ids)):
+            ids_to_query.append((ids[i], i))
+        results = cls.query.filter(cls.id.in_(ids)).order_by(
+            db.case(ids_to_query, value=cls.id)
+        )
+        return results, total
+
+    @classmethod
     def add_property(cls, prop_data):
         new_property = cls(**prop_data)
         db.session.add(new_property)
         db.session.commit()
+        # Add property to ElasticSearch index
+        add_to_index(
+            new_property.id, prop_data["name"], prop_data["desc"], prop_data["location"]
+        )
 
     @classmethod
     def update_property(cls, prop_data, prop_id):
@@ -212,6 +177,9 @@ class Property(SearchableMixin, db.Model):
         for key, value in prop_data.items():
             property_to_update.update({key: value})
             db.session.commit()
+        add_to_index(
+            prop_id, prop_data["name"], prop_data["desc"], prop_data["location"]
+        )
 
     @classmethod
     def update_property_images(cls, image_dir, img_list, prop_id):
@@ -232,6 +200,7 @@ class Property(SearchableMixin, db.Model):
         image_list = json.loads(prop_to_delete.photos)
 
         delete_img_obj.delay(bucket, path_to_delete, image_list)
+        delete_from_index(prop_to_delete.id)  # Delete property in ElasticSearch index
 
         db.session.delete(prop_to_delete)
         db.session.commit()

@@ -7,11 +7,11 @@
     </div>
     <div class="text-center">
       {% if total > 1 %}
-      <h4>{{total}} results were found</h4>
+      <h4>{{total}} results matching "{{ search_term }}" were found</h4>
       {% elif total == 1%}
-      <h4>{{total}} result was found</h4>
+      <h4>{{total}} result matching "{{ search_term }}"  was found</h4>
       {% else %}
-      <h4>No results results were found</h4>
+      <h4>No results matching "{{ search_term }}" results were found</h4>
       {% endif %}
     </div>
     <div class="content">

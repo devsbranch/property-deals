@@ -199,18 +199,19 @@ def delete_property(prop_id):
     return redirect(url_for("home_blueprint.index"))
 
 
-@blueprint.route("/search")
+@blueprint.route("/search/")
 def search():
-    if not g.search_form.validate():
-        return redirect(url_for("home_blueprint.index"))
+    per_page = current_app.config["RESULTS_PER_PAGE"]
+
     page = request.args.get("page", 1, type=int)
-    search_results, total = Property.search(g.search_form.q.data, page, current_app.config["RESULTS_PER_PAGE"])
+    search_results, total = Property.search_property(g.search_form.q.data, page, per_page)
     photos = [json.loads(p.photos) for p in search_results]
 
     next_url = url_for('home_blueprint.search', q=g.search_form.q.data, page=page + 1) \
-        if total > page * current_app.config['RESULTS_PER_PAGE'] else None
+        if total > page * 25 else None
     prev_url = url_for('home_blueprint.search', q=g.search_form.q.data, page=page - 1) \
         if page > 1 else None
+
     return render_template(
         "search.html",
         title="search",
@@ -219,5 +220,6 @@ def search():
         image_path=image_path,
         photos_list=photos,
         next_url=next_url,
-        prev_url=prev_url
+        prev_url=prev_url,
+        search_term=g.search_form.q.data
     )

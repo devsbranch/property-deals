@@ -24,7 +24,7 @@ class Config(object):
     JWT_BLACKLIST_ENABLED = True
     JWT_BLACKLIST_TOKEN_CHECKS = ["access", "refresh"]
     JWT_ACCESS_TOKEN_EXPIRES = 43200
-    ELASTICSEARCH_URL = os.environ.get("ELASTICSEARCH_URL")
+    ELASTICSEARCH_URL = os.environ.get("ELASTICSEARCH_URL", "http://localhost:9200")
     RESULTS_PER_PAGE = 25
 
 
