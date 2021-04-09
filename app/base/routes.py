@@ -24,7 +24,7 @@ def route_default():
     return redirect(url_for('base_blueprint.login'))
 
 
-## Login & Registration
+# Login & Registration
 
 @blueprint.route('/login', methods=['GET', 'POST'])
 def login():

@@ -34,47 +34,37 @@
                                 <!-- Form -->
                                 <h2 class="h5 mb-4">General information</h2>
                                 <div class="row">
-                                                    <div class="col-md-6 mb-3">
-                                                        <div>
-                                                            <label for="first_name">First Name</label>
-                                                            <input class="form-control" id="first_name" type="text" placeholder="Enter your first name" required>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-6 mb-3">
-                                                        <div>
-                                                            <label for="last_name">Last Name</label>
-                                                            <input class="form-control" id="last_name" type="text" placeholder="Also your last name" required>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                <div class="row align-items-center">
                                     <div class="col-md-6 mb-3">
-                                        <label for="birthday">Birthday</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text"><span class="far fa-calendar-alt"></span></span>
-                                            <input data-datepicker="" class="form-control" id="birthday" type="text" placeholder="dd/mm/yyyy" required>
+                                        <div>
+                                            {{ form.first_name.label }}
+                                            {{ form.first_name(class="form-control", placeholder="Enter your first name") }}
                                         </div>
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <label for="gender">Gender</label>
-                                        <select class="form-select mb-0" id="gender" aria-label="Gender select example">
-                                            <option selected>Gender</option>
-                                            <option value="1">Female</option>
-                                            <option value="2">Male</option>
-                                        </select>
+                                        <div>
+                                            {{ form.last_name.label }}
+                                            {{ form.last_name(class="form-control", placeholder="Enter your last name") }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row align-items-center">
+                                    <div class="col-md-6 mb-3">
+                                        {{ form.birth_date.label }}
+                                        <div class="input-group">
+                                            <span class="input-group-text"><span class="far fa-calendar-alt"></span></span>
+                                            {{ form.birth_date(class="form-control", placeholder="dd/mm/yyyy") }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        {{ form.gender.label }}
+                                        {{ form.gender(class="form-select mb-0") }}
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <div class="form-group">
-                                            <label for="email">Email</label>
-                                            <input class="form-control" id="email" type="email" placeholder="name@company.com" required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <div class="form-group">
-                                            <label for="phone">Phone</label>
-                                            <input class="form-control" id="phone" type="number" placeholder="+12-345 678 910" required>
+                                            {{ form.phone.label }}
+                                            {{ form.phone(class="form-control", placeholder="XXX XXX XXX") }}
                                         </div>
                                     </div>
                                 </div>
@@ -83,22 +73,22 @@
                                 <div class="row">
                                     <div class="col-sm-9 mb-3">
                                         <div class="form-group">
-                                            <label for="address">Address</label>
-                                            <input class="form-control" id="address" type="text" placeholder="Enter your home address" required>
+                                            {{ form.address.label }}
+                                            {{ form.address(class="form-control", placeholder="Enter your home address") }}
                                         </div>
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-sm-4 mb-3">
                                         <div class="form-group">
-                                            <label for="city">City</label>
-                                            <input class="form-control" id="city" type="text" placeholder="City" required>
+                                            {{ form.city.label }}
+                                            {{ form.city(class="form-control", placeholder="City") }}
                                         </div>
                                     </div>
                                     <div class="col-sm-4">
                                         <div class="form-group">
-                                            <label for="zip">ZIP</label>
-                                            <input class="form-control" id="zip" type="tel" placeholder="ZIP" required>
+                                            {{ form.zip.label }}
+                                            {{ form.zip(class="form-control", placeholder="ZIP") }}
                                         </div>
                                     </div>
                                 </div>
