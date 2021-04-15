@@ -16,7 +16,7 @@ from app.base import blueprint
 from app.base.forms import LoginForm, CreateAccountForm
 from app.base.models import User
 
-from app.base.util import verify_pass
+from app.base.utils import verify_pass
 
 
 @blueprint.route('/')
