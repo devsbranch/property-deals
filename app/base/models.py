@@ -13,9 +13,9 @@ class User(db.Model, UserMixin):
     first_name = db.Column(db.String(30), nullable=False)
     last_name = db.Column(db.String(30), nullable=False)
     other_name = db.Column(db.String(30), nullable=True)
-    gender = db.Column(db.String(20), nullable=False)
-    phone_number = db.Column(db.String(20), nullable=False)
-    address_1 = db.Column(db.String(100), nullable=False)
+    gender = db.Column(db.String(10), nullable=False)
+    phone_number = db.Column(db.String(20), nullable=True)
+    address_1 = db.Column(db.String(200), nullable=False)
     address_2 = db.Column(db.String(100), nullable=True)
     city = db.Column(db.String(50), nullable=False)
     postal_code = db.Column(db.String(20), nullable=True)
@@ -23,26 +23,34 @@ class User(db.Model, UserMixin):
     photo = db.Column(
         db.String(100), nullable=True, default="/profile_pictures/default.png"
     )
-    is_active = db.Column(db.Boolean, default=False)
-    is_vendor = db.Column(db.Boolean, default=False)
-    is_verified = db.Column(db.Boolean, nullable=True, default=False)
+    date_registered = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    is_verified = db.Column(db.Boolean, nullable=False, default=False)
     date_verified = db.Column(db.DateTime, nullable=True)
 
     username = db.Column(db.String, unique=True, nullable=False)
     email = db.Column(db.String(60), unique=True, nullable=False)
     password = db.Column(db.String, nullable=False)
-    user_properties = db.relationship("Property", backref="prop_owner", lazy=True)
+    user_property_listings = db.relationship("Property", backref="property_listing_owner", lazy=True)
 
     @classmethod
     def username_exists(cls, _username):
+        """
+        Checks if the username provided by the user exists in the database.
+        """
         return bool(cls.query.filter_by(username=_username).first())
 
     @classmethod
     def email_exists(cls, _email):
+        """
+        Checks if the email provided by the user exists in the database.
+        """
         return bool(cls.query.filter_by(email=_email).first())
 
     @classmethod
     def add_user(cls, data):
+        """
+        Saves the user data to the database.
+        """
         new_user = cls(**data)
         db.session.add(new_user)
         db.session.commit()
@@ -59,11 +67,11 @@ class User(db.Model, UserMixin):
             user_to_update.update({key: value})
             db.session.commit()
 
-    @staticmethod
-    def delete_user(_user_id):
-        properties_to_delete = Property.query.filter_by(user_id=_user_id)
-        for prop in properties_to_delete:
-            db.session.delete(prop)
+    @classmethod
+    def delete_user(cls, _user_id):
+        """
+        Deletes the user from the database queried by the id.
+        """
         is_successful = User.query.filter_by(id=_user_id).delete()
         db.session.commit()
         return bool(is_successful)
@@ -76,13 +84,11 @@ class Property(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, nullable=False)
     desc = db.Column(db.Text, nullable=False)
-    date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    date_listed = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     price = db.Column(db.String, nullable=False)
     location = db.Column(db.Text, nullable=False)
-    image_folder = db.Column(
-        db.Text, nullable=True
-    )  # Do we need this as a db attribute?
-    photos = db.Column(db.Text, nullable=True)
+    images_folder = db.Column(db.Text, nullable=True)
+    photos = db.Column(db.Text, nullable=False)
     type = db.Column(db.String(50), default="other", nullable=False)
     is_available = db.Column(db.Boolean, default=True)
     deal_done = db.Column(db.Boolean, default=False)
@@ -107,13 +113,14 @@ class Property(db.Model):
 
     @classmethod
     def add_property(cls, prop_data):
+        """
+        Saves the Property listing data to the database.
+        """
         new_property = cls(**prop_data)
         db.session.add(new_property)
         db.session.commit()
-        # Add property to ElasticSearch index
-        add_to_index(
-            new_property.id, prop_data["name"], prop_data["desc"], prop_data["location"]
-        )
+        # Add Property listing data to ElasticSearch index
+        add_to_index(new_property.id, prop_data["name"], prop_data["desc"], prop_data["location"])
 
     @classmethod
     def update_property(cls, prop_data, prop_id):
@@ -121,34 +128,28 @@ class Property(db.Model):
         for key, value in prop_data.items():
             property_to_update.update({key: value})
             db.session.commit()
-        add_to_index(
-            prop_id, prop_data["name"], prop_data["desc"], prop_data["location"]
-        )
+        # Update Property listing data in ElasticSearch index
+        add_to_index(prop_id, prop_data["name"], prop_data["desc"], prop_data["location"])
 
     @classmethod
     def update_property_images(cls, image_dir, img_list, prop_id):
+        """
+        Updates the photos(list of image filenames) and the images folder in the database.
+        """
         prop_to_update = Property.query.get(prop_id)
-        prop_to_update.image_folder = (
-            image_dir  # deletes old property image folder including contents
-        )
+        prop_to_update.image_folder = image_dir
         prop_to_update.photos = img_list
         db.session.commit()
 
     @classmethod
     def delete_property(cls, prop_id):
-        from app.tasks import delete_img_obj
-
+        """
+        Deletes the Property listing in the database.
+        """
         prop_to_delete = cls.query.get(prop_id)
-        bucket = S3_BUCKET_CONFIG["S3_BUCKET"]
-        path_to_delete = S3_BUCKET_CONFIG["PROP_ASSETS"] + prop_to_delete.image_folder
-        image_list = json.loads(prop_to_delete.photos)
-
-        delete_img_obj.delay(bucket, path_to_delete, image_list)
         delete_from_index(prop_to_delete.id)  # Delete property in ElasticSearch index
-
         db.session.delete(prop_to_delete)
         db.session.commit()
-        return "Done"
 
 
 class TokenBlacklist(db.Model):
