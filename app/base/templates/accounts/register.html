@@ -1,6 +1,6 @@
 {% extends "layouts/base-fullscreen.html" %}
 
-{% block title %} Sign Up {% endblock %} 
+{% block title %} Sign Up {% endblock %}
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}{% endblock stylesheets %}
@@ -23,12 +23,12 @@
                                         {{ msg | safe }}
                                     {% else %}
                                         Add your credentials
-                                    {% endif %}                                     
-                                </p> 
+                                    {% endif %}
+                                </p>
                             </div>
 
                             <form method="post" action="">
-                            
+
                                 {{ form.hidden_tag() }}
 
                                 <!-- Form -->
@@ -37,13 +37,40 @@
                                     <div class="col-md-6 mb-3">
                                         <div>
                                             {{ form.first_name.label }}
-                                            {{ form.first_name(class="form-control", placeholder="Enter your first name") }}
+                                            {% if form.first_name.errors %}
+                                                {{ form.first_name(class="form-control is-invalid") }}
+                                                {% for error in form.first_name.errors %}
+                                                    <small class="text-danger">{{ error }}</small>
+                                                {% endfor %}
+                                            {% else %}
+                                                {{ form.first_name(class="form-control", placeholder="Enter your first name") }}
+                                            {% endif%}
                                         </div>
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <div>
                                             {{ form.last_name.label }}
-                                            {{ form.last_name(class="form-control", placeholder="Enter your last name") }}
+                                            {% if form.last_name.errors %}
+                                                {{ form.last_name(class="form-control is-invalid") }}
+                                                {% for error in form.last_name.errors %}
+                                                <small class="text-danger">{{ error }}</small>
+                                            {% endfor %}
+                                            {% else %}
+                                                {{ form.last_name(class="form-control", placeholder="Enter your last name") }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div>
+                                            {{ form.other_name.label }}
+                                            {% if form.other_name.errors %}
+                                                {{ form.other_name(class="form-control is-invalid") }}
+                                                {% for error in form.other_name.errors %}
+                                                    <small class="text-danger">{{ error }}</small>
+                                                {% endfor %}
+                                            {% else %}
+                                                {{ form.other_name(class="form-control", placeholder="Enter your other name. Leave Blank if you don't have one.") }}
+                                            {% endif%}
                                         </div>
                                     </div>
                                 </div>
@@ -52,19 +79,40 @@
                                         {{ form.birth_date.label }}
                                         <div class="input-group">
                                             <span class="input-group-text"><span class="far fa-calendar-alt"></span></span>
-                                            {{ form.birth_date(class="form-control", placeholder="dd/mm/yyyy") }}
+                                            {% if form.birth_date.errors %}
+                                                {{ form.birth_date(class="form-control is-invalid") }}
+                                                {% for error in form.birth_date.errors %}
+                                                    <small class="text-danger">{{ error }}</small>
+                                                {% endfor %}
+                                            {% else %}
+                                                {{ form.birth_date(class="form-control", placeholder="DD/MM/YYYY") }}
+                                            {% endif%}
                                         </div>
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         {{ form.gender.label }}
-                                        {{ form.gender(class="form-select mb-0") }}
+                                        {% if form.gender.errors %}
+                                            {{ form.gender(class="form-control is-invalid") }}
+                                            {% for error in form.gender.errors %}
+                                                <small class="text-danger">{{ error }}</small>
+                                            {% endfor %}
+                                        {% else %}
+                                            {{ form.gender(class="form-control", placeholder="Gender") }}
+                                        {% endif%}
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <div class="form-group">
                                             {{ form.phone.label }}
-                                            {{ form.phone(class="form-control", placeholder="XXX XXX XXX") }}
+                                            {% if form.phone.errors %}
+                                                {{ form.phone(class="form-control is-invalid") }}
+                                                {% for error in form.phone.errors %}
+                                                    <small class="text-danger">{{ error }}</small>
+                                                {% endfor %}
+                                            {% else %}
+                                                {{ form.phone(class="form-control", placeholder="XXX XXX XXXX") }}
+                                            {% endif%}
                                         </div>
                                     </div>
                                 </div>
@@ -73,8 +121,28 @@
                                 <div class="row">
                                     <div class="col-sm-9 mb-3">
                                         <div class="form-group">
-                                            {{ form.address.label }}
-                                            {{ form.address(class="form-control", placeholder="Enter your home address") }}
+                                            {{ form.address_1.label }}
+                                            {% if form.address_1.errors %}
+                                                {{ form.address_1(class="form-control is-invalid") }}
+                                                {% for error in form.address_1.errors %}
+                                                    <small class="text-danger">{{ error }}</small>
+                                                {% endfor %}
+                                            {% else %}
+                                                {{ form.address_1(class="form-control", placeholder="Address line 1") }}
+                                            {% endif%}
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-9 mb-3">
+                                        <div class="form-group">
+                                            {{ form.address_2.label }}
+                                            {% if form.address_2.errors %}
+                                                {{ form.address_2(class="form-control is-invalid") }}
+                                                {% for error in form.address_2.errors %}
+                                                    <small class="text-danger">{{ error }}</small>
+                                                {% endfor %}
+                                            {% else %}
+                                                {{ form.address_2(class="form-control", placeholder="Address line 2") }}
+                                            {% endif %}
                                         </div>
                                     </div>
                                 </div>
@@ -82,33 +150,61 @@
                                     <div class="col-sm-4 mb-3">
                                         <div class="form-group">
                                             {{ form.city.label }}
-                                            {{ form.city(class="form-control", placeholder="City") }}
+                                            {% if form.city.errors %}
+                                                    {{ form.city(class="form-control is-invalid") }}
+                                                {% for error in form.city.errors %}
+                                                    <small class="text-danger">{{ error }}</small>
+                                                {% endfor %}
+                                            {% else %}
+                                                {{ form.city(class="form-control", placeholder="City") }}
+                                            {% endif%}
                                         </div>
                                     </div>
                                     <div class="col-sm-4">
                                         <div class="form-group">
-                                            {{ form.zip.label }}
-                                            {{ form.zip(class="form-control", placeholder="ZIP") }}
+                                            {{ form.postal_code.label }}
+                                            {% if form.postal_code.errors %}
+                                                {{ form.postal_code(class="form-control is-invalid") }}
+                                                {% for error in form.postal_code.errors %}
+                                                    <small class="text-danger">{{ error }}</small>
+                                                {% endfor %}
+                                            {% else %}
+                                                {{ form.postal_code(class="form-control", placeholder="Postal Code") }}
+                                            {% endif%}
                                         </div>
                                     </div>
                                 </div>
                                 <hr>
                                 <h2 class="h5 my-4">Sign Credentials</h2>
                                 <div class="form-group mb-4">
-                                    <label for="email">Username</label>
+                                    {{ form.username.label }}
                                     <div class="input-group">
-                                        <span class="input-group-text" id="basic-addon3"><span class="fas fa-user-shield"></span></span>
-                                        {{ form.username(placeholder="Username", class="form-control") }}
-                                    </div>  
+                                        <span class="input-group-text"><span class="fas fa-user-shield"></span></span>
+                                        {% if form.username.errors %}
+                                            {{ form.username(class="form-control is-invalid") }}
+                                            {% for error in form.username.errors %}
+                                                <small class="text-danger">{{ error }}</small>
+                                            {% endfor %}
+                                        {% else %}
+                                            {{ form.username(class="form-control", placeholder="Enter your username") }}
+                                        {% endif%}
+                                    </div>
                                 </div>
 
                                 <!-- Form -->
                                 <div class="form-group mb-4">
-                                    <label for="email">Your Email</label>
+                                    {{ form.email.label }}
                                     <div class="input-group">
-                                        <span class="input-group-text" id="basic-addon3"><span class="fas fa-envelope"></span></span>
-                                        {{ form.email(placeholder="Email", class="input form-control", type="email") }}
-                                    </div>  
+                                        <span class="input-group-text"><span class="fas fa-envelope"></span></span>
+                                        {% if form.email.errors %}
+                                            {{ form.email(class="form-control is-invalid") }}
+                                            {% for error in form.email.errors %}
+                                                <small class="text-danger">{{ error }}</small>
+                                            {% endfor %}
+                                        {% else %}
+                                            {{ form.email(class="form-control", placeholder="Enter your email address") }}
+                                        {% endif%}
+                                    </div>
                                 </div>
                                 <!-- End of Form -->
 
@@ -117,11 +213,18 @@
 
                                     <!-- Form -->
                                     <div class="form-group mb-4">
-                                        <label for="password">Your Password</label>
+                                        {{ form.password.label }}
                                         <div class="input-group">
                                             <span class="input-group-text" id="basic-addon4"><span class="fas fa-unlock-alt"></span></span>
-                                            {{ form.password(placeholder="Password", class="form-control", type="password") }}
-                                        </div>  
+                                            {% if form.password.errors %}
+                                                {{ form.password(class="form-control is-invalid") }}
+                                                {% for error in form.password.errors %}
+                                                    <small class="text-danger">{{ error }}</small>
+                                                {% endfor %}
+                                            {% else %}
+                                                {{ form.password(class="form-control", placeholder="Enter your password") }}
+                                            {% endif%}
+                                        </div>
                                     </div>
                                     <!-- End of Form -->
 
@@ -135,10 +238,10 @@
                                         <div class="form-check">
                                             <a href="{{ url_for('base_blueprint.login') }}" class="small text-right">Login</a>
                                         </div>
-                                    </div>                                  
+                                    </div>
                                 </div>
                                 <div class="d-grid">
-                                    <button type="submit" name="register" class="btn btn-dark">Sign UP</button>
+                                    {{ form.register(class="btn btn-dark") }}
                                 </div>
                             </form>
 
