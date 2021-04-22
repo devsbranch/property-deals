@@ -1,8 +1,7 @@
-import json
 from datetime import datetime
 from flask_login import UserMixin
+from werkzeug.security import generate_password_hash
 from app import db, login_manager
-from config import S3_BUCKET_CONFIG
 from app.search import add_to_index, delete_from_index, search_docs
 
 
@@ -13,8 +12,9 @@ class User(db.Model, UserMixin):
     first_name = db.Column(db.String(30), nullable=False)
     last_name = db.Column(db.String(30), nullable=False)
     other_name = db.Column(db.String(30), nullable=True)
+    birth_date = db.Column(db.DateTime, nullable=False)
     gender = db.Column(db.String(10), nullable=False)
-    phone_number = db.Column(db.String(20), nullable=True)
+    phone = db.Column(db.String(20), nullable=True)
     address_1 = db.Column(db.String(200), nullable=False)
     address_2 = db.Column(db.String(100), nullable=True)
     city = db.Column(db.String(50), nullable=False)
@@ -26,59 +26,25 @@ class User(db.Model, UserMixin):
     date_registered = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     is_verified = db.Column(db.Boolean, nullable=False, default=False)
     date_verified = db.Column(db.DateTime, nullable=True)
-
     username = db.Column(db.String, unique=True, nullable=False)
     email = db.Column(db.String(60), unique=True, nullable=False)
     password = db.Column(db.String, nullable=False)
     user_property_listings = db.relationship("Property", backref="property_listing_owner", lazy=True)
 
-    @classmethod
-    def username_exists(cls, _username):
-        """
-        Checks if the username provided by the user exists in the database.
-        """
-        return bool(cls.query.filter_by(username=_username).first())
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            if hasattr(value, "__iter__") and not isinstance(value, str):
+                value = value[0]
+            if key == "password":
+                value = generate_password_hash(value)
 
-    @classmethod
-    def email_exists(cls, _email):
-        """
-        Checks if the email provided by the user exists in the database.
-        """
-        return bool(cls.query.filter_by(email=_email).first())
+            setattr(self, key, value)
 
-    @classmethod
-    def add_user(cls, data):
-        """
-        Saves the user data to the database.
-        """
-        new_user = cls(**data)
-        db.session.add(new_user)
-        db.session.commit()
-
-    @staticmethod
-    def update_user(data, user_id):
-        """
-        This function will update the user in the database. Here, the .first() function is not called
-        on the user_to_update object because we want the object to have the .update() method which we will use
-        update the user_to_update object by iterating through the data object and getting a key=value pair.
-        """
-        user_to_update = User.query.filter_by(id=user_id)
-        for key, value in data.items():
-            user_to_update.update({key: value})
-            db.session.commit()
-
-    @classmethod
-    def delete_user(cls, _user_id):
-        """
-        Deletes the user from the database queried by the id.
-        """
-        is_successful = User.query.filter_by(id=_user_id).delete()
-        db.session.commit()
-        return bool(is_successful)
+    def __repr__(self):
+        return str(f"User <{self.username}")
 
 
 class Property(db.Model):
-
     __tablename__ = "property"
 
     id = db.Column(db.Integer, primary_key=True)

@@ -1,10 +1,12 @@
 from wtforms.fields.html5 import DateField, IntegerField
+from flask_login import current_user
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileAllowed
 from wtforms import (
     StringField,
     PasswordField,
     SubmitField,
-    SelectField,
+    SelectField
 )
 from wtforms.validators import Email, DataRequired, ValidationError, Length
 from app.base.models import User
@@ -26,7 +28,7 @@ class CreateAccountForm(FlaskForm):
     address_1 = StringField('Address Line 1', validators=[DataRequired(), Length(min=2, max=150)])
     address_2 = StringField('Address Line 2', validators=[DataRequired(), Length(min=2, max=100)])
     city = StringField('City', validators=[DataRequired(), Length(min=2, max=30)])
-    postal_code = StringField('ZIP', validators=[DataRequired(), Length(min=2, max=20)])
+    postal_code = StringField('Postal Code', validators=[DataRequired(), Length(min=2, max=20)])
     username = StringField('Username', validators=[DataRequired(), Length(min=2, max=20)])
     email = StringField('Your Email', validators=[DataRequired(), Email(), Length(min=2, max=30)])
     password = PasswordField('Your Password', validators=[DataRequired(), Length(min=8, max=60)])
@@ -66,3 +68,52 @@ class CreateAccountForm(FlaskForm):
         """
         if 0 < len(other_name.data) < 2:
             raise ValidationError("Field must be between 2 and 30 characters long.")
+
+
+class UserProfileUpdateForm(CreateAccountForm):
+    username = StringField('Username', validators=[Length(min=2, max=20)])
+    email = StringField('Your Email', validators=[Email(), Length(min=2, max=30)])
+    password = PasswordField('Your Password')
+    profile_photo = FileField("Select profile Photo", validators=[FileAllowed(["jpg", "jpeg", "png"], "Images Only!")])
+    cover_photo = FileField("Select cover Photo", validators=[FileAllowed(["jpg", "jpeg", "png"], "Images Only!")])
+    save = SubmitField("Save All")
+
+    def validate_username(self, username):
+        """
+        Will only do these validation checks if the username or email the user enters is
+        different than the current_user username and email address.
+        """
+        if username.data != current_user.username:
+            # Will raise a validation errors if the username submitted from the form already exists in the database
+            user = User.query.filter_by(username=username.data).first()
+            if user:
+                raise ValidationError(
+                    "The username is already taken. Please try a different one."
+                )
+
+    def validate_email(self, email):
+        """ Will raise a validation errors if the email submitted from the form already exists in the database """
+        if email.data != current_user.email:
+            user = User.query.filter_by(email=email.data).first()
+            if user:
+                raise ValidationError(
+                    "The email you entered is already registered. Please try a different one."
+                )
+
+    def validate_other_name(self, other_name):
+        """
+        Check if the user has provided the other name and if the length is within the number of allowed characters.
+        If the user hasn't provided input, it will be ignored.
+        """
+        if 0 < len(other_name.data) < 2:
+            raise ValidationError("Field must be between 2 and 30 characters long.")
+
+    def validate_password(self, password):
+        """
+        Checks if the user has provided the password. If the length of password.data is 0, it means the user hasn't
+        provided a password and the form will be submitted and validated without a password input. If the length of the
+        password is greater than 1, it means password is provided and the user wants to change the password, then it is
+        checked for validation before the form is submitted.
+        """
+        if 0 < len(password.data) < 8:
+            raise ValidationError("Field must be between 8 and 20 characters long.")

@@ -1,9 +1,9 @@
 from flask import render_template, redirect, request, url_for, flash
-from flask_login import login_user, logout_user
-from werkzeug.security import check_password_hash
+from flask_login import login_user, logout_user, login_required, current_user
+from werkzeug.security import check_password_hash, generate_password_hash
 from app import db, login_manager
 from app.base import blueprint
-from app.base.forms import LoginForm, CreateAccountForm
+from app.base.forms import LoginForm, CreateAccountForm, UserProfileUpdateForm
 from app.base.models import User
 
 
@@ -53,6 +53,32 @@ def register():
         return redirect(url_for("base_blueprint.login"))
 
     return render_template("accounts/register.html", form=form)
+
+
+@login_required
+@blueprint.route("my_profile/<user_id>", methods=["GET", "POST"])
+def user_profile(user_id):
+    user_to_update = User.query.get_or_404(user_id)
+    form = UserProfileUpdateForm(obj=user_to_update)
+    if request.method == "POST" and form.validate_on_submit():
+        for key, value in request.form.items():
+            if hasattr(value, "__iter__") and not isinstance(value, str):
+                value = value[0]
+            if key == "password":  # Check if password is in the form
+                if value:
+                    value = generate_password_hash(value)  # Hash the password from the form
+                else:
+                    # Maintain the old user's password in the database if password was not in form
+                    value = current_user.password
+            setattr(user_to_update, key, value)
+        db.session.commit()
+        flash("Your account information has been updated.", "success")
+        return redirect(url_for("base_blueprint.user_profile", user_id=current_user.id))
+
+    elif request.method == "GET":
+        # Populates the form fields with user data.
+        form.populate_obj(user_to_update)
+    return render_template("accounts/settings.html", form=form)
 
 
 @blueprint.route("/logout")
