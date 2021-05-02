@@ -20,9 +20,14 @@ class User(db.Model, UserMixin):
     city = db.Column(db.String(50), nullable=False)
     postal_code = db.Column(db.String(20), nullable=True)
     state = db.Column(db.String(50), nullable=True)
-    photo = db.Column(
-        db.String(100), nullable=True, default="/profile_pictures/default.png"
+    profile_photo = db.Column(
+        db.String(100), nullable=False, default="assets/img/default.jpg"
     )
+    cover_photo = db.Column(
+        db.String(100), nullable=False, default="assets/img/default_cover.jpg"
+    )
+    prof_photo_loc = db.Column(db.String(100), nullable=True)  # specifies the server hosting the image
+    cover_photo_loc = db.Column(db.String(100), nullable=True)  # specifies the server hosting the image
     date_registered = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     is_verified = db.Column(db.Boolean, nullable=False, default=False)
     date_verified = db.Column(db.DateTime, nullable=True)

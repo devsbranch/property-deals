@@ -1,10 +1,21 @@
-from flask import render_template, redirect, request, url_for, flash
+from flask import render_template, redirect, request, url_for, flash, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 from app import db, login_manager
 from app.base import blueprint
 from app.base.forms import LoginForm, CreateAccountForm, UserProfileUpdateForm
 from app.base.models import User
+from app.base.utils import save_image_to_redis
+from app.tasks import profile_image_process, delete_profile_image
+from config import IMAGE_UPLOAD_CONFIG
+
+
+aws_s3_bucket_name = IMAGE_UPLOAD_CONFIG["amazon_s3"]["S3_BUCKET"]
+s3_image_url = IMAGE_UPLOAD_CONFIG["amazon_s3"]["S3_URL"]
+aws_bucket_name = IMAGE_UPLOAD_CONFIG["amazon_s3"]["S3_BUCKET"]
+profile_image_upload_dir = IMAGE_UPLOAD_CONFIG["image_save_directories"]["USER_PROFILE_IMAGES"]
+cover_image_upload_dir = IMAGE_UPLOAD_CONFIG["image_save_directories"]["USER_COVER_IMAGES"]
+image_server_config = IMAGE_UPLOAD_CONFIG["storage_location"]
 
 
 @blueprint.route("/")
@@ -60,7 +71,26 @@ def register():
 def user_profile(user_id):
     user_to_update = User.query.get_or_404(user_id)
     form = UserProfileUpdateForm(obj=user_to_update)
+
     if request.method == "POST" and form.validate_on_submit():
+        if request.files.get("profile_photo").filename != "":  # Check if a profile image has been uploaded
+            # Delete the previous profile image if it exists
+            delete_profile_image.delay(profile_image_upload_dir, user_to_update.profile_photo, s3_bucket_name=aws_s3_bucket_name)
+            file = request.files.get("profile_photo")
+            filename = save_image_to_redis(file)
+            profile_image_process.delay(filename, photo_type="profile")
+            user_to_update.profile_photo = filename
+            user_to_update.prof_photo_loc = image_server_config
+
+        if request.files.get("cover_photo").filename != "":  # Check if a cover image has been uploaded
+            # Delete the previous profile image if it exists
+            delete_profile_image.delay(cover_image_upload_dir, user_to_update.cover_photo, s3_bucket_name=aws_s3_bucket_name)
+            file = request.files.get("cover_photo")
+            filename = save_image_to_redis(file)
+            profile_image_process.delay(filename, photo_type="cover")
+            user_to_update.cover_photo = filename
+            user_to_update.cover_photo_loc = image_server_config
+
         for key, value in request.form.items():
             if hasattr(value, "__iter__") and not isinstance(value, str):
                 value = value[0]
@@ -78,7 +108,13 @@ def user_profile(user_id):
     elif request.method == "GET":
         # Populates the form fields with user data.
         form.populate_obj(user_to_update)
-    return render_template("accounts/settings.html", form=form)
+    return render_template(
+        "accounts/settings.html",
+        form=form,
+        s3_image_url=s3_image_url,
+        profile_image_dir=profile_image_upload_dir,
+        cover_image_dir=cover_image_upload_dir
+    )
 
 
 @blueprint.route("/logout")

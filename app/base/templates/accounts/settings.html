@@ -51,9 +51,22 @@
           <div class="row">
               <div class="col-12 mb-4">
                   <div class="card shadow-sm text-center p-0">
-                      <div class="profile-cover rounded-top" data-background="/static/assets/img/profile-cover.jpg"></div>
+                      {% if current_user.cover_photo_loc == 'app_server_storage' %}
+                        <div class="profile-cover rounded-top" data-background="{{ url_for('static', filename=cover_image_dir + current_user.cover_photo) }}"></div>
+                      {% elif current_user.cover_photo_loc == 'amazon_s3' %}
+                        <div class="profile-cover rounded-top" data-background="{{ s3_image_url + '/' + cover_image_dir + current_user.cover_photo }}"></div>
+                      {% else %}
+                        <div class="profile-cover rounded-top" data-background="{{ url_for('static', filename=current_user.cover_photo) }}"></div>
+                      {% endif %}
+
                       <div class="card-body pb-5">
-                          <img src="/static/assets/img/team/profile-picture-1.jpg" class="user-avatar large-avatar rounded-circle mx-auto mt-n7 mb-4" alt="Neil Portrait">
+                          {% if current_user.prof_photo_loc == 'app_server_storage' %}
+                            <img src="{{ url_for('static', filename=profile_image_dir + current_user.profile_photo) }}" class="user-avatar large-avatar rounded-circle mx-auto mt-n7 mb-4" alt="Neil Portrait">
+                          {% elif current_user.prof_photo_loc == 'amazon_s3' %}
+                            <img src="{{ s3_image_url + '/' + profile_image_dir + current_user.profile_photo }}" class="user-avatar large-avatar rounded-circle mx-auto mt-n7 mb-4" alt="Neil Portrait">
+                          {% else %}
+                            <img src="{{ url_for('static', filename=current_user.profile_photo) }}" class="user-avatar large-avatar rounded-circle mx-auto mt-n7 mb-4" alt="Neil Portrait">
+                          {% endif %}
                           <h4 class="h3">
                             {{ current_user.username }}
                           </h4>

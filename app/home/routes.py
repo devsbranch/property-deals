@@ -3,15 +3,9 @@
 Copyright (c) 2019 - present AppSeed.us
 """
 
-import json
-from datetime import date
-from flask import render_template, redirect, url_for, request, flash, current_app, g, current_app
-from flask_login import login_required, current_user
+from flask import render_template, request
 from jinja2 import TemplateNotFound
-from app import db, redis_client
-from app.base.models import Property
 from app.home import blueprint
-from app.tasks import image_process, delete_img_obj
 
 
 @blueprint.route("/index")
