@@ -18,14 +18,29 @@ cover_image_upload_dir = IMAGE_UPLOAD_CONFIG["image_save_directories"]["USER_COV
 image_server_config = IMAGE_UPLOAD_CONFIG["storage_location"]
 
 
+@login_manager.unauthorized_handler
+def unauthorized_handler():
+    return render_template('errors/403.html'), 403
+
+
+@blueprint.errorhandler(403)
+def access_forbidden(error):
+    return render_template('errors/403.html'), 403
+
+
+@blueprint.errorhandler(404)
+def not_found_error(error):
+    return render_template('errors/404.html'), 404
+
+
+@blueprint.errorhandler(500)
+def internal_error(error):
+    return render_template('errors/500.html'), 500
+
+
 @blueprint.route("/")
 def route_default():
     return redirect(url_for("home_blueprint.index"))
-
-
-@blueprint.route("/errors-<errors>")
-def route_errors(error):
-    return render_template("errors/{}.html".format(error))
 
 
 @blueprint.route("/feedback")
@@ -66,30 +81,28 @@ def register():
     return render_template("accounts/register.html", form=form)
 
 
+@blueprint.route("/my_profile", methods=["GET", "POST"])
 @login_required
-@blueprint.route("my_profile/<user_id>", methods=["GET", "POST"])
-def user_profile(user_id):
-    user_to_update = User.query.get_or_404(user_id)
-    form = UserProfileUpdateForm(obj=user_to_update)
-
+def user_profile():
+    form = UserProfileUpdateForm(obj=current_user)
     if request.method == "POST" and form.validate_on_submit():
         if request.files.get("profile_photo").filename != "":  # Check if a profile image has been uploaded
             # Delete the previous profile image if it exists
-            delete_profile_image.delay(profile_image_upload_dir, user_to_update.profile_photo, s3_bucket_name=aws_s3_bucket_name)
+            delete_profile_image.delay(profile_image_upload_dir, current_user.profile_photo, s3_bucket_name=aws_s3_bucket_name)
             file = request.files.get("profile_photo")
             filename = save_image_to_redis(file)
             profile_image_process.delay(filename, photo_type="profile")
-            user_to_update.profile_photo = filename
-            user_to_update.prof_photo_loc = image_server_config
+            current_user.profile_photo = filename
+            current_user.prof_photo_loc = image_server_config
 
         if request.files.get("cover_photo").filename != "":  # Check if a cover image has been uploaded
             # Delete the previous profile image if it exists
-            delete_profile_image.delay(cover_image_upload_dir, user_to_update.cover_photo, s3_bucket_name=aws_s3_bucket_name)
+            delete_profile_image.delay(cover_image_upload_dir, current_user.cover_photo, s3_bucket_name=aws_s3_bucket_name)
             file = request.files.get("cover_photo")
             filename = save_image_to_redis(file)
             profile_image_process.delay(filename, photo_type="cover")
-            user_to_update.cover_photo = filename
-            user_to_update.cover_photo_loc = image_server_config
+            current_user.cover_photo = filename
+            current_user.cover_photo_loc = image_server_config
 
         for key, value in request.form.items():
             if hasattr(value, "__iter__") and not isinstance(value, str):
@@ -100,14 +113,14 @@ def user_profile(user_id):
                 else:
                     # Maintain the old user's password in the database if password was not in form
                     value = current_user.password
-            setattr(user_to_update, key, value)
+            setattr(current_user, key, value)
         db.session.commit()
         flash("Your account information has been updated.", "success")
         return redirect(url_for("base_blueprint.user_profile", user_id=current_user.id))
 
     elif request.method == "GET":
         # Populates the form fields with user data.
-        form.populate_obj(user_to_update)
+        form.populate_obj(current_user)
     return render_template(
         "accounts/settings.html",
         form=form,
