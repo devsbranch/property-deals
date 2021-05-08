@@ -49,10 +49,19 @@
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle pt-1 px-0" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <div class="media d-flex align-items-center">
-                            <img class="user-avatar md-avatar rounded-circle" alt="Image placeholder" src="/static/assets/img/team/profile-picture-3.jpg">
+                            <img class="user-avatar md-avatar rounded-circle"
+                                 alt="Image placeholder"
+                            {% if current_user.prof_photo_loc == 'app_server_storage' %}
+                            src="{{ url_for('static', filename=profile_image_dir + current_user.profile_photo) }}" class="user-avatar large-avatar rounded-circle mx-auto mt-n7 mb-4"
+                            {% elif current_user.prof_photo_loc == 'amazon_s3' %}
+                            src="{{ s3_image_url + '/' + profile_image_dir + current_user.profile_photo }}" class="user-avatar large-avatar rounded-circle mx-auto mt-n7 mb-4"
+                            {% else %}
+                            src="{{ url_for('static', filename='assets/img/' + current_user.profile_photo) }}" class="user-avatar large-avatar rounded-circle mx-auto mt-n7 mb-4"
+                            {% endif %}
+                            >
                             <div class="media-body ms-2 text-dark align-items-center d-none d-lg-block">
                       <span class="mb-0 font-small fw-bold">
-                        Current User: <strong>{{ current_user.username }}</strong>
+                        <strong>{{ current_user.username }}</strong>
                       </span>
                             </div>
                         </div>
@@ -60,7 +69,6 @@
                     <div class="dropdown-menu dashboard-dropdown dropdown-menu-end mt-2 py-0">
                         <a class="dropdown-item rounded-top fw-bold" href="{{ url_for('base_blueprint.user_profile') }}">
                             <span class="far fa-user-circle"></span>My Profile</a>
-                        <a class="dropdown-item fw-bold" href="/settings.html"><span class="fas fa-cog"></span>Settings</a>
                         <div role="separator" class="dropdown-divider my-0"></div>
                         <a class="dropdown-item rounded-bottom fw-bold" href="{{ url_for('base_blueprint.logout') }}">
                             <span class="fas fa-sign-out-alt text-danger"></span>Logout</a>
