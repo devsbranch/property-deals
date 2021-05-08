@@ -2,10 +2,13 @@ import os
 import io
 import shutil
 from pathlib import Path
+from flask import current_app
 from PIL import Image
+from decouple import config
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 from app import s3, redis_client
 from config import IMAGE_UPLOAD_CONFIG
-from flask import current_app
 
 celery = current_app.celery
 aws_bucket_name = IMAGE_UPLOAD_CONFIG["amazon_s3"]["S3_BUCKET"]
@@ -99,3 +102,18 @@ def delete_profile_image(image_path, image_filename, s3_bucket_name=None):
         else:
             pass
     return "deletion task completed"
+
+
+@celery.task()
+def send_email(to, subject, template):
+    message = Mail(
+        from_email=os.environ.get("FROM_EMAIL", config("FROM_EMAIL")),
+        to_emails=to,
+        subject=subject,
+        html_content=template
+    )
+    try:
+        sg = SendGridAPIClient(os.environ.get("SENDGRID_API_KEY", config("SENDGRID_API_KEY")))
+        sg.send(message)
+    except Exception as err:
+        print(err)

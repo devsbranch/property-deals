@@ -1,3 +1,5 @@
+
+from datetime import datetime
 from flask import render_template, redirect, request, url_for, flash, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -5,8 +7,8 @@ from app import db, login_manager
 from app.base import blueprint
 from app.base.forms import LoginForm, CreateAccountForm, UserProfileUpdateForm
 from app.base.models import User
-from app.base.utils import save_image_to_redis
-from app.tasks import profile_image_process, delete_profile_image
+from app.base.utils import save_image_to_redis, generate_url_token, confirm_token
+from app.tasks import profile_image_process, delete_profile_image, send_email
 from config import IMAGE_UPLOAD_CONFIG
 
 
@@ -16,6 +18,33 @@ aws_bucket_name = IMAGE_UPLOAD_CONFIG["amazon_s3"]["S3_BUCKET"]
 profile_image_upload_dir = IMAGE_UPLOAD_CONFIG["image_save_directories"]["USER_PROFILE_IMAGES"]
 cover_image_upload_dir = IMAGE_UPLOAD_CONFIG["image_save_directories"]["USER_COVER_IMAGES"]
 image_server_config = IMAGE_UPLOAD_CONFIG["storage_location"]
+
+
+email_template_vars = {
+    "email_verify": {
+        "subject": "Verify Email - Property Deals",
+        "msg_header": "Verify Your Email",
+        "msg_body": "Please verify your email address to be able to list your Property on Property Deals.",
+        "btn_txt": "Verify Email"
+    },
+    "password_reset": {
+        "subject": "Reset Password - Property Deals",
+        "msg_header": "Password Reset",
+        "msg_body": """You are receiving this email because you requested a password reset. 
+                    If you didn't request a password reset, kindly ignore this email.""",
+        "btn_txt": "Reset Password"
+    }
+}
+
+
+def user_data_for_url_token(username, email, phone, email_category=None):
+    user_data = {
+        "username": username,
+        "email": email,
+        "phone": phone,
+        "email_category": email_category
+    }
+    return user_data
 
 
 @login_manager.unauthorized_handler
@@ -75,10 +104,83 @@ def register():
         db.session.add(user)
         db.session.commit()
 
-        flash("Your account has been created.", "success")
+        user_data = user_data_for_url_token(
+            form.username.data,
+            form.email.data,
+            form.phone.data,
+            email_category="Verify Email"
+        )
+        token = generate_url_token(user_data)
+        confirm_url = url_for("base_blueprint.verify_email", token=token, _external=True)
+        template_text = email_template_vars["email_verify"]
+        msg_header = template_text["msg_header"]
+        msg_body = template_text["msg_body"]
+        subject = template_text["subject"]
+        email_template = render_template(
+            "email_template.html",
+            confirm_url=confirm_url,
+            name=f"{form.first_name.data} {form.last_name.data}",
+            html_msg_header=msg_header,
+            html_msg_body=msg_body,
+            button_text=template_text["btn_txt"]
+        )
+        send_email.delay(form.email.data, subject, email_template)
+        flash("Your account has been created. Check your inbox to verify your email.", "success")
         return redirect(url_for("base_blueprint.login"))
 
     return render_template("accounts/register.html", form=form)
+
+
+@blueprint.route("/verify_email/<token>")
+def verify_email(token):
+    user_data = confirm_token(token)
+    if not user_data or user_data["email_category"] != "Verify Email":
+        flash("The confirmation email is invalid or has expired")
+        return redirect(url_for("home_blueprint.index"))
+    user = User.query.filter_by(email=user_data["email"]).first()
+    if user.is_verified:
+        flash("Your email is already verified")
+    else:
+        user.is_verified = True
+        user.date_confirmed = datetime.now()
+        db.session.commit()
+        flash("Your email has been verified.", "success")
+        return redirect(url_for("home_blueprint.index"))
+
+
+@blueprint.route("/resend")
+@login_required
+def resend_verification_email():
+    from app.tasks import send_email
+
+    user_data = user_data_for_url_token(current_user.email, current_user.phone, email_category="Verify Email")
+    token = generate_url_token(user_data)
+    confirm_url = url_for("base_blueprint.verify_email", token=token, _external=True)
+    template_text = email_template_vars["email_verify"]
+    msg_header = template_text["msg_header"]
+    msg_body = template_text["msg_body"]
+    subject = template_text["subject"]
+    email_template = render_template(
+        "email_template.html",
+        url=confirm_url,
+        name=f"{current_user.first_name} {current_user.last_name}",
+        html_msg_header=msg_header,
+        html_msg_body=msg_body,
+        button_text=template_text["btn_txt"]
+    )
+    send_email.delay(current_user.email, subject, email_template)
+    flash("A new verification email has been sent", "success")
+    return redirect(url_for("home_blueprint.index"))
+
+
+@blueprint.route("/unverified")
+@login_required
+def unverified():
+    if current_user.is_verified:
+        flash("Your email is already verified", "success")
+        return redirect(url_for("home_blueprint.index"))
+    flash("You need to verify your email first", "warning")
+    return render_template("unverified.html")
 
 
 @blueprint.route("/my_profile", methods=["GET", "POST"])
