@@ -9,17 +9,17 @@ from decouple import config
 
 class Config(object):
     # Set up the App SECRET_KEY
-    SECRET_KEY = config("SECRET_KEY", default="S#perS3crEt_007")
+    SECRET_KEY = os.environ.get("SECRET_KEY", config("SECRET_KEY"))
     SQLALCHEMY_DATABASE_URI = os.environ.get(
-        "DATABASE_URL"
-    ) or "{}://{}:{}@{}:{}/{}".format(
-        config("DB_ENGINE", default="postgresql"),
-        config("DB_USERNAME", default="postgres"),
-        config("DB_PASS", default="pass"),
-        config("DB_HOST", default="localhost"),
-        config("DB_PORT", default=5432),
-        config("DB_NAME", default="flask_app_db"),
-    )
+        "DATABASE_URL",
+        "{}://{}:{}@{}:{}/{}".format(
+            config("DB_ENGINE", default="postgresql"),
+            config("DB_USERNAME", default="postgres"),
+            config("DB_PASS", default="pass"),
+            config("DB_HOST", default="localhost"),
+            config("DB_PORT", default=5432),
+            config("DB_NAME", default="flask_app_db"),
+        ))
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024
     JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", config("JWT_SECRET_KEY"))

@@ -16,6 +16,9 @@ from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from elasticsearch import Elasticsearch
 from decouple import config as sys_config
+from dotenv import load_dotenv
+
+load_dotenv()
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -86,7 +89,7 @@ def configure_database(app):
 def create_app(config):
     app = Flask(__name__, static_folder='base/static')
     app.config.from_object(config)
-    app.elasticsearch = Elasticsearch([app.config['ELASTICSEARCH_URL']])
+    app.elasticsearch = Elasticsearch([app.config["ELASTICSEARCH_URL"]])
     app.celery = init_celery(app)
     app.app_context().push()
     register_extensions(app)

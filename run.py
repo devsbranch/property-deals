@@ -4,13 +4,12 @@ Copyright (c) 2019 - present AppSeed.us
 """
 
 from flask_migrate import Migrate
-from os import environ
 from sys import exit
 from decouple import config
-import logging
 
 from config import config_dict
 from app import create_app, db
+from app.base.models import User
 
 # WARNING: Don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
@@ -29,10 +28,17 @@ except KeyError:
 app, celery = create_app(app_config)
 Migrate(app, db)
 
+
+@app.shell_context_processor
+def make_shell_context():
+    return {"db": db, "User": User}
+
+
 if DEBUG:
     app.logger.info('DEBUG       = ' + str(DEBUG))
     app.logger.info('Environment = ' + get_config_mode)
     app.logger.info('DBMS        = ' + app_config.SQLALCHEMY_DATABASE_URI)
+
 
 if __name__ == "__main__":
     app.run()
