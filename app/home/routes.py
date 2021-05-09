@@ -6,7 +6,7 @@ Copyright (c) 2019 - present AppSeed.us
 from flask import render_template, request
 from jinja2 import TemplateNotFound
 from app.home import blueprint
-
+from app.base.forms import CreatePropertyForm
 
 @blueprint.route("/index")
 def index():
@@ -46,3 +46,14 @@ def get_segment(request):
 
     except:
         return None
+
+
+@blueprint.route("/create-property", methods=["GET", "POST"])
+def create_property():
+    form = CreatePropertyForm()
+
+    if request.method == "POST" and form.validate_on_submit():
+        for k, v in request.form.items():
+            print(k, "====", v)
+
+    return render_template("create_property.html", form=form)

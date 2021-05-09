@@ -1,4 +1,4 @@
-
+import pdb
 from datetime import datetime
 from flask import render_template, redirect, request, url_for, flash, current_app
 from flask_login import login_user, logout_user, login_required, current_user
@@ -188,6 +188,8 @@ def unverified():
 def user_profile():
     form = UserProfileUpdateForm(obj=current_user)
     if request.method == "POST" and form.validate_on_submit():
+        for k, v in request.form.items():
+            print(isinstance(v, str))
         if request.files.get("profile_photo").filename != "":  # Check if a profile image has been uploaded
             # Delete the previous profile image if it exists
             delete_profile_image.delay(profile_image_upload_dir, current_user.profile_photo, s3_bucket_name=aws_s3_bucket_name)
@@ -215,6 +217,7 @@ def user_profile():
                 else:
                     # Maintain the old user's password in the database if password was not in form
                     value = current_user.password
+
             setattr(current_user, key, value)
         db.session.commit()
         flash("Your account information has been updated.", "success")

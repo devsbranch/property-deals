@@ -35,7 +35,7 @@
         </li>
         {% if current_user.is_authenticated %}
         <li class="nav-item {% if 'create_property' in segment %} active {% endif %}">
-          <a href="#" class="nav-link">
+          <a href="{{ url_for('home_blueprint.create_property') }}" class="nav-link">
             <span class="sidebar-icon"><span class="fas fa-home"></span></span>
             <span class="sidebar-text">Create Property</span>
           </a>

@@ -1,3 +1,4 @@
+import os
 from wtforms.fields.html5 import DateField, IntegerField
 from flask_login import current_user
 from flask_wtf import FlaskForm
@@ -6,8 +7,10 @@ from wtforms import (
     StringField,
     PasswordField,
     SubmitField,
-    SelectField
+    SelectField,
+    TextAreaField
 )
+from wtforms.fields import MultipleFileField
 from wtforms.validators import Email, DataRequired, ValidationError, Length
 from app.base.models import User
 
@@ -108,6 +111,13 @@ class UserProfileUpdateForm(CreateAccountForm):
         if 0 < len(other_name.data) < 2:
             raise ValidationError("Field must be between 2 and 30 characters long.")
 
+    def validate_gender(self, gender):
+        """
+        Checks if the user has selected gender either Male or Female from the Select Field.
+        """
+        if gender.data == "Gender":
+            raise ValidationError("You need to select your gender.")
+
     def validate_password(self, password):
         """
         Checks if the user has provided the password. If the length of password.data is 0, it means the user hasn't
@@ -117,3 +127,50 @@ class UserProfileUpdateForm(CreateAccountForm):
         """
         if 0 < len(password.data) < 8:
             raise ValidationError("Field must be between 8 and 20 characters long.")
+
+
+class CreatePropertyForm(FlaskForm):
+    prop_name = StringField(
+        "Property Name", validators=[DataRequired(), Length(min=5, max=50)]
+    )
+    prop_desc = TextAreaField(
+        "Property Description", validators=[DataRequired(), Length(min=10, max=300)]
+    )
+    prop_type = SelectField(
+        "Property For ...",
+        choices=[
+            "Select",
+            "Rent",
+            "Sale",
+        ],
+        validators=[DataRequired()]
+    )
+    prop_photos = MultipleFileField(
+        "Upload photos of your property",
+        validators=[
+            DataRequired(),
+            Length(
+                min=1, max=10, message="Upload 1 or more photos and not more that 10"
+            ),
+        ],
+    )
+    prop_price = StringField(
+        "Price", validators=[DataRequired(), Length(min=1, max=10)]
+    )
+    prop_location = StringField(
+        "Property Location", validators=[DataRequired(), Length(min=2, max=50)]
+    )
+    submit = SubmitField("Create")
+
+    def validate_prop_photos(self, prop_photos):
+        ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png"]
+        for file in prop_photos.data:
+            if os.path.splitext(file.filename)[1] not in ALLOWED_EXTENSIONS:
+                raise ValidationError("Only Images are allowed e.g jpg, jpeg, png")
+
+    def validate_prop_type(self, prop_type):
+        """
+        Checks if the user has selected gender either Male or Female from the Select Field.
+        """
+        if prop_type.data == "Select":
+            raise ValidationError("You need to select your property listing type.")
