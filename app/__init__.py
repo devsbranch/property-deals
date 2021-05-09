@@ -6,7 +6,8 @@ Copyright (c) 2019 - present AppSeed.us
 import os
 import boto3
 import redis
-from flask import Flask
+from pathlib import Path
+from flask import Flask, current_app
 from celery import Celery
 from flask_marshmallow import Marshmallow
 from flask_login import LoginManager
@@ -16,6 +17,7 @@ from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from elasticsearch import Elasticsearch
 from decouple import config as sys_config
+from config import IMAGE_UPLOAD_CONFIG
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -86,6 +88,21 @@ def configure_database(app):
         db.session.remove()
 
 
+def create_image_upload_directories():
+    """
+    Create directories at application runtime.
+    """
+    paths = {
+        "profile_image_upload_dir": IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"]["USER_PROFILE_IMAGES"],
+        "cover_image_upload_dir": IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"]["USER_COVER_IMAGES"],
+        "temp_image_dir": IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"]["TEMP_DIR"],
+        "property_listing_images_dir": IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"]["PROPERTY_LISTING_IMAGES"]
+    }
+    for path in paths.keys():
+        path_name = Path(f"{current_app.root_path}/base/static/{paths[path]}")
+        path_name.mkdir(parents=True, exist_ok=True)
+
+
 def create_app(config):
     app = Flask(__name__, static_folder='base/static')
     app.config.from_object(config)
@@ -95,4 +112,5 @@ def create_app(config):
     register_extensions(app)
     register_blueprints(app)
     configure_database(app)
+    create_image_upload_directories()
     return app, app.celery

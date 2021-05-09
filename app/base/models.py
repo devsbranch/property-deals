@@ -61,11 +61,15 @@ class Property(db.Model):
     location = db.Column(db.Text, nullable=False)
     images_folder = db.Column(db.Text, nullable=True)
     photos = db.Column(db.Text, nullable=False)
+    photos_location = db.Column(db.String(100), nullable=True)  # specifies the server hosting the image
     type = db.Column(db.String(50), default="other", nullable=False)
     is_available = db.Column(db.Boolean, default=True)
     deal_done = db.Column(db.Boolean, default=False)
     user_id = db.Column(db.ForeignKey("User.id"), nullable=False)
     owner = db.relationship("User")
+
+    def __repr__(self):
+        return str(f"Property Listing <{self.name}")
 
     @classmethod
     def search_property(cls, search_term, page, per_page):

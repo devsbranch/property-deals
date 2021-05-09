@@ -155,7 +155,7 @@ class CreatePropertyForm(FlaskForm):
         ],
     )
     prop_price = StringField(
-        "Price", validators=[DataRequired(), Length(min=1, max=10)]
+        "Price", validators=[DataRequired(), Length(min=1, max=50)]
     )
     prop_location = StringField(
         "Property Location", validators=[DataRequired(), Length(min=2, max=50)]

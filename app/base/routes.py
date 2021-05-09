@@ -12,12 +12,12 @@ from app.tasks import profile_image_process, delete_profile_image, send_email
 from config import IMAGE_UPLOAD_CONFIG
 
 
-aws_s3_bucket_name = IMAGE_UPLOAD_CONFIG["amazon_s3"]["S3_BUCKET"]
-s3_image_url = IMAGE_UPLOAD_CONFIG["amazon_s3"]["S3_URL"]
-aws_bucket_name = IMAGE_UPLOAD_CONFIG["amazon_s3"]["S3_BUCKET"]
-profile_image_upload_dir = IMAGE_UPLOAD_CONFIG["image_save_directories"]["USER_PROFILE_IMAGES"]
-cover_image_upload_dir = IMAGE_UPLOAD_CONFIG["image_save_directories"]["USER_COVER_IMAGES"]
-image_server_config = IMAGE_UPLOAD_CONFIG["storage_location"]
+aws_s3_bucket_name = IMAGE_UPLOAD_CONFIG["AMAZON_S3"]["S3_BUCKET"]
+s3_image_url = IMAGE_UPLOAD_CONFIG["AMAZON_S3"]["S3_URL"]
+aws_bucket_name = IMAGE_UPLOAD_CONFIG["AMAZON_S3"]["S3_BUCKET"]
+profile_image_upload_dir = IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"]["USER_PROFILE_IMAGES"]
+cover_image_upload_dir = IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"]["USER_COVER_IMAGES"]
+image_server_config = IMAGE_UPLOAD_CONFIG["STORAGE_LOCATION"]
 
 
 email_template_vars = {

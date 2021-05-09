@@ -60,17 +60,17 @@ config_dict = {
 }
 
 IMAGE_UPLOAD_CONFIG = {
-    "amazon_s3": {
+    "AMAZON_S3": {
         "S3_BUCKET": os.environ.get("S3_BUCKET", config("S3_BUCKET")),
         "S3_KEY": os.environ.get("AWS_ACCESS_KEY_ID", config("AWS_ACCESS_KEY_ID")),
         "S3_SECRET": os.environ.get("AWS_SECRET_ACCESS_KEY", config("AWS_SECRET_ACCESS_KEY")),
         "S3_URL": "https://{}.s3.amazonaws.com".format(os.environ.get("S3_BUCKET", config("S3_BUCKET"))),
     },
-    "image_save_directories": {
-        "PROPERY_LISTING_IMAGES": "assets/images/listings/",
+    "IMAGE_SAVE_DIRECTORIES": {
+        "PROPERTY_LISTING_IMAGES": "assets/images/listings/",
         "USER_PROFILE_IMAGES": "assets/images/user/profile/",
         "USER_COVER_IMAGES": "assets/images/user/cover/",
         "TEMP_DIR": "assets/images/temp/"
     },
-    "storage_location": os.environ.get("IMAGE_STORAGE_LOCATION", "app_server_storage")
+    "STORAGE_LOCATION": os.environ.get("IMAGE_STORAGE_LOCATION", "app_server_storage")
 }
