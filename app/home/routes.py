@@ -17,10 +17,7 @@ from config import IMAGE_UPLOAD_CONFIG
 
 @blueprint.route("/index")
 def index():
-    return render_template(
-        "index.html",
-        segment="index"
-    )
+    return render_template("index.html", segment="index")
 
 
 @blueprint.route("/<template>")
@@ -60,11 +57,15 @@ def create_property():
     form = CreatePropertyForm()
 
     if request.method == "POST" and form.validate_on_submit():
-        redis_image_hashmap_key = save_property_listing_images_to_redis(request.files.getlist("prop_photos"))
+        redis_image_hashmap_key = save_property_listing_images_to_redis(
+            request.files.getlist("prop_photos")
+        )
         process_property_listing_images.delay(redis_image_hashmap_key)
         image_filenames = redis_client.hgetall(redis_image_hashmap_key)
 
-        list_of_image_filenames = [image_name.decode("utf-8") for image_name in image_filenames.keys()]
+        list_of_image_filenames = [
+            image_name.decode("utf-8") for image_name in image_filenames.keys()
+        ]
         # add redis_image_hashmap_key on first index since it is used as a directory name of where to save image files
         list_of_image_filenames.insert(0, f"{redis_image_hashmap_key}/")
         img_list_to_json = json.dumps(list_of_image_filenames)
@@ -78,7 +79,7 @@ def create_property():
             "photos_location": IMAGE_UPLOAD_CONFIG["STORAGE_LOCATION"],
             "location": form.prop_location.data,
             "type": form.prop_type.data,
-            "user_id": current_user.id
+            "user_id": current_user.id,
         }
         Property.add_property(prop_data)
         flash("Your Property has been listed.", "success")

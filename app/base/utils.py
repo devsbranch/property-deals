@@ -36,7 +36,7 @@ def confirm_token(token, expiration=3600):
     Decode the data in the url token.
     """
     try:
-        user_data = serializer.loads(token, salt=salt,max_age=expiration)
+        user_data = serializer.loads(token, salt=salt, max_age=expiration)
     except:
         return False
     return user_data
@@ -46,11 +46,13 @@ def email_verification_required(function):
     """
     This function decorator will check if the user has verified the email.
     """
+
     @wraps(function)
     def wrapped_func(*args, **kwargs):
         if current_user.is_verified is False:
             return redirect(url_for("base_blueprint.unverified"))
         return function(*args, **kwargs)
+
     return wrapped_func
 
 

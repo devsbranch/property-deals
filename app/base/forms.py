@@ -3,13 +3,7 @@ from wtforms.fields.html5 import DateField, IntegerField
 from flask_login import current_user
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
-from wtforms import (
-    StringField,
-    PasswordField,
-    SubmitField,
-    SelectField,
-    TextAreaField
-)
+from wtforms import StringField, PasswordField, SubmitField, SelectField, TextAreaField
 from wtforms.fields import MultipleFileField
 from wtforms.validators import Email, DataRequired, ValidationError, Length
 from app.base.models import User
@@ -17,24 +11,42 @@ from app.base.models import User
 
 # login and registration
 class LoginForm(FlaskForm):
-    username = StringField('Username', id='username_login', validators=[DataRequired()])
-    password = PasswordField('Password', id='pwd_login', validators=[DataRequired()])
+    username = StringField("Username", id="username_login", validators=[DataRequired()])
+    password = PasswordField("Password", id="pwd_login", validators=[DataRequired()])
 
 
 class CreateAccountForm(FlaskForm):
-    first_name = StringField('First Name', validators=[DataRequired(), Length(min=2, max=30)])
-    last_name = StringField('Last Name', validators=[DataRequired(), Length(min=2, max=30)])
-    other_name = StringField('Other Name')
-    birth_date = DateField('Birthday', validators=[DataRequired()])
-    gender = SelectField('Gender', choices=["Gender", "Male", "Female"], validators=[DataRequired()])
-    phone = IntegerField('Phone', validators=[DataRequired()])
-    address_1 = StringField('Address Line 1', validators=[DataRequired(), Length(min=2, max=150)])
-    address_2 = StringField('Address Line 2', validators=[DataRequired(), Length(min=2, max=100)])
-    city = StringField('City', validators=[DataRequired(), Length(min=2, max=30)])
-    postal_code = StringField('Postal Code', validators=[DataRequired(), Length(min=2, max=20)])
-    username = StringField('Username', validators=[DataRequired(), Length(min=2, max=20)])
-    email = StringField('Your Email', validators=[DataRequired(), Email(), Length(min=2, max=30)])
-    password = PasswordField('Your Password', validators=[DataRequired(), Length(min=8, max=60)])
+    first_name = StringField(
+        "First Name", validators=[DataRequired(), Length(min=2, max=30)]
+    )
+    last_name = StringField(
+        "Last Name", validators=[DataRequired(), Length(min=2, max=30)]
+    )
+    other_name = StringField("Other Name")
+    birth_date = DateField("Birthday", validators=[DataRequired()])
+    gender = SelectField(
+        "Gender", choices=["Gender", "Male", "Female"], validators=[DataRequired()]
+    )
+    phone = IntegerField("Phone", validators=[DataRequired()])
+    address_1 = StringField(
+        "Address Line 1", validators=[DataRequired(), Length(min=2, max=150)]
+    )
+    address_2 = StringField(
+        "Address Line 2", validators=[DataRequired(), Length(min=2, max=100)]
+    )
+    city = StringField("City", validators=[DataRequired(), Length(min=2, max=30)])
+    postal_code = StringField(
+        "Postal Code", validators=[DataRequired(), Length(min=2, max=20)]
+    )
+    username = StringField(
+        "Username", validators=[DataRequired(), Length(min=2, max=20)]
+    )
+    email = StringField(
+        "Your Email", validators=[DataRequired(), Email(), Length(min=2, max=30)]
+    )
+    password = PasswordField(
+        "Your Password", validators=[DataRequired(), Length(min=8, max=60)]
+    )
     register = SubmitField("Sign Up")
 
     def validate_username(self, username):
@@ -74,11 +86,17 @@ class CreateAccountForm(FlaskForm):
 
 
 class UserProfileUpdateForm(CreateAccountForm):
-    username = StringField('Username', validators=[Length(min=2, max=20)])
-    email = StringField('Your Email', validators=[Email(), Length(min=2, max=30)])
-    password = PasswordField('Your Password')
-    profile_photo = FileField("Select profile Photo", validators=[FileAllowed(["jpg", "jpeg", "png"], "Images Only!")])
-    cover_photo = FileField("Select cover Photo", validators=[FileAllowed(["jpg", "jpeg", "png"], "Images Only!")])
+    username = StringField("Username", validators=[Length(min=2, max=20)])
+    email = StringField("Your Email", validators=[Email(), Length(min=2, max=30)])
+    password = PasswordField("Your Password")
+    profile_photo = FileField(
+        "Select profile Photo",
+        validators=[FileAllowed(["jpg", "jpeg", "png"], "Images Only!")],
+    )
+    cover_photo = FileField(
+        "Select cover Photo",
+        validators=[FileAllowed(["jpg", "jpeg", "png"], "Images Only!")],
+    )
     save = SubmitField("Save All")
 
     def validate_username(self, username):
@@ -95,7 +113,7 @@ class UserProfileUpdateForm(CreateAccountForm):
                 )
 
     def validate_email(self, email):
-        """ Will raise a validation errors if the email submitted from the form already exists in the database """
+        """Will raise a validation errors if the email submitted from the form already exists in the database"""
         if email.data != current_user.email:
             user = User.query.filter_by(email=email.data).first()
             if user:
@@ -143,7 +161,7 @@ class CreatePropertyForm(FlaskForm):
             "Rent",
             "Sale",
         ],
-        validators=[DataRequired()]
+        validators=[DataRequired()],
     )
     prop_photos = MultipleFileField(
         "Upload photos of your property",

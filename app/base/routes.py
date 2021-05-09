@@ -15,8 +15,12 @@ from config import IMAGE_UPLOAD_CONFIG
 aws_s3_bucket_name = IMAGE_UPLOAD_CONFIG["AMAZON_S3"]["S3_BUCKET"]
 s3_image_url = IMAGE_UPLOAD_CONFIG["AMAZON_S3"]["S3_URL"]
 aws_bucket_name = IMAGE_UPLOAD_CONFIG["AMAZON_S3"]["S3_BUCKET"]
-profile_image_upload_dir = IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"]["USER_PROFILE_IMAGES"]
-cover_image_upload_dir = IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"]["USER_COVER_IMAGES"]
+profile_image_upload_dir = IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"][
+    "USER_PROFILE_IMAGES"
+]
+cover_image_upload_dir = IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"][
+    "USER_COVER_IMAGES"
+]
 image_server_config = IMAGE_UPLOAD_CONFIG["STORAGE_LOCATION"]
 
 
@@ -25,15 +29,15 @@ email_template_vars = {
         "subject": "Verify Email - Property Deals",
         "msg_header": "Verify Your Email",
         "msg_body": "Please verify your email address to be able to list your Property on Property Deals.",
-        "btn_txt": "Verify Email"
+        "btn_txt": "Verify Email",
     },
     "password_reset": {
         "subject": "Reset Password - Property Deals",
         "msg_header": "Password Reset",
         "msg_body": """You are receiving this email because you requested a password reset. 
                     If you didn't request a password reset, kindly ignore this email.""",
-        "btn_txt": "Reset Password"
-    }
+        "btn_txt": "Reset Password",
+    },
 }
 
 
@@ -42,29 +46,29 @@ def user_data_for_url_token(username, email, phone, email_category=None):
         "username": username,
         "email": email,
         "phone": phone,
-        "email_category": email_category
+        "email_category": email_category,
     }
     return user_data
 
 
 @login_manager.unauthorized_handler
 def unauthorized_handler():
-    return render_template('errors/403.html'), 403
+    return render_template("errors/403.html"), 403
 
 
 @blueprint.errorhandler(403)
 def access_forbidden(error):
-    return render_template('errors/403.html'), 403
+    return render_template("errors/403.html"), 403
 
 
 @blueprint.errorhandler(404)
 def not_found_error(error):
-    return render_template('errors/404.html'), 404
+    return render_template("errors/404.html"), 404
 
 
 @blueprint.errorhandler(500)
 def internal_error(error):
-    return render_template('errors/500.html'), 500
+    return render_template("errors/500.html"), 500
 
 
 @blueprint.route("/")
@@ -108,10 +112,12 @@ def register():
             form.username.data,
             form.email.data,
             form.phone.data,
-            email_category="Verify Email"
+            email_category="Verify Email",
         )
         token = generate_url_token(user_data)
-        confirm_url = url_for("base_blueprint.verify_email", token=token, _external=True)
+        confirm_url = url_for(
+            "base_blueprint.verify_email", token=token, _external=True
+        )
         template_text = email_template_vars["email_verify"]
         msg_header = template_text["msg_header"]
         msg_body = template_text["msg_body"]
@@ -122,10 +128,13 @@ def register():
             name=f"{form.first_name.data} {form.last_name.data}",
             html_msg_header=msg_header,
             html_msg_body=msg_body,
-            button_text=template_text["btn_txt"]
+            button_text=template_text["btn_txt"],
         )
         send_email.delay(form.email.data, subject, email_template)
-        flash("Your account has been created. Check your inbox to verify your email.", "success")
+        flash(
+            "Your account has been created. Check your inbox to verify your email.",
+            "success",
+        )
         return redirect(url_for("base_blueprint.login"))
 
     return render_template("accounts/register.html", form=form)
@@ -153,7 +162,9 @@ def verify_email(token):
 def resend_verification_email():
     from app.tasks import send_email
 
-    user_data = user_data_for_url_token(current_user.email, current_user.phone, email_category="Verify Email")
+    user_data = user_data_for_url_token(
+        current_user.email, current_user.phone, email_category="Verify Email"
+    )
     token = generate_url_token(user_data)
     confirm_url = url_for("base_blueprint.verify_email", token=token, _external=True)
     template_text = email_template_vars["email_verify"]
@@ -166,7 +177,7 @@ def resend_verification_email():
         name=f"{current_user.first_name} {current_user.last_name}",
         html_msg_header=msg_header,
         html_msg_body=msg_body,
-        button_text=template_text["btn_txt"]
+        button_text=template_text["btn_txt"],
     )
     send_email.delay(current_user.email, subject, email_template)
     flash("A new verification email has been sent", "success")
@@ -190,18 +201,30 @@ def user_profile():
     if request.method == "POST" and form.validate_on_submit():
         for k, v in request.form.items():
             print(isinstance(v, str))
-        if request.files.get("profile_photo").filename != "":  # Check if a profile image has been uploaded
+        if (
+            request.files.get("profile_photo").filename != ""
+        ):  # Check if a profile image has been uploaded
             # Delete the previous profile image if it exists
-            delete_profile_image.delay(profile_image_upload_dir, current_user.profile_photo, s3_bucket_name=aws_s3_bucket_name)
+            delete_profile_image.delay(
+                profile_image_upload_dir,
+                current_user.profile_photo,
+                s3_bucket_name=aws_s3_bucket_name,
+            )
             file = request.files.get("profile_photo")
             filename = save_image_to_redis(file)
             profile_image_process.delay(filename, photo_type="profile")
             current_user.profile_photo = filename
             current_user.prof_photo_loc = image_server_config
 
-        if request.files.get("cover_photo").filename != "":  # Check if a cover image has been uploaded
+        if (
+            request.files.get("cover_photo").filename != ""
+        ):  # Check if a cover image has been uploaded
             # Delete the previous profile image if it exists
-            delete_profile_image.delay(cover_image_upload_dir, current_user.cover_photo, s3_bucket_name=aws_s3_bucket_name)
+            delete_profile_image.delay(
+                cover_image_upload_dir,
+                current_user.cover_photo,
+                s3_bucket_name=aws_s3_bucket_name,
+            )
             file = request.files.get("cover_photo")
             filename = save_image_to_redis(file)
             profile_image_process.delay(filename, photo_type="cover")
@@ -213,7 +236,9 @@ def user_profile():
                 value = value[0]
             if key == "password":  # Check if password is in the form
                 if value:
-                    value = generate_password_hash(value)  # Hash the password from the form
+                    value = generate_password_hash(
+                        value
+                    )  # Hash the password from the form
                 else:
                     # Maintain the old user's password in the database if password was not in form
                     value = current_user.password
@@ -231,7 +256,7 @@ def user_profile():
         form=form,
         s3_image_url=s3_image_url,
         profile_image_dir=profile_image_upload_dir,
-        cover_image_dir=cover_image_upload_dir
+        cover_image_dir=cover_image_upload_dir,
     )
 
 

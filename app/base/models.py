@@ -27,15 +27,21 @@ class User(db.Model, UserMixin):
     cover_photo = db.Column(
         db.String(100), nullable=False, default="assets/img/default_cover.jpg"
     )
-    prof_photo_loc = db.Column(db.String(100), nullable=True)  # specifies the server hosting the image
-    cover_photo_loc = db.Column(db.String(100), nullable=True)  # specifies the server hosting the image
+    prof_photo_loc = db.Column(
+        db.String(100), nullable=True
+    )  # specifies the server hosting the image
+    cover_photo_loc = db.Column(
+        db.String(100), nullable=True
+    )  # specifies the server hosting the image
     date_registered = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     is_verified = db.Column(db.Boolean, nullable=False, default=False)
     date_verified = db.Column(db.DateTime, nullable=True)
     username = db.Column(db.String, unique=True, nullable=False)
     email = db.Column(db.String(60), unique=True, nullable=False)
     password = db.Column(db.String, nullable=False)
-    user_property_listings = db.relationship("Property", backref="property_listing_owner", lazy=True)
+    user_property_listings = db.relationship(
+        "Property", backref="property_listing_owner", lazy=True
+    )
 
     def __init__(self, **kwargs):
         for key, value in kwargs.items():
@@ -61,7 +67,9 @@ class Property(db.Model):
     location = db.Column(db.Text, nullable=False)
     images_folder = db.Column(db.Text, nullable=True)
     photos = db.Column(db.Text, nullable=False)
-    photos_location = db.Column(db.String(100), nullable=True)  # specifies the server hosting the image
+    photos_location = db.Column(
+        db.String(100), nullable=True
+    )  # specifies the server hosting the image
     type = db.Column(db.String(50), default="other", nullable=False)
     is_available = db.Column(db.Boolean, default=True)
     deal_done = db.Column(db.Boolean, default=False)
@@ -96,7 +104,9 @@ class Property(db.Model):
         db.session.add(new_property)
         db.session.commit()
         # Add Property listing data to ElasticSearch index
-        add_to_index(new_property.id, prop_data["name"], prop_data["desc"], prop_data["location"])
+        add_to_index(
+            new_property.id, prop_data["name"], prop_data["desc"], prop_data["location"]
+        )
 
     @classmethod
     def update_property(cls, prop_data, prop_id):
@@ -105,7 +115,9 @@ class Property(db.Model):
             property_to_update.update({key: value})
             db.session.commit()
         # Update Property listing data in ElasticSearch index
-        add_to_index(prop_id, prop_data["name"], prop_data["desc"], prop_data["location"])
+        add_to_index(
+            prop_id, prop_data["name"], prop_data["desc"], prop_data["location"]
+        )
 
     @classmethod
     def update_property_images(cls, image_dir, img_list, prop_id):

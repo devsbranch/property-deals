@@ -5,9 +5,7 @@ from elasticsearch_dsl import Document, Keyword, Text, Search, Integer
 from elasticsearch_dsl.connections import connections
 
 # Create global connection to ElasticSearch
-connections.create_connection(
-    hosts=[os.environ.get("ELASTICSEARCH_URL", "localhost")]
-)
+connections.create_connection(hosts=[os.environ.get("ELASTICSEARCH_URL", "localhost")])
 
 
 es = Elasticsearch()

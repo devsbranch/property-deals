@@ -27,12 +27,18 @@ login_manager = LoginManager()
 ma = Marshmallow()
 migrate = Migrate()
 jwt = JWTManager()
-redis_client = redis.StrictRedis.from_url(os.environ.get("REDIS_URL", "redis://localhost:6379"))
+redis_client = redis.StrictRedis.from_url(
+    os.environ.get("REDIS_URL", "redis://localhost:6379")
+)
 
 s3 = boto3.client(
     "s3",
-    aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID", sys_config("AWS_ACCESS_KEY_ID")),
-    aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY", sys_config("AWS_SECRET_ACCESS_KEY")),
+    aws_access_key_id=os.environ.get(
+        "AWS_ACCESS_KEY_ID", sys_config("AWS_ACCESS_KEY_ID")
+    ),
+    aws_secret_access_key=os.environ.get(
+        "AWS_SECRET_ACCESS_KEY", sys_config("AWS_SECRET_ACCESS_KEY")
+    ),
 )
 
 
@@ -73,8 +79,8 @@ def register_extensions(app):
 
 
 def register_blueprints(app):
-    for module_name in ('base', 'home'):
-        module = import_module('app.{}.routes'.format(module_name))
+    for module_name in ("base", "home"):
+        module = import_module("app.{}.routes".format(module_name))
         app.register_blueprint(module.blueprint)
 
 
@@ -93,10 +99,16 @@ def create_image_upload_directories():
     Create directories at application runtime.
     """
     paths = {
-        "profile_image_upload_dir": IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"]["USER_PROFILE_IMAGES"],
-        "cover_image_upload_dir": IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"]["USER_COVER_IMAGES"],
+        "profile_image_upload_dir": IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"][
+            "USER_PROFILE_IMAGES"
+        ],
+        "cover_image_upload_dir": IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"][
+            "USER_COVER_IMAGES"
+        ],
         "temp_image_dir": IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"]["TEMP_DIR"],
-        "property_listing_images_dir": IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"]["PROPERTY_LISTING_IMAGES"]
+        "property_listing_images_dir": IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"][
+            "PROPERTY_LISTING_IMAGES"
+        ],
     }
     for path in paths.keys():
         path_name = Path(f"{current_app.root_path}/base/static/{paths[path]}")
@@ -104,7 +116,7 @@ def create_image_upload_directories():
 
 
 def create_app(config):
-    app = Flask(__name__, static_folder='base/static')
+    app = Flask(__name__, static_folder="base/static")
     app.config.from_object(config)
     app.elasticsearch = Elasticsearch([app.config["ELASTICSEARCH_URL"]])
     app.celery = init_celery(app)
