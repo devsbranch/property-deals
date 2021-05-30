@@ -14,10 +14,15 @@ from app.tasks import process_property_listing_images
 from app.base.models import Property
 from config import IMAGE_UPLOAD_CONFIG
 
+property_listings_images_dir = IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"]["PROPERTY_LISTING_IMAGES"]
+amazon_s3_url = IMAGE_UPLOAD_CONFIG["AMAZON_S3"]["S3_URL"]
+
 
 @blueprint.route("/index")
 def index():
-    return render_template("index.html", segment="index")
+    property_listings = Property.query.all()
+    property_listing_photos = [json.loads(p.photos) for p in property_listings]
+    return render_template("index.html", segment="index", property_listings=property_listings, photos_list=property_listing_photos, image_folder=property_listings_images_dir, amazon_s3_url=amazon_s3_url)
 
 
 @blueprint.route("/<template>")
