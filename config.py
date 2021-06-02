@@ -72,5 +72,5 @@ IMAGE_UPLOAD_CONFIG = {
         "USER_COVER_IMAGES": "assets/images/user/cover/",
         "TEMP_DIR": "assets/images/temp/"
     },
-    "STORAGE_LOCATION": os.environ.get("IMAGE_STORAGE_LOCATION", "app_server_storage")
+    "STORAGE_LOCATION": os.environ.get("IMAGE_STORAGE_LOCATION", config("IMAGE_STORAGE_LOCATION"))
 }
