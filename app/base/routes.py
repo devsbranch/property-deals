@@ -199,8 +199,6 @@ def unverified():
 def user_profile():
     form = UserProfileUpdateForm(obj=current_user)
     if request.method == "POST" and form.validate_on_submit():
-        for k, v in request.form.items():
-            print(isinstance(v, str))
         if (
             request.files.get("profile_photo").filename != ""
         ):  # Check if a profile image has been uploaded

@@ -1,5 +1,6 @@
 import os
 from wtforms.fields.html5 import DateField, IntegerField
+from flask import request
 from flask_login import current_user
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
@@ -148,13 +149,13 @@ class UserProfileUpdateForm(CreateAccountForm):
 
 
 class CreatePropertyForm(FlaskForm):
-    prop_name = StringField(
+    name = StringField(
         "Property Name", validators=[DataRequired(), Length(min=5, max=50)]
     )
-    prop_desc = TextAreaField(
+    desc = TextAreaField(
         "Property Description", validators=[DataRequired(), Length(min=10, max=300)]
     )
-    prop_type = SelectField(
+    type = SelectField(
         "Property For ...",
         choices=[
             "Select",
@@ -163,7 +164,7 @@ class CreatePropertyForm(FlaskForm):
         ],
         validators=[DataRequired()],
     )
-    prop_photos = MultipleFileField(
+    photos = MultipleFileField(
         "Upload photos of your property",
         validators=[
             DataRequired(),
@@ -172,23 +173,37 @@ class CreatePropertyForm(FlaskForm):
             ),
         ],
     )
-    prop_price = StringField(
+    price = StringField(
         "Price", validators=[DataRequired(), Length(min=1, max=50)]
     )
-    prop_location = StringField(
+    location = StringField(
         "Property Location", validators=[DataRequired(), Length(min=2, max=50)]
     )
     submit = SubmitField("Create")
 
-    def validate_prop_photos(self, prop_photos):
+    def validate_prop_photos(self, photos):
         ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png"]
-        for file in prop_photos.data:
+        for file in photos.data:
             if os.path.splitext(file.filename)[1] not in ALLOWED_EXTENSIONS:
                 raise ValidationError("Only Images are allowed e.g jpg, jpeg, png")
 
-    def validate_prop_type(self, prop_type):
+    def validate_prop_type(self, type):
         """
         Checks if the user has selected gender either Male or Female from the Select Field.
         """
-        if prop_type.data == "Select":
+        if type.data == "Select":
             raise ValidationError("You need to select your property listing type.")
+
+
+class UpdatePropertyForm(CreatePropertyForm):
+    photos = MultipleFileField(
+        "Upload photos of your property",
+    )
+
+    def validate_prop_photos(self, photos):
+        ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png"]
+        for file in photos.data:
+            if os.path.splitext(file.filename)[1] not in ALLOWED_EXTENSIONS:
+                raise ValidationError("Only Images are allowed e.g jpg, jpeg, png")
+
+    submit = SubmitField("Update")
