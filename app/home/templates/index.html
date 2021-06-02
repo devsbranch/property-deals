@@ -2,10 +2,17 @@
 
 {% block title %} Dashboard {% endblock %}
 
-<!-- Specific Page CSS goes HERE  -->
-{% block stylesheets %}{% endblock stylesheets %}
 
 {% block content %}
+    <!-- Specific Page JS goes HERE  -->
+    {% block javascripts %}
+        <script src="{{url_for('static', filename='assets/js/lightbox-plus-jquery.min.js')}}"></script>
+    {% endblock javascripts %}
+
+
+    {% block stylesheets %}
+        <link rel="stylesheet" href="{{url_for('static', filename='assets/css/lightbox.min.css')}}">
+    {% endblock stylesheets %}
 
     <div class="d-flex justify-content-center flex-wrap flex-md-nowrap align-items-center py-4">
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -21,7 +28,7 @@
 <hr>
     <div class="row">
         <div class="col col-sm-12 col-md-9 col-lg-9">
-            <!--        Property Listing Card-->
+            <!--        Property Listing Card -->
             {% for property_listing in property_listings %}
                 <div class="card shadow mb-3" style="max-width: 700px;">
                     <div class="row g-0">
@@ -29,16 +36,20 @@
                             {% for photo_list in photos_list %}
                                 {% if photo_list[0] == property_listing.images_folder %}
                                     {% if property_listing.photos_location == "app_server_storage" %}
-                                        <img class="m-2 mt-3" src="{{ url_for('static', filename=image_folder + property_listing.images_folder + photo_list[1] ) }}" alt="{{ property_listing.name }}">
+                                        <a class="example-image-link m-1" href="{{ url_for('static', filename=image_folder + property_listing.images_folder + photo_list[1] ) }}" data-lightbox="example-2" data-title="{{property_listing.date_listed.strftime('%m/%d/%Y')}} | Available">
+                                            <img class="example-image img-thumbnail" src="{{ url_for('static', filename=image_folder + property_listing.images_folder + photo_list[1] ) }}" alt="image-1"/>
+                                        </a>
                                     {% elif property_listing.photos_location == "amazon_s3" %}
-                                        <img class="m-2 mt-3" src="{{ amazon_s3_url + '/' + image_folder + property_listing.images_folder + photo_list[1] }}" alt="{{ property_listing.name }}">
+                                        <a class="example-image-link m-1" href="{{ amazon_s3_url + '/' + image_folder + property_listing.images_folder + photo_list[1] }}" data-lightbox="example-2" data-title="{{property_listing.date_listed.strftime('%m/%d/%Y')}} | Available">
+                                            <img class="example-image img-thumbnail" src="{{ amazon_s3_url + '/' + image_folder + property_listing.images_folder + photo_list[1] }}" alt="image-1"/>
+                                        </a>
                                     {% endif %}
                                 {% endif %}
                             {% endfor %}
                         </div>
                         <div class="col-xs-8 col-sm-8 col-md-8">
                             <div class="card-body">
-                                <h5 class="card-title mb-0"><a href="#">{{ property_listing.name }}</a></h5>
+                                <h5 class="card-title mb-0"><a href="{{ url_for('home_blueprint.listing_details', listing_id=property_listing.id) }}">{{ property_listing.name }}</a></h5>
                                 <p class="card-text mb-0">{% if property_listing.desc.__len__() >= 35 %} {{ property_listing.desc[:35] + '...' }} {% else %}  {{ property_listing.desc }} {% endif %}</p>
                                 <p class="card-text mb-0"><small>{{ property_listing.date_listed.strftime("%d/%m/%Y") }} | {{ property_listing.price }} | {{ property_listing.location }}</small></p>
                             </div>
@@ -51,5 +62,3 @@
     </div>
 {% endblock content %}
 
-<!-- Specific Page JS goes HERE  -->
-{% block javascripts %}{% endblock javascripts %}

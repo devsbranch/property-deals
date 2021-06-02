@@ -99,3 +99,16 @@ def create_property():
         flash("Your Property has been listed.", "success")
         return redirect(url_for("home_blueprint.index"))
     return render_template("create_property.html", form=form)
+
+
+@blueprint.route("/property/details/<int:listing_id>")
+def listing_details(listing_id):
+    property_listing = Property.query.get_or_404(listing_id)
+    photos = json.loads(property_listing.photos)
+    return render_template(
+        "property_details.html",
+        property_listing=property_listing,
+        photos_list=photos,
+        image_folder=property_listings_images_dir,
+        amazon_s3_url=amazon_s3_url,
+    )

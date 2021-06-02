@@ -1,0 +1,108 @@
+{% extends "layouts/base.html" %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{url_for('static', filename='assets/css/lightbox.css')}}">
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-8">
+            <!-- Section -->
+            <div class="section section-md">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-">
+                            <h3 class="text-left font-weight-bold">{{ property_listing.name }}</h3>
+                        </div>
+                        <hr style="border-top: 3px solid black">
+                        <br>
+                        <div class="col-md-10 mx-auto">
+                            <div id="Carousel2" class="carousel slide" data-ride="carousel">
+                                <div class="carousel-inner">
+                                    {% for photo in photos_list[1:] %}
+                                        <div class={% if loop.index == 1 %} 'carousel-item active' {% else %} 'carousel-item' {% endif %}>
+                                            {% if property_listing.photos_location == "app_server_storage" %}
+                                                <a class="example-image-link" href="{{ url_for('static', filename=image_folder + property_listing.images_folder + photo ) }}" data-lightbox="example-set" data-title="{{property_listing.date_listed.strftime('%m/%d/%Y')}} | Available">
+                                                  <img class="d-block w-100 example-image"
+                                                       src="{{ url_for('static', filename=image_folder + property_listing.images_folder + photo ) }}"
+                                                       alt="">
+                                                </a>
+                                            {% elif property_listing.photos_location == "amazon_s3" %}
+                                                <a class="example-image-link" href="{{ amazon_s3_url + '/' + image_folder + property_listing.images_folder + photo }}" data-lightbox="example-set" data-title="{{property_listing.date_listed.strftime('%m/%d/%Y')}} | Available">
+                                                  <img class="d-block w-100 example-image"
+                                                       src="{{ amazon_s3_url + '/' + image_folder + property_listing.images_folder + photo }}"
+                                                       alt="">
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <a class="carousel-control-prev" href="#Carousel2" role="button" data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                    <span class="sr-only">Previous</span>
+                                </a>
+                                <a class="carousel-control-next" href="#Carousel2" role="button" data-bs-slide="next">
+                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                    <span class="sr-only">Next</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End of Section -->
+        </div>
+
+        <!--Property Details-->
+        <div class="col-xs-12 col-sm-12 col-md-4 mt-3 justify-content-center">
+            <div class="card" style="width: 18rem;">
+                <div class="card-body">
+                    <h5 class="card-title">Posted by:  {{property_listing.owner.username}}</h5>
+                    <hr style="border-top: 2px solid black">
+                    <p class="card-text">{{property_listing.desc}}</p>
+                </div>
+                <ul>
+                    <li><p class="fw-bold">Price | {{property_listing.price}}</p></li>
+                    <li><p class="fw-bold">Location | {{property_listing.location}}</p></li>
+                    <li><p class="fw-bold">Date Posted | {{ property_listing.date_listed.strftime("%m/%d/%Y") }} at {{ property_listing.date_listed.strftime("%H:%M:%S") }}</p></li>
+                </ul>
+                <div class="card-body" style="text-align: center;">
+                    <a class="btn btn-primary" href="#">Contact Seller</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Delete Property?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete your this property listing?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel </button>
+                <form action="{# {{ url_for('home_blueprint.delete_property', prop_id=property_listing.id) }} #}" method="post">
+                    <input class="btn btn-danger" type="submit" value="Delete">
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block javascripts %}
+    <script src="{{url_for('static', filename='assets/js/lightbox-plus-jquery.min.js')}}"></script>
+{% endblock javascripts %}
+
+{% endblock %}
