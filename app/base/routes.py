@@ -7,7 +7,7 @@ from app import db, login_manager
 from app.base import blueprint
 from app.base.forms import LoginForm, CreateAccountForm, UserProfileUpdateForm
 from app.base.models import User
-from app.base.utils import save_image_to_redis, generate_url_token, confirm_token
+from app.base.utils import save_image_to_redis, generate_url_token, confirm_token, generate_url_and_email_template
 from app.tasks import profile_image_process, delete_profile_image, send_email
 from config import IMAGE_UPLOAD_CONFIG
 
@@ -22,33 +22,6 @@ cover_image_upload_dir = IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"][
     "USER_COVER_IMAGES"
 ]
 image_server_config = IMAGE_UPLOAD_CONFIG["STORAGE_LOCATION"]
-
-
-email_template_vars = {
-    "email_verify": {
-        "subject": "Verify Email - Property Deals",
-        "msg_header": "Verify Your Email",
-        "msg_body": "Please verify your email address to be able to list your Property on Property Deals.",
-        "btn_txt": "Verify Email",
-    },
-    "password_reset": {
-        "subject": "Reset Password - Property Deals",
-        "msg_header": "Password Reset",
-        "msg_body": """You are receiving this email because you requested a password reset. 
-                    If you didn't request a password reset, kindly ignore this email.""",
-        "btn_txt": "Reset Password",
-    },
-}
-
-
-def user_data_for_url_token(username, email, phone, email_category=None):
-    user_data = {
-        "username": username,
-        "email": email,
-        "phone": phone,
-        "email_category": email_category,
-    }
-    return user_data
 
 
 @login_manager.unauthorized_handler
@@ -108,28 +81,7 @@ def register():
         db.session.add(user)
         db.session.commit()
 
-        user_data = user_data_for_url_token(
-            form.username.data,
-            form.email.data,
-            form.phone.data,
-            email_category="Verify Email",
-        )
-        token = generate_url_token(user_data)
-        confirm_url = url_for(
-            "base_blueprint.verify_email", token=token, _external=True
-        )
-        template_text = email_template_vars["email_verify"]
-        msg_header = template_text["msg_header"]
-        msg_body = template_text["msg_body"]
-        subject = template_text["subject"]
-        email_template = render_template(
-            "email_template.html",
-            confirm_url=confirm_url,
-            name=f"{form.first_name.data} {form.last_name.data}",
-            html_msg_header=msg_header,
-            html_msg_body=msg_body,
-            button_text=template_text["btn_txt"],
-        )
+        email_template, subject = generate_url_and_email_template(form.email.data, form.username.data, form.first_name.data, form.last_name.data, email_category="verify_email")
         send_email.delay(form.email.data, subject, email_template)
         flash(
             "Your account has been created. Check your inbox to verify your email.",
@@ -143,7 +95,7 @@ def register():
 @blueprint.route("/verify_email/<token>")
 def verify_email(token):
     user_data = confirm_token(token)
-    if not user_data or user_data["email_category"] != "Verify Email":
+    if not user_data or user_data["email_category"] != "verify_email":
         flash("The confirmation email is invalid or has expired")
         return redirect(url_for("home_blueprint.index"))
     user = User.query.filter_by(email=user_data["email"]).first()
@@ -160,25 +112,7 @@ def verify_email(token):
 @blueprint.route("/resend")
 @login_required
 def resend_verification_email():
-    from app.tasks import send_email
-
-    user_data = user_data_for_url_token(
-        current_user.email, current_user.phone, email_category="Verify Email"
-    )
-    token = generate_url_token(user_data)
-    confirm_url = url_for("base_blueprint.verify_email", token=token, _external=True)
-    template_text = email_template_vars["email_verify"]
-    msg_header = template_text["msg_header"]
-    msg_body = template_text["msg_body"]
-    subject = template_text["subject"]
-    email_template = render_template(
-        "email_template.html",
-        url=confirm_url,
-        name=f"{current_user.first_name} {current_user.last_name}",
-        html_msg_header=msg_header,
-        html_msg_body=msg_body,
-        button_text=template_text["btn_txt"],
-    )
+    email_template, subject = generate_url_and_email_template(current_user.email, current_user.username, current_user.first_name, current_user.last_name, email_category="verify_email")
     send_email.delay(current_user.email, subject, email_template)
     flash("A new verification email has been sent", "success")
     return redirect(url_for("home_blueprint.index"))
@@ -229,9 +163,24 @@ def user_profile():
             current_user.cover_photo = filename
             current_user.cover_photo_loc = image_server_config
 
+        flash_message, css_class = "Your account information has been updated.", "success"
+
         for key, value in request.form.items():
             if hasattr(value, "__iter__") and not isinstance(value, str):
                 value = value[0]
+
+            if key == "email":
+                # check if user has updated email, then set the is_verified attribute to False so that the user can verify the new email
+                if current_user.email != value:
+                    setattr(current_user, key, value)
+                    current_user.is_verified = False
+                    email = value
+                    email_template, subject = generate_url_and_email_template(email, current_user.username,
+                                                                              current_user.first_name,
+                                                                              current_user.last_name,
+                                                                              email_category="verify_email")
+                    send_email.delay(value, subject, email_template)
+                    flash_message, css_class = "Your account information has been updated. Check your inbox to verify your new email.", "success"
             if key == "password":  # Check if password is in the form
                 if value:
                     value = generate_password_hash(
@@ -243,7 +192,7 @@ def user_profile():
 
             setattr(current_user, key, value)
         db.session.commit()
-        flash("Your account information has been updated.", "success")
+        flash(flash_message, css_class)
         return redirect(url_for("base_blueprint.user_profile", user_id=current_user.id))
 
     elif request.method == "GET":

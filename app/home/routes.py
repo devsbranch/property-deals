@@ -10,7 +10,7 @@ from flask_login import login_required
 from app import redis_client, db
 from app.home import blueprint
 from app.base.forms import CreatePropertyForm, UpdatePropertyForm
-from app.base.utils import save_property_listing_images_to_redis
+from app.base.utils import save_property_listing_images_to_redis, email_verification_required
 from app.tasks import process_property_listing_images, delete_property_listing_images
 from app.base.models import Property
 from config import IMAGE_UPLOAD_CONFIG
@@ -68,6 +68,7 @@ def get_segment(request):
 
 
 @blueprint.route("/create-property", methods=["GET", "POST"])
+@email_verification_required
 @login_required
 def create_property():
     form = CreatePropertyForm()

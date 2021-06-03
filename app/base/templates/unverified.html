@@ -1,0 +1,42 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Forgot Password {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+    <main>
+        <section class="vh-lg-100 mt-4 mt-lg-0 bg-soft d-flex align-items-center">
+            <div class="container">
+                <div class="d-flex justify-content-center flex-wrap flex-md-nowrap align-items-center py-4">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                        {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            <p class="text-center">{{ message }}</p>
+                        </div>
+                        {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                <div class="row justify-content-center form-bg-image">
+                    <div class="col-12 d-flex align-items-center justify-content-center">
+                        <div class="signin-inner my-3 my-lg-0 bg-white shadow-soft border rounded border-light p-4 p-lg-5 w-100 fmxw-500">
+                            <h1 class="h3">Unverified Email</h1>
+                            <p class="mb-4">Hi, {{ current_user.first_name }} {{ current_user.last_name }}, you have not verified your email hence you can't perform this action.
+                            Verify your email and try again. Check your inbox, you should have received an email with a confirmation link.
+                            </p>
+                            <p class="text-center">Didn't receive an email?<a href="{{ url_for('base_blueprint.resend_verification_email') }}" class="text-gray-700"><i class="fas fa-angle-left me-2"></i>Resend</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}
