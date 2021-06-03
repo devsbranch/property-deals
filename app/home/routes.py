@@ -10,7 +10,10 @@ from flask_login import login_required
 from app import redis_client, db
 from app.home import blueprint
 from app.base.forms import CreatePropertyForm, UpdatePropertyForm
-from app.base.utils import save_property_listing_images_to_redis, email_verification_required
+from app.base.utils import (
+    save_property_listing_images_to_redis,
+    email_verification_required,
+)
 from app.tasks import process_property_listing_images, delete_property_listing_images
 from app.base.models import Property
 from config import IMAGE_UPLOAD_CONFIG
@@ -128,7 +131,13 @@ def update_listing(listing_id):
     if request.method == "POST" and form.validate_on_submit():
         if bool(request.files["photos"]):
             # delete previous images before
-            delete_property_listing_images.delay(listing_to_update.photos_location, property_listings_images_dir, listing_to_update.images_folder, json.loads(listing_to_update.photos), IMAGE_UPLOAD_CONFIG["AMAZON_S3"]["S3_BUCKET"])
+            delete_property_listing_images.delay(
+                listing_to_update.photos_location,
+                property_listings_images_dir,
+                listing_to_update.images_folder,
+                json.loads(listing_to_update.photos),
+                IMAGE_UPLOAD_CONFIG["AMAZON_S3"]["S3_BUCKET"],
+            )
 
             redis_image_hashmap_key = save_property_listing_images_to_redis(
                 request.files.getlist("photos")
@@ -139,11 +148,14 @@ def update_listing(listing_id):
             list_of_image_filenames = [
                 image_name.decode("utf-8") for image_name in image_filenames.keys()
             ]
-            # add redis_image_hashmap_key on first index since it is used as a directory name of where to save image files
+            # add redis_image_hashmap_key on first index since it is used as a
+            # directory name of where to save image files
             list_of_image_filenames.insert(0, f"{redis_image_hashmap_key}/")
             img_list_to_json = json.dumps(list_of_image_filenames)
 
-            Property.update_property_images(listing_to_update, redis_image_hashmap_key, img_list_to_json)
+            Property.update_property_images(
+                listing_to_update, redis_image_hashmap_key, img_list_to_json
+            )
 
         Property.update_property(listing_to_update, request.form)
         flash("Your Property listing has been updated", "success")
@@ -156,9 +168,16 @@ def update_listing(listing_id):
 
 
 @blueprint.route("/delete-listing/<int:listing_id>", methods=["GET", "POST"])
+@login_required
 def delete_listing(listing_id):
     listing_to_delete = Property.query.get_or_404(listing_id)
-    delete_property_listing_images.delay(listing_to_delete.photos_location, property_listings_images_dir, listing_to_delete.images_folder, json.loads(listing_to_delete.photos), IMAGE_UPLOAD_CONFIG["AMAZON_S3"]["S3_BUCKET"])
+    delete_property_listing_images.delay(
+        listing_to_delete.photos_location,
+        property_listings_images_dir,
+        listing_to_delete.images_folder,
+        json.loads(listing_to_delete.photos),
+        IMAGE_UPLOAD_CONFIG["AMAZON_S3"]["S3_BUCKET"],
+    )
     Property.delete_property(listing_to_delete)
     flash("Your Property listing has been deleted", "success")
     return redirect(url_for("home_blueprint.index"))
@@ -169,13 +188,21 @@ def search():
     per_page = current_app.config["RESULTS_PER_PAGE"]
 
     page = request.args.get("page", 1, type=int)
-    search_results, total = Property.search_property(g.search_form.q.data, page, per_page)
+    search_results, total = Property.search_property(
+        g.search_form.q.data, page, per_page
+    )
     photos = [json.loads(p.photos) for p in search_results]
 
-    next_url = url_for('home_blueprint.search', q=g.search_form.q.data, page=page + 1) \
-        if total > page * 2 else None
-    prev_url = url_for('home_blueprint.search', q=g.search_form.q.data, page=page - 1) \
-        if page > 1 else None
+    next_url = (
+        url_for("home_blueprint.search", q=g.search_form.q.data, page=page + 1)
+        if total > page * 2
+        else None
+    )
+    prev_url = (
+        url_for("home_blueprint.search", q=g.search_form.q.data, page=page - 1)
+        if page > 1
+        else None
+    )
 
     return render_template(
         "search.html",
@@ -187,5 +214,5 @@ def search():
         amazon_s3_url=amazon_s3_url,
         next_url=next_url,
         prev_url=prev_url,
-        search_term=g.search_form.q.data
+        search_term=g.search_form.q.data,
     )

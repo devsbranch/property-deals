@@ -217,14 +217,18 @@ def property_image_upload_to_S3(image_name, redis_img_dict_key):
 
 
 @celery.task()
-def delete_property_listing_images(images_location, image_path, images_folder, images_list, s3_bucket_name=None):
+def delete_property_listing_images(
+    images_location, image_path, images_folder, images_list, s3_bucket_name=None
+):
     """
     Deletes the image stored on the app server or on Amazon S3 depending on the configuration.
     """
 
     if images_location == "amazon_s3":
         for image_name in images_list[1:]:
-            s3.delete_object(Bucket=s3_bucket_name, Key=f"{image_path}{images_folder}{image_name}")
+            s3.delete_object(
+                Bucket=s3_bucket_name, Key=f"{image_path}{images_folder}{image_name}"
+            )
     elif images_location == "app_server_storage":
         try:
             path_to_image = Path(

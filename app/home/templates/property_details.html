@@ -48,14 +48,16 @@
                                 </a>
                             </div>
                         </div>
-                        <div class="col-12 d-flex justify-content-center mt-3">
-                            <div class="col- m-2">
-                                <a href="{{ url_for('home_blueprint.update_listing', listing_id=property_listing.id) }}" class="btn btn-primary">Update</a>
+                        {% if current_user.is_authenticated and current_user.id == property_listing.user_id %}
+                            <div class="col-12 d-flex justify-content-center mt-3">
+                                <div class="col- m-2">
+                                    <a href="{{ url_for('home_blueprint.update_listing', listing_id=property_listing.id) }}" class="btn btn-primary">Update</a>
+                                </div>
+                                <div class="col- m-2">
+                                    <a href="" class="btn btn-danger" type="button" data-bs-toggle="modal" data-bs-target="#modal-default">Delete</a>
+                                </div>
                             </div>
-                            <div class="col- m-2">
-                                <a href="" class="btn btn-danger" type="button" data-bs-toggle="modal" data-bs-target="#modal-default">Delete</a>
-                            </div>
-                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>

@@ -7,7 +7,12 @@ from app import db, login_manager
 from app.base import blueprint
 from app.base.forms import LoginForm, CreateAccountForm, UserProfileUpdateForm
 from app.base.models import User
-from app.base.utils import save_image_to_redis, generate_url_token, confirm_token, generate_url_and_email_template
+from app.base.utils import (
+    save_image_to_redis,
+    generate_url_token,
+    confirm_token,
+    generate_url_and_email_template,
+)
 from app.tasks import profile_image_process, delete_profile_image, send_email
 from config import IMAGE_UPLOAD_CONFIG
 
@@ -81,7 +86,13 @@ def register():
         db.session.add(user)
         db.session.commit()
 
-        email_template, subject = generate_url_and_email_template(form.email.data, form.username.data, form.first_name.data, form.last_name.data, email_category="verify_email")
+        email_template, subject = generate_url_and_email_template(
+            form.email.data,
+            form.username.data,
+            form.first_name.data,
+            form.last_name.data,
+            email_category="verify_email",
+        )
         send_email.delay(form.email.data, subject, email_template)
         flash(
             "Your account has been created. Check your inbox to verify your email.",
@@ -112,7 +123,13 @@ def verify_email(token):
 @blueprint.route("/resend")
 @login_required
 def resend_verification_email():
-    email_template, subject = generate_url_and_email_template(current_user.email, current_user.username, current_user.first_name, current_user.last_name, email_category="verify_email")
+    email_template, subject = generate_url_and_email_template(
+        current_user.email,
+        current_user.username,
+        current_user.first_name,
+        current_user.last_name,
+        email_category="verify_email",
+    )
     send_email.delay(current_user.email, subject, email_template)
     flash("A new verification email has been sent", "success")
     return redirect(url_for("home_blueprint.index"))
@@ -163,7 +180,10 @@ def user_profile():
             current_user.cover_photo = filename
             current_user.cover_photo_loc = image_server_config
 
-        flash_message, css_class = "Your account information has been updated.", "success"
+        flash_message, css_class = (
+            "Your account information has been updated.",
+            "success",
+        )
 
         for key, value in request.form.items():
             if hasattr(value, "__iter__") and not isinstance(value, str):
@@ -175,12 +195,18 @@ def user_profile():
                     setattr(current_user, key, value)
                     current_user.is_verified = False
                     email = value
-                    email_template, subject = generate_url_and_email_template(email, current_user.username,
-                                                                              current_user.first_name,
-                                                                              current_user.last_name,
-                                                                              email_category="verify_email")
+                    email_template, subject = generate_url_and_email_template(
+                        email,
+                        current_user.username,
+                        current_user.first_name,
+                        current_user.last_name,
+                        email_category="verify_email",
+                    )
                     send_email.delay(value, subject, email_template)
-                    flash_message, css_class = "Your account information has been updated. Check your inbox to verify your new email.", "success"
+                    flash_message, css_class = (
+                        "Your account information has been updated. Check your inbox to verify your new email.",
+                        "success",
+                    )
             if key == "password":  # Check if password is in the form
                 if value:
                     value = generate_password_hash(

@@ -117,9 +117,7 @@ class Property(db.Model):
                 continue
             setattr(listing, key, value)
         db.session.commit()
-        add_to_index(
-            listing.id, listing.name, listing.desc, listing.location
-        )
+        add_to_index(listing.id, listing.name, listing.desc, listing.location)
 
     @classmethod
     def update_property_images(cls, listing, images_folder, images_list_json):

@@ -38,13 +38,14 @@ def user_data_for_url_token(username, email, email_category=None):
     return user_data
 
 
-def generate_url_and_email_template(email, username, first_name, last_name, email_category=None):
-    user_data = user_data_for_url_token(
-        username,
-        email, email_category=email_category
-    )
+def generate_url_and_email_template(
+    email, username, first_name, last_name, email_category=None
+):
+    user_data = user_data_for_url_token(username, email, email_category=email_category)
     token = generate_url_token(user_data)
-    generated_url = url_for(f"base_blueprint.{email_category}", token=token, _external=True)
+    generated_url = url_for(
+        f"base_blueprint.{email_category}", token=token, _external=True
+    )
     template_text = email_template_vars[email_category]
     msg_header = template_text["msg_header"]
     msg_body = template_text["msg_body"]
@@ -58,7 +59,6 @@ def generate_url_and_email_template(email, username, first_name, last_name, emai
         button_text=template_text["btn_txt"],
     )
     return email_template, subject
-    # send_email.delay(current_user.email, subject, email_template)
 
 
 def save_image_to_redis(image_file):
