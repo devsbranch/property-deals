@@ -1,0 +1,11 @@
+<div class="d-flex align-items-center">
+    <!-- Search form -->
+    <form class="navbar-search form-inline" id="navbar-search-main" action="{{ url_for('home_blueprint.search') }}" method="get">
+        {{ g.search_form.hidden_tag() }}
+        <div class="input-group input-group-merge search-bar col col-7">
+            <span class="input-group-text" id="topbar-addon"><span class="fas fa-search"></span></span>
+            {{ g.search_form.q(class="form-control", placeholder="search for a property of choice . . ") }}
+            {{ g.search_form.search(class="btn btn-primary") }}
+        </div>
+    </form>
+</div>

@@ -3,6 +3,7 @@
 Copyright (c) 2019 - present AppSeed.us
 """
 
+from flask import g
 from flask_migrate import Migrate
 from sys import exit
 from decouple import config
@@ -10,6 +11,7 @@ from decouple import config
 from config import config_dict
 from app import create_app, db
 from app.base.models import User
+from app.base.forms import SearchForm
 
 # WARNING: Don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
@@ -32,6 +34,15 @@ Migrate(app, db)
 @app.shell_context_processor
 def make_shell_context():
     return {"db": db, "User": User}
+
+
+@app.before_request
+def before_request():
+    """
+    This function make the Search form global, accessible in any template without
+    passing it in render_template().
+    """
+    g.search_form = SearchForm()
 
 
 if DEBUG:

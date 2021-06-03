@@ -30,9 +30,6 @@ class PropertyDataMapping(Document):
         return super(PropertyDataMapping, self).save(**kwargs)
 
 
-PropertyDataMapping.init()  # Create the index and mappings in ElasticSearch
-
-
 def search_docs(search_term, page, per_page):
     """
     Searches for documents in ElasticSearch index with the search term provided. The results returned are ids

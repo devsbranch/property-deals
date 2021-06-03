@@ -19,6 +19,7 @@ from elasticsearch import Elasticsearch
 from decouple import config as sys_config
 from config import IMAGE_UPLOAD_CONFIG
 from dotenv import load_dotenv
+from app.search import PropertyDataMapping
 
 load_dotenv()
 
@@ -86,8 +87,9 @@ def register_blueprints(app):
 
 def configure_database(app):
     @app.before_first_request
-    def initialize_database():
+    def initialize_database_and_index_data():
         db.create_all()
+        PropertyDataMapping.init()  # Create the index and mappings in ElasticSearch
 
     @app.teardown_request
     def shutdown_session(exception=None):

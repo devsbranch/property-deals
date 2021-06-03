@@ -1,0 +1,26 @@
+ <!-- Property Card-->
+{% for property_listing in search_results %}
+    <div class="col-12 col-md-6 col-lg-4 mb-5 mb-lg-0 d-flex align-items-stretch">
+        <div class="card shadow mb-3">
+            {% for photo_list in photos_list %}
+                {% if photo_list[0] == property_listing.images_folder %}
+                    {% if property_listing.photos_location == "app_server_storage" %}
+                        <a class="example-image-link rounded mx-auto d-block img-fluid p-1" href="{{ url_for('static', filename=image_folder + property_listing.images_folder + photo_list[1] ) }}" data-lightbox="example-2" data-title="{{property_listing.date_listed.strftime('%m/%d/%Y')}} | Available">
+                            <img class="example-image rounded mx-auto d-block img-fluid p-1" src="{{ url_for('static', filename=image_folder + property_listing.images_folder + photo_list[1] ) }}" alt="image-1"/>
+                        </a>
+                    {% elif property_listing.photos_location == "amazon_s3" %}
+                        <a class="example-image-link rounded mx-auto d-block img-fluid p-1" href="{{ amazon_s3_url + '/' + image_folder + property_listing.images_folder + photo_list[1] }}" data-lightbox="example-2" data-title="{{property_listing.date_listed.strftime('%m/%d/%Y')}} | Available">
+                            <img class="example-image rounded mx-auto d-block img-fluid p-1" src="{{ amazon_s3_url + '/' + image_folder + property_listing.images_folder + photo_list[1] }}" alt="image-1"/>
+                        </a>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+            <div class="card-body">
+                <h3 class="h3 card-title mt-3"><a href="{{ url_for('home_blueprint.listing_details', listing_id=property_listing.id) }}">{{ property_listing.name }}</a></h3>
+                <p class="card-text fw-bold">{% if property_listing.desc.__len__() >= 55 %} {{ property_listing.desc[:55] + '...' }} {% else %}  {{ property_listing.desc }} {% endif %}</p>
+                <p class="card-text fw-bold"><small>{{ property_listing.date_listed.strftime("%d/%m/%Y") }} | {{ property_listing.price }} | {{ property_listing.location }}</small></p>
+                <a href="#" class="btn btn-primary btn-sm">Contact Owner</a>
+            </div>
+        </div>
+    </div>
+  {% endfor %}

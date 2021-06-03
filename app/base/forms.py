@@ -207,3 +207,19 @@ class UpdatePropertyForm(CreatePropertyForm):
                 raise ValidationError("Only Images are allowed e.g jpg, jpeg, png")
 
     submit = SubmitField("Update")
+
+
+class SearchForm(FlaskForm):
+    q = StringField("search property", validators=[DataRequired()])
+    search = SubmitField("search")
+
+    def __init__(self, *args, **kwargs):
+        """
+        The __init__ constructor provides values for the form data and csrf_enabled arguments if they are not provided
+        by the caller.
+        """
+        if "formdata" not in kwargs:
+            kwargs["formdata"] = request.args
+        if "csrf_token" not in kwargs:
+            kwargs["csrf_token"] = False
+        super(SearchForm, self).__init__(*args, **kwargs)
