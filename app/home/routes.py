@@ -6,6 +6,7 @@ import json
 from flask import flash, render_template, request, redirect, url_for
 from flask_login import current_user
 from jinja2 import TemplateNotFound
+from flask_login import login_required
 from app import redis_client, db
 from app.home import blueprint
 from app.base.forms import CreatePropertyForm, UpdatePropertyForm
@@ -67,6 +68,7 @@ def get_segment(request):
 
 
 @blueprint.route("/create-property", methods=["GET", "POST"])
+@login_required
 def create_property():
     form = CreatePropertyForm()
 
@@ -102,6 +104,7 @@ def create_property():
 
 
 @blueprint.route("/property/details/<int:listing_id>")
+@login_required
 def listing_details(listing_id):
     property_listing = Property.query.get_or_404(listing_id)
     photos = json.loads(property_listing.photos)
@@ -115,6 +118,7 @@ def listing_details(listing_id):
 
 
 @blueprint.route("/property/update/<int:listing_id>", methods=["GET", "POST"])
+@login_required
 def update_listing(listing_id):
 
     listing_to_update = Property.query.get_or_404(listing_id)
@@ -156,3 +160,14 @@ def update_listing(listing_id):
         form.populate_obj(listing_to_update)
 
     return render_template("update_listing.html", form=form)
+
+
+@blueprint.route("/delete-listing/<int:listing_id>", methods=["GET", "POST"])
+def delete_listing(listing_id):
+    listing_to_delete = Property.query.get_or_404(listing_id)
+
+    delete_property_listing_images.delay(listing_to_delete.photos_location, property_listings_images_dir, listing_to_delete.images_folder, json.loads(listing_to_delete.photos), IMAGE_UPLOAD_CONFIG["AMAZON_S3"]["S3_BUCKET"])
+    db.session.delete(listing_to_delete)
+    db.session.commit()
+    flash("Your Property listing has been deleted", "success")
+    return redirect(url_for("home_blueprint.index"))

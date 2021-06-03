@@ -53,7 +53,7 @@
                                 <a href="{{ url_for('home_blueprint.update_listing', listing_id=property_listing.id) }}" class="btn btn-primary">Update</a>
                             </div>
                             <div class="col- m-2">
-                                <a href="" class="btn btn-danger">Delete</a>
+                                <a href="" class="btn btn-danger" type="button" data-bs-toggle="modal" data-bs-target="#modal-default">Delete</a>
                             </div>
                         </div>
                     </div>
@@ -101,7 +101,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel </button>
-                <form action="{# {{ url_for('home_blueprint.delete_property', prop_id=property_listing.id) }} #}" method="post">
+                <form action="{# {{ url_for('home_blueprint.delete_listing', listing_id=property_listing.id) }} #}" method="post">
                     <input class="btn btn-danger" type="submit" value="Delete">
                 </form>
             </div>
@@ -109,6 +109,27 @@
     </div>
 </div>
 
+<!-- Modal Content -->
+<div class="modal fade" id="modal-default" tabindex="-1" role="dialog" aria-labelledby="modal-default" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="h4 modal-title">Delete Listing</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete your this property listing?</p>
+            </div>
+            <div class="modal-footer">
+                <form action="{{ url_for('home_blueprint.delete_listing', listing_id=property_listing.id) }}" method="post">
+                    <input class="btn btn-danger" type="submit" value="Delete">
+                </form>
+                <button type="button" class="btn btn-link text-gray ms-auto" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End of Modal Content -->
 {% block javascripts %}
     <script src="{{url_for('static', filename='assets/js/lightbox-plus-jquery.min.js')}}"></script>
 {% endblock javascripts %}
