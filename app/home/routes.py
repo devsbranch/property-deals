@@ -142,17 +142,9 @@ def update_listing(listing_id):
             list_of_image_filenames.insert(0, f"{redis_image_hashmap_key}/")
             img_list_to_json = json.dumps(list_of_image_filenames)
 
-            listing_to_update.images_folder = f"{redis_image_hashmap_key}/"
-            listing_to_update.photos = img_list_to_json
-            db.session.commit()
+            Property.update_property_images(listing_to_update, redis_image_hashmap_key, img_list_to_json)
 
-        for key, value in request.form.items():
-            if hasattr(value, "__iter__") and not isinstance(value, str):
-                value = value[0]
-            if key == "photos":
-                continue
-            setattr(listing_to_update, key, value)
-        db.session.commit()
+        Property.update_property(listing_to_update, request.form)
         flash("Your Property listing has been updated", "success")
         return redirect(url_for("home_blueprint.index"))
 
@@ -165,7 +157,6 @@ def update_listing(listing_id):
 @blueprint.route("/delete-listing/<int:listing_id>", methods=["GET", "POST"])
 def delete_listing(listing_id):
     listing_to_delete = Property.query.get_or_404(listing_id)
-
     delete_property_listing_images.delay(listing_to_delete.photos_location, property_listings_images_dir, listing_to_delete.images_folder, json.loads(listing_to_delete.photos), IMAGE_UPLOAD_CONFIG["AMAZON_S3"]["S3_BUCKET"])
     Property.delete_property(listing_to_delete)
     flash("Your Property listing has been deleted", "success")

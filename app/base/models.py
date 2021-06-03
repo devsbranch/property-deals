@@ -109,34 +109,34 @@ class Property(db.Model):
         )
 
     @classmethod
-    def update_property(cls, prop_data, prop_id):
-        property_to_update = Property.query.filter_by(id=prop_id)
-        for key, value in prop_data.items():
-            property_to_update.update({key: value})
-            db.session.commit()
-        # Update Property listing data in ElasticSearch index
+    def update_property(cls, listing, form_data):
+        for key, value in form_data.items():
+            if hasattr(value, "__iter__") and not isinstance(value, str):
+                value = value[0]
+            if key == "photos":
+                continue
+            setattr(listing, key, value)
+        db.session.commit()
         add_to_index(
-            prop_id, prop_data["name"], prop_data["desc"], prop_data["location"]
+            listing.id, listing.name, listing.desc, listing.location
         )
 
     @classmethod
-    def update_property_images(cls, image_dir, img_list, prop_id):
+    def update_property_images(cls, listing, images_folder, images_list_json):
         """
         Updates the photos(list of image filenames) and the images folder in the database.
         """
-        prop_to_update = Property.query.get(prop_id)
-        prop_to_update.image_folder = image_dir
-        prop_to_update.photos = img_list
+        listing.images_folder = f"{images_folder}/"
+        listing.photos = images_list_json
         db.session.commit()
 
     @classmethod
-    def delete_property(cls, prop_id):
+    def delete_property(cls, listing):
         """
         Deletes the Property listing in the database.
         """
-        prop_to_delete = cls.query.get(prop_id)
-        delete_from_index(prop_to_delete.id)  # Delete property in ElasticSearch index
-        db.session.delete(prop_to_delete)
+        delete_from_index(listing.id)  # Delete property in ElasticSearch index
+        db.session.delete(listing)
         db.session.commit()
 
 
