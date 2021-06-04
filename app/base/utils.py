@@ -16,7 +16,8 @@ email_template_vars = {
     "verify_email": {
         "subject": "Verify Email - Property Deals",
         "msg_header": "Verify Your Email",
-        "msg_body": "Please verify your email address to be able to list your Property on Property Deals.",
+        "msg_body": """Thanks for signing up. Please verify your email address to be able to list your Property 
+                    on Property Deals.""",
         "btn_txt": "Verify Email",
     },
     "password_reset": {

@@ -5,7 +5,13 @@ from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 from app import db, login_manager
 from app.base import blueprint
-from app.base.forms import LoginForm, CreateAccountForm, UserProfileUpdateForm
+from app.base.forms import (
+    LoginForm,
+    CreateAccountForm,
+    UserProfileUpdateForm,
+    RequestResetPasswordForm,
+    ResetPasswordForm,
+)
 from app.base.models import User
 from app.base.utils import (
     save_image_to_redis,
@@ -101,6 +107,49 @@ def register():
         return redirect(url_for("base_blueprint.login"))
 
     return render_template("accounts/register.html", form=form)
+
+
+@blueprint.route("/forgot-password", methods=["GET", "POST"])
+def request_password_reset():
+    form = RequestResetPasswordForm()
+
+    if current_user.is_authenticated:
+        logout_user()
+
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+
+        email_template, subject = generate_url_and_email_template(
+            user.email,
+            user.username,
+            user.first_name,
+            user.last_name,
+            email_category="password_reset",
+        )
+        send_email.delay(user.email, subject, email_template)
+        flash("An link to reset you password has been sent to your email.", "success")
+        return redirect(url_for("home_blueprint.index"))
+    return render_template("accounts/forgot_password.html", form=form)
+
+
+@blueprint.route("/reset-password/<token>", methods=["GET", "POST"])
+def password_reset(token):
+    form = ResetPasswordForm()
+
+    if current_user.is_authenticated:
+        return redirect(url_for("home_blueprint.index"))
+    user_data = confirm_token(token)
+    if not user_data or user_data["email_category"] != "password_reset":
+        flash("The link is invalid or has expired.", "danger")
+        return redirect(url_for("home_blueprint.index"))
+    user = User.query.filter_by(email=user_data["email"]).first()
+
+    if form.validate_on_submit():
+        user.password = generate_password_hash(form.password.data)
+        db.session.commit()
+        flash("Your password has been reset", "success")
+        return redirect(url_for("base_blueprint.login"))
+    return render_template("accounts/reset_password.html", form=form)
 
 
 @blueprint.route("/verify_email/<token>")

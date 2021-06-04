@@ -6,7 +6,7 @@ from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from wtforms import StringField, PasswordField, SubmitField, SelectField, TextAreaField
 from wtforms.fields import MultipleFileField
-from wtforms.validators import Email, DataRequired, ValidationError, Length
+from wtforms.validators import Email, DataRequired, ValidationError, Length, EqualTo
 from app.base.models import User
 
 
@@ -84,6 +84,34 @@ class CreateAccountForm(FlaskForm):
         """
         if 0 < len(other_name.data) < 2:
             raise ValidationError("Field must be between 2 and 30 characters long.")
+
+
+class RequestResetPasswordForm(FlaskForm):
+    email = StringField(
+        "Email", validators=[DataRequired(), Email(), Length(min=5, max=60)]
+    )
+    submit = SubmitField("Recover Password")
+
+    def validate_email(self, email):
+        user = User.query.filter_by(email=email.data).first()
+        if user is None:
+            raise ValidationError(
+                "The account with the email you have provided doesn't exist."
+            )
+
+
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField(
+        "New Password",
+        validators=[
+            Length(min=6, max=60),
+            EqualTo("confirm_password", message="Passwords must be equal"),
+        ],
+    )
+    confirm_password = PasswordField(
+        "Confirm New Password", validators=[DataRequired(), Length(min=6, max=60)]
+    )
+    submit = SubmitField("Reset Password")
 
 
 class UserProfileUpdateForm(CreateAccountForm):
