@@ -11,13 +11,13 @@ from app.base.forms import (
     RequestResetPasswordForm,
     ResetPasswordForm,
     ConfirmAccountDeletionForm,
-    ReactivateAccountForm
+    ReactivateAccountForm,
 )
 from app.base.models import User, DeactivatedUserAccounts
 from app.base.utils import (
     save_image_to_redis,
     confirm_token,
-    generate_url_and_email_template
+    generate_url_and_email_template,
 )
 from app.tasks import profile_image_process, delete_profile_image, send_email
 from config import IMAGE_UPLOAD_CONFIG
@@ -297,7 +297,7 @@ def account_deletion():
     form = ConfirmAccountDeletionForm()
 
     if request.method == "POST" and form.validate_on_submit():
-        if check_password_hash(current_user.password,  form.password.data):
+        if check_password_hash(current_user.password, form.password.data):
             current_user.acc_deactivated = True
             date_today = datetime.datetime.today()
             date_to_delete_acc = date_today + datetime.timedelta(days=14)
@@ -308,8 +308,7 @@ def account_deletion():
                 email=current_user.email,
                 username=current_user.username,
                 date_deactivated=date_today,
-                date_to_delete_acc=date_to_delete_acc
-
+                date_to_delete_acc=date_to_delete_acc,
             )
 
             db.session.add(account_to_delete)
@@ -327,7 +326,11 @@ def account_deletion():
 def deactivated_acc_page():
     date_of_acc_deletion = current_user.date_to_delete_acc
     logout_user()
-    return render_template("accounts/account_deactivated.html", title="Account Deactivated", date_of_acc_deletion=date_of_acc_deletion)
+    return render_template(
+        "accounts/account_deactivated.html",
+        title="Account Deactivated",
+        date_of_acc_deletion=date_of_acc_deletion,
+    )
 
 
 @blueprint.route("/reactivate-account", methods=["GET", "POST"])
@@ -340,7 +343,9 @@ def reactivate_account():
         user_to_reactivate = User.query.filter_by(email=email).first()
 
         # Check the password
-        if user_to_reactivate and check_password_hash(user_to_reactivate.password, password):
+        if user_to_reactivate and check_password_hash(
+            user_to_reactivate.password, password
+        ):
             if not user_to_reactivate.acc_deactivated:
                 flash("Your account is already active.", "warning")
                 return redirect(url_for("home_blueprint.index"))
@@ -350,7 +355,11 @@ def reactivate_account():
             user_to_reactivate.date_to_delete_acc = datetime.datetime(1, 1, 1, 0, 0, 0)
 
             # Remove the user account from the DeactivatedUserAccounts after account reactivation
-            db.session.delete(DeactivatedUserAccounts.query.filter_by(email=user_to_reactivate.email).first())
+            db.session.delete(
+                DeactivatedUserAccounts.query.filter_by(
+                    email=user_to_reactivate.email
+                ).first()
+            )
             db.session.commit()
             login_user(user_to_reactivate)
 

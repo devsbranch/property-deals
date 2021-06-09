@@ -250,7 +250,9 @@ def delete_user_account(scheduled_acc_for_deletion):
     for user_data in scheduled_acc_for_deletion:
         try:
             account_to_delete = User.query.filter_by(email=user_data["email"]).first()
-            if account_to_delete.date_to_delete_acc.strftime("%d/%m/%Y") == current_datetime.strftime("%d/%m/%Y"):
+            if account_to_delete.date_to_delete_acc.strftime(
+                "%d/%m/%Y"
+            ) == current_datetime.strftime("%d/%m/%Y"):
                 # Delete all property listings including images by the user before deleting the account.
                 for property_listing in account_to_delete.user_property_listings:
                     delete_property_listing_images.delay(
@@ -276,9 +278,15 @@ def delete_user_account(scheduled_acc_for_deletion):
 
                 db.session.delete(account_to_delete)
 
-                db.session.delete(DeactivatedUserAccounts.query.filter_by(email=user_data["email"]).first())
+                db.session.delete(
+                    DeactivatedUserAccounts.query.filter_by(
+                        email=user_data["email"]
+                    ).first()
+                )
                 db.session.commit()
-                print(f"The user account <Email: {account_to_delete.email} Username: {account_to_delete.username}> was deleted.")
+                print(
+                    f"The user account <Email: {account_to_delete.email} Username: {account_to_delete.username}> was deleted."
+                )
         except AttributeError:
             pass
         else:

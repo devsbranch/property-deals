@@ -13,7 +13,7 @@ from app.base.forms import CreatePropertyForm, UpdatePropertyForm
 from app.base.utils import (
     save_property_listing_images_to_redis,
     email_verification_required,
-    check_account_status
+    check_account_status,
 )
 from app.tasks import process_property_listing_images, delete_property_listing_images
 from app.base.models import Property

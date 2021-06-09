@@ -43,7 +43,6 @@ def before_request():
     passing it in render_template().
     """
     g.search_form = SearchForm()
-    g.amazon_s3_url = IMAGE_UPLOAD_CONFIG["AMAZON_S3"]["S3_URL"]
 
 
 if DEBUG:

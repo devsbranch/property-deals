@@ -77,9 +77,9 @@ def init_celery(flask_app):
             "delete_user_account": {
                 "task": "app.tasks.delete_user_account",
                 "schedule": crontab(),
-                "args": (accounts_data_schema.dump(queried_data),)
+                "args": (accounts_data_schema.dump(queried_data),),
             }
-        }
+        },
     )
 
     class ContextTask(celery.Task):
