@@ -1,23 +1,12 @@
-# -*- encoding: utf-8 -*-
-"""
-Copyright (c) 2020 - DevsBranch
-"""
 import os
+from wtforms.fields.html5 import DateField, IntegerField
 from flask import request
-from flask_wtf import FlaskForm
-from wtforms import (
-    StringField,
-    PasswordField,
-    TextAreaField,
-    SubmitField,
-    FileField,
-    IntegerField,
-    SelectField,
-)
-from wtforms.validators import Email, DataRequired, Length, ValidationError, EqualTo
-from flask_wtf.file import FileAllowed
-from wtforms.fields import MultipleFileField
 from flask_login import current_user
+from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileAllowed
+from wtforms import StringField, PasswordField, SubmitField, SelectField, TextAreaField
+from wtforms.fields import MultipleFileField
+from wtforms.validators import Email, DataRequired, ValidationError, Length, EqualTo
 from app.base.models import User
 
 
@@ -25,47 +14,47 @@ from app.base.models import User
 class LoginForm(FlaskForm):
     username = StringField("Username", validators=[DataRequired()])
     password = PasswordField("Password", validators=[DataRequired()])
-    submit = SubmitField("Sign In")
+    submit = SubmitField("Sign in")
 
 
 class CreateAccountForm(FlaskForm):
     first_name = StringField(
-        "First name", validators=[DataRequired(), Length(min=2, max=20)]
+        "First Name", validators=[DataRequired(), Length(min=2, max=30)]
     )
     last_name = StringField(
-        "Last Name", validators=[DataRequired(), Length(min=2, max=20)]
+        "Last Name", validators=[DataRequired(), Length(min=2, max=30)]
     )
-    other_name = StringField("Other Name", validators=[Length(min=2, max=30)])
-    gender = SelectField("Gender", choices=["Select Gender", "Male", "Female"])
+    other_name = StringField("Other Name")
+    birth_date = DateField("Birthday", validators=[DataRequired()])
+    gender = SelectField(
+        "Gender", choices=["Gender", "Male", "Female"], validators=[DataRequired()]
+    )
+    phone = IntegerField("Phone", validators=[DataRequired()])
     address_1 = StringField(
-        "Address 1", validators=[DataRequired(), Length(min=5, max=100)]
+        "Address Line 1", validators=[DataRequired(), Length(min=2, max=150)]
     )
     address_2 = StringField(
-        "Address 2", validators=[DataRequired(), Length(min=5, max=100)]
+        "Address Line 2", validators=[DataRequired(), Length(min=2, max=100)]
     )
     city = StringField("City", validators=[DataRequired(), Length(min=2, max=30)])
-    state = StringField("State/Province", validators=[Length(min=0, max=30)])
     postal_code = StringField(
-        "Postal Code", validators=[DataRequired(), Length(min=2, max=30)]
+        "Postal Code", validators=[DataRequired(), Length(min=2, max=20)]
     )
-    phone_number = IntegerField("Phone Number", validators=[])
     username = StringField(
-        "Username", validators=[DataRequired(), Length(min=4, max=20)]
+        "Username", validators=[DataRequired(), Length(min=2, max=20)]
     )
     email = StringField(
-        "Email", validators=[DataRequired(), Email(), Length(min=5, max=60)]
+        "Your Email", validators=[DataRequired(), Email(), Length(min=2, max=30)]
     )
     password = PasswordField(
-        "Password", validators=[DataRequired(), Length(min=6, max=60)]
+        "Your Password", validators=[DataRequired(), Length(min=8, max=60)]
     )
-    confirm_password = PasswordField(
-        "Confirm Password",
-        validators=[DataRequired(), Length(min=6, max=60), EqualTo("confirm_password")],
-    )
-    submit = SubmitField("Sign Up")
+    register = SubmitField("Sign Up")
 
     def validate_username(self, username):
-        """ Will raise a validation error if the username submitted from the form already exists in the database """
+        """
+        Will raise a validation error if the username submitted from the form already exists in the database.
+        """
         user = User.query.filter_by(username=username.data).first()
         if user:
             raise ValidationError(
@@ -73,25 +62,72 @@ class CreateAccountForm(FlaskForm):
             )
 
     def validate_email(self, email):
-        """ Will raise a validation error if the email submitted from the form already exists in the database """
+        """
+        Will raise a validation error if the email submitted from the form already exists in the database
+        """
         user = User.query.filter_by(email=email.data).first()
         if user:
             raise ValidationError(
                 "The email you entered is already registered. Please try a different one."
             )
 
+    def validate_gender(self, gender):
+        """
+        Checks if the user has selected gender either Male or Female from the Select Field.
+        """
+        if gender.data == "Gender":
+            raise ValidationError("You need to select your gender.")
 
-class UpdateAccountForm(CreateAccountForm):
-    picture = FileField(
-        "Change your profile picture",
-        validators=[FileAllowed(["jpg", "jpeg", "png"])],
+    def validate_other_name(self, other_name):
+        """
+        Check if the user has provided the other name and if the length is within the number of allowed characters.
+        If the user hasn't provided input, it will be ignored.
+        """
+        if 0 < len(other_name.data) < 2:
+            raise ValidationError("Field must be between 2 and 30 characters long.")
+
+
+class RequestResetPasswordForm(FlaskForm):
+    email = StringField(
+        "Email", validators=[DataRequired(), Email(), Length(min=5, max=60)]
     )
-    password = PasswordField("Password", validators=[Length(min=0, max=60)])
+    submit = SubmitField("Recover Password")
+
+    def validate_email(self, email):
+        user = User.query.filter_by(email=email.data).first()
+        if user is None:
+            raise ValidationError(
+                "The account with the email you have provided doesn't exist."
+            )
+
+
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField(
+        "New Password",
+        validators=[
+            Length(min=6, max=60),
+            EqualTo("confirm_password", message="Passwords must be equal"),
+        ],
+    )
     confirm_password = PasswordField(
-        "Confirm Password",
-        validators=[Length(min=0, max=60), EqualTo("confirm_password")],
+        "Confirm New Password", validators=[DataRequired(), Length(min=6, max=60)]
     )
-    submit = SubmitField("Update")
+    submit = SubmitField("Reset Password")
+
+
+class UserProfileUpdateForm(CreateAccountForm):
+    username = StringField("Username", validators=[Length(min=2, max=20)])
+    email = StringField("Your Email", validators=[Email(), Length(min=2, max=30)])
+    password = PasswordField("Your Password")
+    profile_photo = FileField(
+        "Select profile Photo",
+        validators=[FileAllowed(["jpg", "jpeg", "png"], "Images Only!")],
+    )
+    cover_photo = FileField(
+        "Select cover Photo",
+        validators=[FileAllowed(["jpg", "jpeg", "png"], "Images Only!")],
+    )
+    save = SubmitField("Save All")
 
     def validate_username(self, username):
         """
@@ -99,9 +135,7 @@ class UpdateAccountForm(CreateAccountForm):
         different than the current_user username and email address.
         """
         if username.data != current_user.username:
-            """
-            Will raise a validation errors if the username submitted from the form already exists in the database
-            """
+            # Will raise a validation errors if the username submitted from the form already exists in the database
             user = User.query.filter_by(username=username.data).first()
             if user:
                 raise ValidationError(
@@ -109,7 +143,7 @@ class UpdateAccountForm(CreateAccountForm):
                 )
 
     def validate_email(self, email):
-        """ Will raise a validation errors if the email submitted from the form already exists in the database """
+        """Will raise a validation errors if the email submitted from the form already exists in the database"""
         if email.data != current_user.email:
             user = User.query.filter_by(email=email.data).first()
             if user:
@@ -117,87 +151,85 @@ class UpdateAccountForm(CreateAccountForm):
                     "The email you entered is already registered. Please try a different one."
                 )
 
+    def validate_other_name(self, other_name):
+        """
+        Check if the user has provided the other name and if the length is within the number of allowed characters.
+        If the user hasn't provided input, it will be ignored.
+        """
+        if 0 < len(other_name.data) < 2:
+            raise ValidationError("Field must be between 2 and 30 characters long.")
 
-class RequestResetPasswordForm(FlaskForm):
-    email = StringField(
-        "Email", validators=[DataRequired(), Email(), Length(min=5, max=60)]
-    )
-    submit = SubmitField("Request Password Reset")
+    def validate_gender(self, gender):
+        """
+        Checks if the user has selected gender either Male or Female from the Select Field.
+        """
+        if gender.data == "Gender":
+            raise ValidationError("You need to select your gender.")
 
-    def validate_email(self, email):
-        user = User.query.filter_by(email=email.data).first()
-        if user is None:
-            raise ValidationError("The account with the email you have provided doesn't exist.")
-
-
-class ResetPasswordForm(FlaskForm):
-    password = PasswordField("Password", validators=[Length(min=6, max=60), EqualTo("confirm_password",
-                                                                                    message="Passwords must be equal")])
-    confirm_password = PasswordField(
-        "Confirm Password",
-        validators=[DataRequired(), Length(min=6, max=60)]
-    )
-    submit = SubmitField("Reset Password")
+    def validate_password(self, password):
+        """
+        Checks if the user has provided the password. If the length of password.data is 0, it means the user hasn't
+        provided a password and the form will be submitted and validated without a password input. If the length of the
+        password is greater than 1, it means password is provided and the user wants to change the password, then it is
+        checked for validation before the form is submitted.
+        """
+        if 0 < len(password.data) < 8:
+            raise ValidationError("Field must be between 8 and 20 characters long.")
 
 
 class CreatePropertyForm(FlaskForm):
-    prop_name = StringField(
+    name = StringField(
         "Property Name", validators=[DataRequired(), Length(min=5, max=50)]
     )
-    prop_desc = TextAreaField(
+    desc = TextAreaField(
         "Property Description", validators=[DataRequired(), Length(min=10, max=300)]
     )
-    prop_type = SelectField(
-        "Property type",
+    type = SelectField(
+        "Property For ...",
         choices=[
-            "Select Category",
-            "Electronics",
-            "Fashion",
-            "Car and Auto Parts",
-            "Real Estate",
+            "Select",
+            "Rent",
+            "Sale",
         ],
-    )
-    prop_condition = SelectField(
-        "Condition",
-        choices=["Select Condition", "Used", "Refurbished"],
         validators=[DataRequired()],
     )
-    prop_photos = MultipleFileField(
+    photos = MultipleFileField(
         "Upload photos of your property",
         validators=[
             DataRequired(),
-            # FileAllowed(["jpeg", "jpg", "png"]),
             Length(
-                min=1, max=15, message="Upload 3 or more photos and not more that 15"
+                min=1, max=10, message="Upload 1 or more photos and not more that 10"
             ),
         ],
     )
-    prop_price = StringField(
-        "Price (ZMW)", validators=[DataRequired(), Length(min=1, max=10)]
-    )
-    prop_location = StringField(
-        "Property location", validators=[DataRequired(), Length(min=5, max=50)]
+    price = StringField("Price", validators=[DataRequired(), Length(min=1, max=50)])
+    location = StringField(
+        "Property Location", validators=[DataRequired(), Length(min=2, max=50)]
     )
     submit = SubmitField("Create")
 
-    def validate_prop_photos(self, prop_photos):
+    def validate_prop_photos(self, photos):
         ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png"]
-        for file in prop_photos.data:
+        for file in photos.data:
             if os.path.splitext(file.filename)[1] not in ALLOWED_EXTENSIONS:
                 raise ValidationError("Only Images are allowed e.g jpg, jpeg, png")
 
+    def validate_prop_type(self, type):
+        """
+        Checks if the user has selected gender either Male or Female from the Select Field.
+        """
+        if type.data == "Select":
+            raise ValidationError("You need to select your property listing type.")
+
 
 class UpdatePropertyForm(CreatePropertyForm):
-    prop_photos = MultipleFileField(
+    photos = MultipleFileField(
         "Upload photos of your property",
-        # validators=[FileAllowed(["jpeg", "jpg", "png"])],
     )
 
-    def validate_prop_photos(self, prop_photos):
-        if prop_photos.data[0].filename == "":
-            return True  # Means the user hasn't updated the images
+    def validate_prop_photos(self, photos):
         ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png"]
-        for file in prop_photos.data:
+        for file in photos.data:
             if os.path.splitext(file.filename)[1] not in ALLOWED_EXTENSIONS:
                 raise ValidationError("Only Images are allowed e.g jpg, jpeg, png")
 
@@ -210,7 +242,7 @@ class SearchForm(FlaskForm):
 
     def __init__(self, *args, **kwargs):
         """
-        The __init__ constructor provides values for the formdata and csrf_enabled arguments if they are not provided
+        The __init__ constructor provides values for the form data and csrf_enabled arguments if they are not provided
         by the caller.
         """
         if "formdata" not in kwargs:
@@ -218,3 +250,20 @@ class SearchForm(FlaskForm):
         if "csrf_token" not in kwargs:
             kwargs["csrf_token"] = False
         super(SearchForm, self).__init__(*args, **kwargs)
+
+
+class ConfirmAccountDeletionForm(FlaskForm):
+    password = PasswordField(
+        "Password", validators=[DataRequired(), Length(min=6, max=60)]
+    )
+    submit = SubmitField("Continue")
+
+
+class ReactivateAccountForm(FlaskForm):
+    email = StringField(
+        "Your Email", validators=[DataRequired(), Email(), Length(min=2, max=30)]
+    )
+    password = PasswordField(
+        "Your Password", validators=[DataRequired(), Length(min=8, max=60)]
+    )
+    submit = SubmitField("Reactivate Account")

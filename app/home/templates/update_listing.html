@@ -1,0 +1,113 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+ <main>
+    <section class="d-flex align-items-center my-5 mt-lg-6 mb-lg-5">
+        <div class="container">
+            <p class="text-center"><a href="/dashboard.html" class="text-gray-700"><i class="fas fa-angle-left me-2"></i> Back to homepage</a></p>
+            <div class="row justify-content-center form-bg-image" data-background-lg="/static/assets/img/illustrations/signin.svg">
+                <div class="col-12 d-flex align-items-center justify-content-center">
+                    <div class="mb-4 mb-lg-0 bg-white shadow-soft border rounded border-light p-4 p-lg-5 w-100 fmxw-500">
+                        <div class="text-center text-md-center mb-4 mt-md-0">
+                            <h1 class="mb-0 h3">Update Property</h1>
+                        </div>
+                        <form action="" method="post" enctype="multipart/form-data">
+                            {{ form.hidden_tag() }}
+                            <!-- Form -->
+                            <div class="form-group mb-4">
+                                {{ form.name.label }}
+
+                                {% if form.name.errors %}
+                                    {{ form.name(class="form-control is-invalid", placeholder="Enter a name for the property") }}
+                                    {% for error in form.name.errors %}
+                                        <small class="text-danger">{{ error }}</small>
+                                    {% endfor %}
+                                {% else %}
+                                    {{ form.name(class="form-control", placeholder="Enter a name for the property") }}
+                                {% endif%}
+                            </div>
+                            <!-- End of Form -->
+                            <div class="form-group">
+                                <!-- Form -->
+                                <div class="form-group mb-4">
+                                    {{ form.desc.label }}
+
+                                    {% if form.desc.errors %}
+                                        {{ form.desc(class="form-control is-invalid", placeholder="A brief description for your property", rows="4") }}
+                                        {% for error in form.desc.errors %}
+                                            <small class="text-danger">{{ error }}</small>
+                                        {% endfor %}
+                                    {% else %}
+                                        {{ form.desc(class="form-control", placeholder="A brief description for your property", rows="4") }}
+                                    {% endif %}
+                                </div>
+                                <!-- End of Form -->
+                                <!-- Form -->
+                                <div class="mb-4">
+                                    {{ form.type.label(class="my-1 me-2") }}
+
+                                    {% if form.type.errors %}
+                                        {{ form.type(class="form-select is-invalid") }}
+                                        {% for error in form.type.errors %}
+                                            <small class="text-danger">{{ error }}</small>
+                                        {% endfor %}
+                                    {% else %}
+                                        {{ form.type(class="form-select") }}
+                                    {% endif %}
+                                </div>
+                                <!-- End of Form -->
+                                <!-- Form -->
+                                <div class="mb-3">
+                                    {{ form.photos.label(class="form-label") }}
+
+                                    {% if form.photos.errors %}
+                                        {{ form.photos(class="form-control is-invalid") }}
+                                        {% for error in form.photos.errors %}
+                                            <small class="text-danger">{{ error }}</small>
+                                        {% endfor %}
+                                    {% else %}
+                                        {{ form.photos(class="form-control") }}
+                                    {% endif %}
+                                </div>
+                                <!-- End of Form -->
+                                <!-- Form -->
+                                <div class="form-group mb-4">
+                                    {{ form.price.label }}
+
+                                    {% if form.price.errors %}
+                                        {{ form.price(class="form-control is-invalid", placeholder="Enter a price for example K20000 or K1000 per month") }}
+                                        {% for error in form.price.errors %}
+                                            <small class="text-danger">{{ error }}</small>
+                                        {% endfor %}
+                                    {% else %}
+                                        {{ form.price(class="form-control", placeholder="Enter a price for example K20000 or K1000 per month") }}
+                                    {% endif %}
+                                </div>
+                                <!-- End of Form -->
+                                <!-- Form -->
+                                <div class="form-group mb-4">
+                                    {{ form.location.label }}
+
+                                    {% if form.location.errors %}
+                                        {{ form.location(class="form-control is-invalid", placeholder="Enter location of property e.g Lusaka ...") }}
+                                        {% for error in form.location.errors %}
+                                            <small class="text-danger">{{ error }}</small>
+                                        {% endfor %}
+                                    {% else %}
+                                        {{ form.location(class="form-control", placeholder="Enter location of property e.g Lusaka ...") }}
+                                    {% endif %}
+                                </div>
+                                <!-- End of Form -->
+                            </div>
+                            <div class="d-grid">
+                                {{ form.submit(class="btn btn-dark") }}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+{% endblock %}

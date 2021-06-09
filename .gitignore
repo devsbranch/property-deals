@@ -28,10 +28,6 @@ _templates
 package-lock.json
 .vscode/symbols.json
 
-# image files
-*.jpeg
-*.jpg
-*.png
 
 # flask eviroment variables
 *.flaskenv

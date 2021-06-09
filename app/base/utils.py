@@ -1,22 +1,80 @@
 import os
 import uuid
-import numpy as np
-from datetime import datetime
 from functools import wraps
-from flask import redirect, url_for
-from itsdangerous import URLSafeTimedSerializer
+from flask import redirect, url_for, render_template
 from flask_login import current_user
+from itsdangerous import URLSafeTimedSerializer
+from decouple import config
 from app import redis_client
-from config import S3_BUCKET_CONFIG
+from config import IMAGE_UPLOAD_CONFIG
 
-bucket = S3_BUCKET_CONFIG["S3_BUCKET"]
-serializer = URLSafeTimedSerializer(os.environ.get("SECRET_KEY"))
-salt = os.environ.get("SECURITY_PASSWORD_SALT")
+bucket = IMAGE_UPLOAD_CONFIG["AMAZON_S3"]["S3_BUCKET"]
+serializer = URLSafeTimedSerializer(os.environ.get("SECRET_KEY", config("SECRET_KEY")))
+salt = os.environ.get("SECURITY_PASSWORD_SALT", config("SECURITY_PASSWORD_SALT"))
+
+email_template_vars = {
+    "verify_email": {
+        "subject": "Verify Email - Property Deals",
+        "msg_header": "Verify Your Email",
+        "msg_body": """Thanks for signing up. Please verify your email address to be able to list your Property 
+                    on Property Deals.""",
+        "btn_txt": "Verify Email",
+    },
+    "password_reset": {
+        "subject": "Reset Password - Property Deals",
+        "msg_header": "Password Reset",
+        "msg_body": """You are receiving this email because you requested a password reset. 
+                    If you didn't request a password reset, kindly ignore this email.""",
+        "btn_txt": "Reset Password",
+    },
+}
+
+
+def user_data_for_url_token(username, email, email_category=None):
+    user_data = {
+        "username": username,
+        "email": email,
+        "email_category": email_category,
+    }
+    return user_data
+
+
+def generate_url_and_email_template(
+    email, username, first_name, last_name, email_category=None
+):
+    user_data = user_data_for_url_token(username, email, email_category=email_category)
+    token = generate_url_token(user_data)
+    generated_url = url_for(
+        f"base_blueprint.{email_category}", token=token, _external=True
+    )
+    template_text = email_template_vars[email_category]
+    msg_header = template_text["msg_header"]
+    msg_body = template_text["msg_body"]
+    subject = template_text["subject"]
+    email_template = render_template(
+        "email_template.html",
+        url=generated_url,
+        name=f"{first_name} {last_name}",
+        html_msg_header=msg_header,
+        html_msg_body=msg_body,
+        button_text=template_text["btn_txt"],
+    )
+    return email_template, subject
+
+
+def save_image_to_redis(image_file):
+    """
+    Change the filename of the uploaded image and save it temporary to redis.
+    """
+    _, file_extension = os.path.splitext(image_file.filename)
+    new_filename = uuid.uuid4().__str__()[:8] + file_extension
+    redis_client.set(new_filename, image_file.read())
+    return new_filename
 
 
 def generate_url_token(user_data):
     """
-    Generates a token and with user email as encoded data
+    Generates a url token encoded with user data.
     """
     token = serializer.dumps(user_data, salt=salt)
     return token
@@ -24,69 +82,53 @@ def generate_url_token(user_data):
 
 def confirm_token(token, expiration=3600):
     """
-    Decodes the data in the token, return False if token is not valid or has expired and return
-    decoded data if token is valid.
+    Decode the data in the url token.
     """
     try:
-        email = serializer.loads(token, salt=salt, max_age=expiration)
+        user_data = serializer.loads(token, salt=salt, max_age=expiration)
     except:
         return False
-    return email
+    return user_data
 
 
 def email_verification_required(function):
     """
-    Checks if the user email has been verified
+    This function decorator will check if the user has verified the email.
     """
+
     @wraps(function)
-    def decorated_function(*args, **kwargs):
+    def wrapped_func(*args, **kwargs):
         if current_user.is_verified is False:
             return redirect(url_for("base_blueprint.unverified"))
         return function(*args, **kwargs)
 
-    return decorated_function
+    return wrapped_func
 
 
-def generate_confirmation_token(user_email):
-    """
-    Generates a token and with user email as encoded data
-    """
-    serializer = URLSafeTimedSerializer(
-        os.environ.get("SECRET_KEY")
-    )
-    salt = os.environ.get("SECURITY_PASSWORD_SALT")
-    token = serializer.dumps(user_email, salt=salt)
-    return token
+def check_account_status(function):
+    @wraps(function)
+    def wrapped_func(*args, **kwargs):
+        try:
+            if current_user.acc_deactivated is True:
+                return redirect(url_for("base_blueprint.deactivated_acc_page"))
+        # Catch attribute error since anonymous(logged out) user does not have current_user.acc_deactivated attribute
+        except AttributeError:
+            pass
+        return function(*args, **kwargs)
+
+    return wrapped_func
 
 
-def generate_dir_name(username):
+def save_property_listing_images_to_redis(image_files):
     """
-    This function generates a random string to be used as a directory name where images will be saved on S3
+    Saves the image files to redis in a hash map. The image_files_redis_key will be used to get the images in redis
+    for resizing. The image_files_redis_key will also be used a folder name where the processed images will be saved.
     """
-    suffix = uuid.uuid4().__str__()[:5]
-    current_date = datetime.utcnow()
-    time, date = (
-        current_date.strftime("%H"),
-        current_date.strftime("%d-%m-%Y"),
-    )
-    dir_name = f"{username}_{date}_{time}_{suffix}"
-    return dir_name
-
-
-def save_to_redis(image_file_list, username):
-    """
-    Create a dictionary which will contain folder_name as key and random_img_name/img_to_bytes as value then push to redis.
-    to redis.
-    """
-    folder_name = generate_dir_name(username)
-    img_dict = {}
-    for file in image_file_list:
-        _, file_ext = os.path.splitext(file.filename)  # Get file extension
-        new_img_name = uuid.uuid4().__str__()[
-            :8
-        ]  # generate a random string to set as key for the image in img_dict
-        # convert file to bytes
-        img_to_bytes = np.array(np.frombuffer(file.read(), np.uint8)).tobytes()
-        img_dict[f"{new_img_name}{file_ext}"] = img_to_bytes
-    redis_client.hmset(folder_name, img_dict)
-    return folder_name
+    image_files_redis_key = uuid.uuid4().__str__()[:15].replace("-", "")
+    image_data_dict = {}
+    for image_file in image_files:
+        _, file_extension = os.path.splitext(image_file.filename)
+        new_image_filename = uuid.uuid4().__str__()[:8]
+        image_data_dict[f"{new_image_filename}{file_extension}"] = image_file.read()
+    redis_client.hmset(image_files_redis_key, image_data_dict)
+    return image_files_redis_key

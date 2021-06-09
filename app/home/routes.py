@@ -1,39 +1,42 @@
 # -*- encoding: utf-8 -*-
 """
-Copyright (c) 2020 - DevsBranch
+Copyright (c) 2019 - present AppSeed.us
 """
 import json
-from datetime import date
-from flask import render_template, redirect, url_for, request, flash, current_app, g
-from flask_login import login_required, current_user
+from flask import flash, render_template, request, redirect, url_for, g, current_app
+from flask_login import current_user
 from jinja2 import TemplateNotFound
-from app import db, redis_client
-from app.base.forms import CreatePropertyForm, UpdatePropertyForm
-from app.base.models import Property
+from flask_login import login_required
+from app import redis_client
 from app.home import blueprint
-from config import S3_BUCKET_CONFIG
-from app.base.utils import save_to_redis, email_verification_required
+from app.base.forms import CreatePropertyForm, UpdatePropertyForm
+from app.base.utils import (
+    save_property_listing_images_to_redis,
+    email_verification_required,
+    check_account_status,
+)
+from app.tasks import process_property_listing_images, delete_property_listing_images
+from app.base.models import Property
+from config import IMAGE_UPLOAD_CONFIG
 
-bucket = S3_BUCKET_CONFIG["S3_BUCKET"]
-image_path = S3_BUCKET_CONFIG["S3_URL"] + "/" + S3_BUCKET_CONFIG["PROP_ASSETS"]
-s3_prop_img_dir = S3_BUCKET_CONFIG["PROP_ASSETS"]
+property_listings_images_dir = IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"][
+    "PROPERTY_LISTING_IMAGES"
+]
+amazon_s3_url = IMAGE_UPLOAD_CONFIG["AMAZON_S3"]["S3_URL"]
 
 
 @blueprint.route("/index")
+@check_account_status
 def index():
-    page = request.args.get("page", 1, type=int)
-    property_photos = Property.query.order_by(Property.date.desc())
-    photos = [json.loads(p.photos) for p in property_photos]
-    paginate_properties = Property.query.paginate(page=page, per_page=10)
-    today = date.today()
-
+    property_listings = Property.query.all()
+    property_listing_photos = [json.loads(p.photos) for p in property_listings]
     return render_template(
         "index.html",
         segment="index",
-        properties=paginate_properties,
-        photos_list=photos,
-        today=today,
-        image_path=image_path,
+        property_listings=property_listings,
+        photos_list=property_listing_photos,
+        image_folder=property_listings_images_dir,
+        amazon_s3_url=amazon_s3_url,
     )
 
 
@@ -69,134 +72,121 @@ def get_segment(request):
         return None
 
 
-@blueprint.route("/property/create", methods=["GET", "POST"])
-@login_required
+@blueprint.route("/create-property", methods=["GET", "POST"])
 @email_verification_required
+@login_required
 def create_property():
-    from app.tasks import image_process
-
     form = CreatePropertyForm()
 
-    if form.validate_on_submit():
-        img_files = request.files.getlist("prop_photos")
-        folder_name = save_to_redis(img_files, current_user.username)
+    if request.method == "POST" and form.validate_on_submit():
+        redis_image_hashmap_key = save_property_listing_images_to_redis(
+            request.files.getlist("photos")
+        )
+        process_property_listing_images.delay(redis_image_hashmap_key)
+        image_filenames = redis_client.hgetall(redis_image_hashmap_key)
 
-        image_process.delay(folder_name, s3_prop_img_dir)
-        image_names = redis_client.hgetall(folder_name)
-        image_list = [
-            f"{image_name.decode('utf-8')}" for image_name in image_names.keys()
+        list_of_image_filenames = [
+            image_name.decode("utf-8") for image_name in image_filenames.keys()
         ]
-        image_list.insert(0, f"{folder_name}/")
-        img_list_to_json = json.dumps(image_list)
+        # add redis_image_hashmap_key on first index since it is used as a directory name of where to save image files
+        list_of_image_filenames.insert(0, f"{redis_image_hashmap_key}/")
+        img_list_to_json = json.dumps(list_of_image_filenames)
 
         prop_data = {
-            "name": form.prop_name.data,
-            "desc": form.prop_desc.data,
-            "price": form.prop_price.data,
-            "image_folder": f"{folder_name}/",
+            "name": form.name.data,
+            "desc": form.desc.data,
+            "price": form.price.data,
+            "images_folder": f"{redis_image_hashmap_key}/",
             "photos": img_list_to_json,
-            "location": form.prop_location.data,
-            "type": form.prop_type.data,
-            "condition": form.prop_condition.data,
+            "photos_location": IMAGE_UPLOAD_CONFIG["STORAGE_LOCATION"],
+            "location": form.location.data,
+            "type": form.type.data,
             "user_id": current_user.id,
         }
-
         Property.add_property(prop_data)
-        flash("Your Property has been listed")
+        flash("Your Property has been listed.", "success")
         return redirect(url_for("home_blueprint.index"))
     return render_template("create_property.html", form=form)
 
 
-@blueprint.route("/property/details/<int:property_id>")
-def details(property_id):
-    prop_data = Property.query.get_or_404(property_id)
-    # converts the json object from the db to a python dictionary
-    photos = json.loads(prop_data.photos)
+@blueprint.route("/property/details/<int:listing_id>")
+@login_required
+def listing_details(listing_id):
+    property_listing = Property.query.get_or_404(listing_id)
+    photos = json.loads(property_listing.photos)
     return render_template(
         "property_details.html",
-        prop_data=prop_data,
+        property_listing=property_listing,
         photos_list=photos,
-        image_path=image_path,
+        image_folder=property_listings_images_dir,
+        amazon_s3_url=amazon_s3_url,
     )
 
 
-@blueprint.route("/my-listings/<int:user_id>")
+@blueprint.route("/property/update/<int:listing_id>", methods=["GET", "POST"])
 @login_required
-def user_listing(user_id):
-    user_listings = Property.query.filter_by(user_id=user_id)
-    photos = [json.loads(p.photos) for p in user_listings]
-    return render_template(
-        "my_properties.html", properties=user_listings, photos_list=photos
-    )
+def update_listing(listing_id):
 
+    listing_to_update = Property.query.get_or_404(listing_id)
 
-@blueprint.route("/property/update/<int:property_id>", methods=["GET", "POST"])
-@login_required
-@email_verification_required
-def update_property(property_id):
-    from app.tasks import delete_img_obj, image_process
-
-    prop_to_update = Property.query.get(property_id)
-
-    form = UpdatePropertyForm()
+    form = UpdatePropertyForm(obj=listing_to_update)
     if request.method == "POST" and form.validate_on_submit():
-        if request.files["prop_photos"].filename:
-            if request.files["prop_photos"].filename:
-                # delete previous images before
-                delete_img_obj.delay(
-                    bucket,
-                    s3_prop_img_dir + prop_to_update.image_folder,
-                    json.loads(prop_to_update.photos),
-                )
+        if bool(request.files["photos"]):
+            # delete previous images before
+            delete_property_listing_images.delay(
+                listing_to_update.photos_location,
+                property_listings_images_dir,
+                listing_to_update.images_folder,
+                json.loads(listing_to_update.photos),
+                IMAGE_UPLOAD_CONFIG["AMAZON_S3"]["S3_BUCKET"],
+            )
 
-                img_files = request.files.getlist("prop_photos")
-                folder_name = save_to_redis(img_files, current_user.username)
+            redis_image_hashmap_key = save_property_listing_images_to_redis(
+                request.files.getlist("photos")
+            )
+            process_property_listing_images.delay(redis_image_hashmap_key)
+            image_filenames = redis_client.hgetall(redis_image_hashmap_key)
 
-                image_process.delay(folder_name, s3_prop_img_dir)
-                image_names = redis_client.hgetall(
-                    folder_name
-                )  # Returns dictionary object
-                image_list = [
-                    f"{image_name.decode('utf-8')}"
-                    for image_name in image_names.keys()
-                ]
-                image_list.insert(0, f"{folder_name}/")
-                img_list_to_json = json.dumps(image_list)
+            list_of_image_filenames = [
+                image_name.decode("utf-8") for image_name in image_filenames.keys()
+            ]
+            # add redis_image_hashmap_key on first index since it is used as a
+            # directory name of where to save image files
+            list_of_image_filenames.insert(0, f"{redis_image_hashmap_key}/")
+            img_list_to_json = json.dumps(list_of_image_filenames)
 
-                prop_to_update.image_folder = f"{folder_name}/"
-                prop_to_update.photos = img_list_to_json
-                db.session.commit()
+            Property.update_property_images(
+                listing_to_update, redis_image_hashmap_key, img_list_to_json
+            )
 
-        prop_data = {
-            "name": form.prop_name.data,
-            "desc": form.prop_desc.data,
-            "price": form.prop_price.data,
-            "type": form.prop_type.data,
-            "condition": form.prop_condition.data,
-            "location": form.prop_location.data,
-        }
-        Property.update_property(prop_data, property_id)
+        Property.update_property(listing_to_update, request.form)
         flash("Your Property listing has been updated", "success")
         return redirect(url_for("home_blueprint.index"))
 
     elif request.method == "GET":
-        prop_to_update = Property.query.get(property_id)
-        # prefills the forms with the attributes to the property to be updated
-        form.prop_name.data = prop_to_update.name
-        form.prop_desc.data = prop_to_update.desc
-        form.prop_price.data = prop_to_update.price
-        form.prop_location.data = prop_to_update.location
-        form.prop_type.data = prop_to_update.type
-        form.prop_condition.data = prop_to_update.condition
+        form.populate_obj(listing_to_update)
 
-    return render_template("update_property.html", form=form)
+    return render_template("update_listing.html", form=form)
 
 
-@blueprint.route("/property/delete/<int:prop_id>", methods=["POST"])
+@blueprint.route("/delete-listing/<int:listing_id>", methods=["GET", "POST"])
 @login_required
-def delete_property(prop_id):
-    Property.delete_property(prop_id)
-    return redirect(url_for("home_blueprint.index"))
+def delete_listing(listing_id):
+    listing_to_delete = Property.query.get_or_404(listing_id)
+
+    if listing_to_delete.user_id == current_user.id:
+        delete_property_listing_images.delay(
+            listing_to_delete.photos_location,
+            property_listings_images_dir,
+            listing_to_delete.images_folder,
+            json.loads(listing_to_delete.photos),
+            IMAGE_UPLOAD_CONFIG["AMAZON_S3"]["S3_BUCKET"],
+        )
+        Property.delete_property(listing_to_delete)
+        flash("Your Property listing has been deleted", "success")
+        return redirect(url_for("home_blueprint.index"))
+    else:
+        return
 
 
 @blueprint.route("/search/")
@@ -204,22 +194,31 @@ def search():
     per_page = current_app.config["RESULTS_PER_PAGE"]
 
     page = request.args.get("page", 1, type=int)
-    search_results, total = Property.search_property(g.search_form.q.data, page, per_page)
+    search_results, total = Property.search_property(
+        g.search_form.q.data, page, per_page
+    )
     photos = [json.loads(p.photos) for p in search_results]
 
-    next_url = url_for('home_blueprint.search', q=g.search_form.q.data, page=page + 1) \
-        if total > page * 25 else None
-    prev_url = url_for('home_blueprint.search', q=g.search_form.q.data, page=page - 1) \
-        if page > 1 else None
+    next_url = (
+        url_for("home_blueprint.search", q=g.search_form.q.data, page=page + 1)
+        if total > page * 2
+        else None
+    )
+    prev_url = (
+        url_for("home_blueprint.search", q=g.search_form.q.data, page=page - 1)
+        if page > 1
+        else None
+    )
 
     return render_template(
         "search.html",
         title="search",
         search_results=search_results,
         total=total,
-        image_path=image_path,
+        image_folder=property_listings_images_dir,
         photos_list=photos,
+        amazon_s3_url=amazon_s3_url,
         next_url=next_url,
         prev_url=prev_url,
-        search_term=g.search_form.q.data
+        search_term=g.search_form.q.data,
     )

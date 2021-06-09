@@ -1,149 +1,113 @@
 {% extends "layouts/base.html" %}
 
-{% block title %} {{ title }}{% endblock %}
-
-{% block content%}
-<div class="pcoded-content">
-    <div class="pcoded-inner-content">
-        <div class="main-body">
-            <div class="page-wrapper">
-                <!-- [ Main Content ] start -->
-                <div class="row">
-                    <div class="col-sm-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <h4 class="text-center">Create Property Page</h4>
-                                <hr>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <form class='form-group' method="POST" enctype="multipart/form-data">
-                                            <div>{{ form.csrf_token }}</div>
-                                            <div class="form-group">
-
-                                                {{ form.prop_name.label }}
-
-                                                {% if form.prop_name.errors %}
-                                                    {{ form.prop_name(class="form-control form-control-lg is-invalid") }}
-                                                    <div class="invalid-feedback">
-                                                        {% for error in form.prop_name.errors %}
-                                                            <span>{{ error }}</span>
-                                                        {% endfor %}
-                                                    </div>
-                                                {% else %}
-                                                    {{ form.prop_name(class="form-control") }}
-                                                {% endif%}
-                                            </div>
-                                            <div class="form-group">
-                                                {{ form.prop_desc.label }}
-
-                                                {% if form.prop_desc.errors %}
-                                                    {{ form.prop_desc(class="form-control form-control-lg is-invalid") }}
-                                                    <div class="invalid-feedback">
-                                                        {% for error in form.prop_desc.errors %}
-                                                            <span>{{ error }}</span>
-                                                        {% endfor %}
-                                                    </div>
-                                                {% else %}
-                                                    {{ form.prop_desc(class="form-control") }}
-                                                {% endif%}
-
-                                            </div>
-                                            <div class="form-group">
-                                                {{ form.prop_type.label }}
-
-                                                {% if form.prop_type.errors %}
-                                                    {{ form.prop_type(class="form-control form-control-lg is-invalid") }}
-                                                    <div class="invalid-feedback">
-                                                        {% for error in form.prop_type.errors %}
-                                                            <span>{{ error }}</span>
-                                                        {% endfor %}
-                                                    </div>
-                                                {% else %}
-                                                    {{ form.prop_type(class="form-control") }}
-                                                {% endif%}
-
-                                            </div>
-                                            <div class="form-group">
-                                                {{ form.prop_condition.label }}
-
-                                                {% if form.prop_condition.errors %}
-                                                    {{ form.prop_condition(class="form-control form-control-lg is-invalid") }}
-                                                    <div class="invalid-feedback">
-                                                        {% for error in form.prop_condition.errors %}
-                                                            <span>{{ error }}</span>
-                                                        {% endfor %}
-                                                    </div>
-                                                {% else %}
-                                                    {{ form.prop_condition(class="form-control") }}
-                                                {% endif%}
-
-                                            </div>
-                                            <div class="form-group">
-                                                {{ form.prop_photos.label }}
-
-                                                {% if form.prop_photos.errors %}
-                                                    {{ form.prop_photos(class="form-control form-control-lg is-invalid") }}
-                                                    <div class="invalid-feedback">
-                                                        {% for error in form.prop_photos.errors %}
-                                                            <span>{{ error }}</span>
-                                                        {% endfor %}
-                                                    </div>
-                                                {% else %}
-                                                    {{ form.prop_photos(class="form-control") }}
-                                                {% endif%}
-                                            </div>
-                                            <div class="form-group">
-                                                {{ form.prop_price.label }}
-
-                                                {% if form.prop_price.errors %}
-                                                    {{ form.prop_price(class="form-control form-control-lg is-invalid") }}
-                                                    <div class="invalid-feedback">
-                                                        {% for error in form.prop_price.errors %}
-                                                            <span>{{ error }}</span>
-                                                        {% endfor %}
-                                                    </div>
-                                                {% else %}
-                                                    {{ form.prop_price(class="form-control") }}
-                                                {% endif%}
-                                            </div>
-                                            <div class="form-group">
-                                                {{ form.prop_location.label }}
-
-                                                {% if form.prop_location.errors %}
-                                                    {{ form.prop_location(class="form-control form-control-lg is-invalid") }}
-                                                    <div class="invalid-feedback">
-                                                        {% for error in form.prop_location.errors %}
-                                                            <span>{{ error }}</span>
-                                                        {% endfor %}
-                                                    </div>
-                                                {% else %}
-                                                    {{ form.prop_location(class="form-control") }}
-                                                {% endif%}
-                                            </div>
-                                            <div align="center" class="form-group">
-                                                {{ form.submit(class="btn btn-primary") }}
-                                            </div>
-                                        </form>
-                                    </div>
-                                    <div style="border-left: solid 10px; height: 570px; color:#E7E6E1"></div>
-                                    <div class="col-md-5">
-                                        <h3 class="text-center font-weight-bold">Upload CSV</h3>
-                                        <br>
-                                        <h5>This is just sample text</h5>
-                                        <ul class="list-group">
-                                          <li class="list-group-item">This is just sample text</li>
-                                          <li class="list-group-item">Dapibus ac facilisis in</li>
-                                          <li class="list-group-item">Morbi leo risus</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
+{% block content %}
+ <main>
+    <section class="d-flex align-items-center my-5 mt-lg-6 mb-lg-5">
+        <div class="container">
+            <p class="text-center"><a href="/dashboard.html" class="text-gray-700"><i class="fas fa-angle-left me-2"></i> Back to homepage</a></p>
+            <div class="row justify-content-center form-bg-image" data-background-lg="/static/assets/img/illustrations/signin.svg">
+                <div class="col-12 d-flex align-items-center justify-content-center">
+                    <div class="mb-4 mb-lg-0 bg-white shadow-soft border rounded border-light p-4 p-lg-5 w-100 fmxw-500">
+                        <div class="text-center text-md-center mb-4 mt-md-0">
+                            <h1 class="mb-0 h3">Create Property</h1>
                         </div>
+                        <form action="" method="post" enctype="multipart/form-data">
+                            {{ form.hidden_tag() }}
+                            <!-- Form -->
+                            <div class="form-group mb-4">
+                                {{ form.name.label }}
+
+                                {% if form.name.errors %}
+                                    {{ form.name(class="form-control is-invalid", placeholder="Enter a name for the property") }}
+                                    {% for error in form.name.errors %}
+                                        <small class="text-danger">{{ error }}</small>
+                                    {% endfor %}
+                                {% else %}
+                                    {{ form.name(class="form-control", placeholder="Enter a name for the property") }}
+                                {% endif%}
+                            </div>
+                            <!-- End of Form -->
+                            <div class="form-group">
+                                <!-- Form -->
+                                <div class="form-group mb-4">
+                                    {{ form.desc.label }}
+
+                                    {% if form.desc.errors %}
+                                        {{ form.desc(class="form-control is-invalid", placeholder="A brief description for your property", rows="4") }}
+                                        {% for error in form.desc.errors %}
+                                            <small class="text-danger">{{ error }}</small>
+                                        {% endfor %}
+                                    {% else %}
+                                        {{ form.desc(class="form-control", placeholder="A brief description for your property", rows="4") }}
+                                    {% endif %}
+                                </div>
+                                <!-- End of Form -->
+                                <!-- Form -->
+                                <div class="mb-4">
+                                    {{ form.type.label(class="my-1 me-2") }}
+
+                                    {% if form.type.errors %}
+                                        {{ form.type(class="form-select is-invalid") }}
+                                        {% for error in form.type.errors %}
+                                            <small class="text-danger">{{ error }}</small>
+                                        {% endfor %}
+                                    {% else %}
+                                        {{ form.type(class="form-select") }}
+                                    {% endif %}
+                                </div>
+                                <!-- End of Form -->
+                                <!-- Form -->
+                                <div class="mb-3">
+                                    {{ form.photos.label(class="form-label") }}
+
+                                    {% if form.photos.errors %}
+                                        {{ form.photos(class="form-control is-invalid") }}
+                                        {% for error in form.photos.errors %}
+                                            <small class="text-danger">{{ error }}</small>
+                                        {% endfor %}
+                                    {% else %}
+                                        {{ form.photos(class="form-control") }}
+                                    {% endif %}
+                                </div>
+                                <!-- End of Form -->
+                                <!-- Form -->
+                                <div class="form-group mb-4">
+                                    {{ form.price.label }}
+
+                                    {% if form.price.errors %}
+                                        {{ form.price(class="form-control is-invalid", placeholder="Enter a price for example K20000 or K1000 per month") }}
+                                        {% for error in form.price.errors %}
+                                            <small class="text-danger">{{ error }}</small>
+                                        {% endfor %}
+                                    {% else %}
+                                        {{ form.price(class="form-control", placeholder="Enter a price for example K20000 or K1000 per month") }}
+                                    {% endif %}
+                                </div>
+                                <!-- End of Form -->
+                                <!-- Form -->
+                                <div class="form-group mb-4">
+                                    {{ form.location.label }}
+
+                                    {% if form.location.errors %}
+                                        {{ form.location(class="form-control is-invalid", placeholder="Enter location of property e.g Lusaka ...") }}
+                                        {% for error in form.location.errors %}
+                                            <small class="text-danger">{{ error }}</small>
+                                        {% endfor %}
+                                    {% else %}
+                                        {{ form.location(class="form-control", placeholder="Enter location of property e.g Lusaka ...") }}
+                                    {% endif %}
+                                </div>
+                                <!-- End of Form -->
+                            </div>
+                            <div class="d-grid">
+                                {{ form.submit(class="btn btn-dark") }}
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</div>
+    </section>
+</main>
 
 {% endblock %}

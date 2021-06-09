@@ -5,9 +5,7 @@ from elasticsearch_dsl import Document, Keyword, Text, Search, Integer
 from elasticsearch_dsl.connections import connections
 
 # Create global connection to ElasticSearch
-connections.create_connection(
-    hosts=[os.environ.get("ELASTICSEARCH_URL") or "localhost"]
-)
+connections.create_connection(hosts=[os.environ.get("ELASTICSEARCH_URL", "localhost")])
 
 
 es = Elasticsearch()
@@ -32,9 +30,6 @@ class PropertyDataMapping(Document):
         return super(PropertyDataMapping, self).save(**kwargs)
 
 
-PropertyDataMapping.init()  # Create the index and mappings in ElasticSearch
-
-
 def search_docs(search_term, page, per_page):
     """
     Searches for documents in ElasticSearch index with the search term provided. The results returned are ids
@@ -56,7 +51,7 @@ def search_docs(search_term, page, per_page):
     # can be included in the query
     response = current_app.elasticsearch.search(index="property_index", body=body)
     ids = [int(hit["_id"]) for hit in response["hits"]["hits"]]
-    total_results = response["hits"]["total"]
+    total_results = response["hits"]["total"]["value"]
     return ids, total_results
 
 

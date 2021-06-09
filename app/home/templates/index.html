@@ -1,55 +1,58 @@
 {% extends "layouts/base.html" %}
 
-{% block title %} Dashboard {% endblock %} 
+{% block title %} Dashboard {% endblock %}
 
-<!-- Specific CSS goes HERE -->
 
 {% block content %}
+    <!-- Specific Page JS goes HERE  -->
+    {% block javascripts %}
+        <script src="{{url_for('static', filename='assets/js/lightbox-plus-jquery.min.js')}}"></script>
+    {% endblock javascripts %}
 
-    <div class="pcoded-content">
-        <div class="pcoded-inner-content">
-            <!-- [ breadcrumb ] start -->
 
-            <!-- [ breadcrumb ] end -->
-            <div class="main-body">
-                <div class="page-wrapper">
-                    <!-- <br> -->
-                    {% include "includes/_search_bar.html" %}
+    {% block stylesheets %}
+        <link rel="stylesheet" href="{{url_for('static', filename='assets/css/lightbox.min.css')}}">
+    {% endblock stylesheets %}
 
-                    <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
-                        <li class="nav-item">
-                            <a class="nav-link active" id="pills-home-tab" data-toggle="pill" href="#all-properties" role="tab" aria-controls="pills-home" aria-selected="true">All Deals</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="pills-profile-tab" data-toggle="pill" href="#daily-properties" role="tab" aria-controls="pills-profile" aria-selected="false">Today's</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="pills-contact-tab" data-toggle="pill" href="#weekly-properties" role="tab" aria-controls="pills-contact" aria-selected="false">Weekly</a>
-                        </li>
-                    </ul>
-
-                    <div class="tab-content" id="pills-tabContent">
-                        <div class="tab-pane fade show active" id="all-properties" role="tabpanel" aria-labelledby="pills-home-tab">
-                            <h4 class="mb-0">Showing all property listings</h4>
-                            {% include 'includes/property_listing_all.html' %}
-                        </div>
-                        <div class="tab-pane fade" id="daily-properties" role="tabpanel" aria-labelledby="pills-profile-tab">
-                            <h4 class="mb-0">Listings in 24 hours</h4>
-                            {% include 'includes/property_listing_daily.html' %}
-
-                        </div>
-                        <div class="tab-pane fade" id="weekly-properties" role="tabpanel" aria-labelledby="pills-contact-tab">
-                            <h4 class="mb-0">Listings of the week</h4>
-                            {% include 'includes/property_listing_weekly.html' %}
-                        </div>
+    <div class="d-flex justify-content-center flex-wrap flex-md-nowrap align-items-center py-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+                <p class="text-center">{{ message }}</p>
+            </div>
+            {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+<hr>
+    <div class="row">
+        <!--        Property Listing Card -->
+        {% for property_listing in property_listings %}
+            <div class="col-12 col-md-6 col-lg-4 mb-5 mb-lg-0 d-flex align-items-stretch">
+                <div class="card shadow mb-3">
+                    {% for photo_list in photos_list %}
+                        {% if photo_list[0] == property_listing.images_folder %}
+                            {% if property_listing.photos_location == "app_server_storage" %}
+                                <a class="example-image-link rounded mx-auto d-block img-fluid p-1" href="{{ url_for('static', filename=image_folder + property_listing.images_folder + photo_list[1] ) }}" data-lightbox="example-2" data-title="{{property_listing.date_listed.strftime('%m/%d/%Y')}} | Available">
+                                    <img class="example-image rounded mx-auto d-block img-fluid p-1" src="{{ url_for('static', filename=image_folder + property_listing.images_folder + photo_list[1] ) }}" alt="image-1"/>
+                                </a>
+                            {% elif property_listing.photos_location == "amazon_s3" %}
+                                <a class="example-image-link rounded mx-auto d-block img-fluid p-1" href="{{ amazon_s3_url + '/' + image_folder + property_listing.images_folder + photo_list[1] }}" data-lightbox="example-2" data-title="{{property_listing.date_listed.strftime('%m/%d/%Y')}} | Available">
+                                    <img class="example-image rounded mx-auto d-block img-fluid p-1" src="{{ amazon_s3_url + '/' + image_folder + property_listing.images_folder + photo_list[1] }}" alt="image-1"/>
+                                </a>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                    <div class="card-body">
+                        <h3 class="h3 card-title mt-3"><a href="{{ url_for('home_blueprint.listing_details', listing_id=property_listing.id) }}">{{ property_listing.name }}</a></h3>
+                        <p class="card-text fw-bold">{% if property_listing.desc.__len__() >= 55 %} {{ property_listing.desc[:55] + '...' }} {% else %}  {{ property_listing.desc }} {% endif %}</p>
+                        <p class="card-text fw-bold"><small>{{ property_listing.date_listed.strftime("%d/%m/%Y") }} | {{ property_listing.price }} | {{ property_listing.location }}</small></p>
+                        <a href="#" class="btn btn-primary btn-sm">Contact Owner</a>
                     </div>
-                    <!-- [ Main Content ] end -->
                 </div>
             </div>
-        </div>
+        {% endfor %}
     </div>
-
 {% endblock content %}
 
-<!-- Specific Page JS goes HERE  -->
-{% block javascripts %}{% endblock javascripts %}
