@@ -1,4 +1,3 @@
-import pdb
 from datetime import datetime
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash
@@ -38,6 +37,8 @@ class User(db.Model, UserMixin):
     date_verified = db.Column(db.DateTime, nullable=True)
     username = db.Column(db.String, unique=True, nullable=False)
     email = db.Column(db.String(60), unique=True, nullable=False)
+    acc_deactivated = db.Column(db.Boolean, nullable=True, default=False)
+    date_to_delete_acc = db.Column(db.DateTime, nullable=True)
     password = db.Column(db.String, nullable=False)
     user_property_listings = db.relationship(
         "Property", backref="property_listing_owner", lazy=True
@@ -136,6 +137,17 @@ class Property(db.Model):
         delete_from_index(listing.id)  # Delete property in ElasticSearch index
         db.session.delete(listing)
         db.session.commit()
+
+
+class DeactivatedUserAccounts(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(200), nullable=True, unique=True)
+    username = db.Column(db.String(200), nullable=True, unique=True)
+    date_deactivated = db.Column(db.DateTime, nullable=True)
+    date_to_delete_acc = db.Column(db.DateTime, nullable=True)
+
+    def __repr__(self):
+        return f"<Email: {self.email} Username: {self.username}>"
 
 
 class TokenBlacklist(db.Model):

@@ -7,12 +7,13 @@ from flask import flash, render_template, request, redirect, url_for, g, current
 from flask_login import current_user
 from jinja2 import TemplateNotFound
 from flask_login import login_required
-from app import redis_client, db
+from app import redis_client
 from app.home import blueprint
 from app.base.forms import CreatePropertyForm, UpdatePropertyForm
 from app.base.utils import (
     save_property_listing_images_to_redis,
     email_verification_required,
+    check_account_status
 )
 from app.tasks import process_property_listing_images, delete_property_listing_images
 from app.base.models import Property
@@ -25,6 +26,7 @@ amazon_s3_url = IMAGE_UPLOAD_CONFIG["AMAZON_S3"]["S3_URL"]
 
 
 @blueprint.route("/index")
+@check_account_status
 def index():
     property_listings = Property.query.all()
     property_listing_photos = [json.loads(p.photos) for p in property_listings]
@@ -171,16 +173,20 @@ def update_listing(listing_id):
 @login_required
 def delete_listing(listing_id):
     listing_to_delete = Property.query.get_or_404(listing_id)
-    delete_property_listing_images.delay(
-        listing_to_delete.photos_location,
-        property_listings_images_dir,
-        listing_to_delete.images_folder,
-        json.loads(listing_to_delete.photos),
-        IMAGE_UPLOAD_CONFIG["AMAZON_S3"]["S3_BUCKET"],
-    )
-    Property.delete_property(listing_to_delete)
-    flash("Your Property listing has been deleted", "success")
-    return redirect(url_for("home_blueprint.index"))
+
+    if listing_to_delete.user_id == current_user.id:
+        delete_property_listing_images.delay(
+            listing_to_delete.photos_location,
+            property_listings_images_dir,
+            listing_to_delete.images_folder,
+            json.loads(listing_to_delete.photos),
+            IMAGE_UPLOAD_CONFIG["AMAZON_S3"]["S3_BUCKET"],
+        )
+        Property.delete_property(listing_to_delete)
+        flash("Your Property listing has been deleted", "success")
+        return redirect(url_for("home_blueprint.index"))
+    else:
+        return
 
 
 @blueprint.route("/search/")

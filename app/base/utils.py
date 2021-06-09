@@ -105,6 +105,20 @@ def email_verification_required(function):
     return wrapped_func
 
 
+def check_account_status(function):
+    @wraps(function)
+    def wrapped_func(*args, **kwargs):
+        try:
+            if current_user.acc_deactivated is True:
+                return redirect(url_for("base_blueprint.deactivated_acc_page"))
+        # Catch attribute error since anonymous(logged out) user does not have current_user.acc_deactivated attribute
+        except AttributeError:
+            pass
+        return function(*args, **kwargs)
+
+    return wrapped_func
+
+
 def save_property_listing_images_to_redis(image_files):
     """
     Saves the image files to redis in a hash map. The image_files_redis_key will be used to get the images in redis

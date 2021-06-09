@@ -9,6 +9,7 @@ import redis
 from pathlib import Path
 from flask import Flask, current_app
 from celery import Celery
+from celery.schedules import crontab
 from flask_marshmallow import Marshmallow
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
@@ -43,27 +44,47 @@ s3 = boto3.client(
 )
 
 
-def init_celery(app):
+def init_celery(flask_app):
     """
     Create and initialize celery app.
     """
+    from app.base.models import DeactivatedUserAccounts
+
+    # Serialize the data from the DeactivatedUserAccounts table into a python dictionary so that Celery can
+    # serialize the data to JSON
+
+    class AccountDataSchema(ma.Schema):
+        class Meta:
+            # Fields to expose
+            fields = ("id", "email", "username")
+
+    accounts_data_schema = AccountDataSchema(many=True)
+    with flask_app.app_context():
+        queried_data = DeactivatedUserAccounts.query.all()
+
     task_list = [
         "app.tasks",
     ]
-    celery = Celery(app.import_name, include=task_list)
-    celery.conf.update(app.config)
+    celery = Celery(flask_app.import_name, include=task_list)
+    celery.conf.update(flask_app.config)
     celery.conf.update(
         broker_url=os.environ.get("REDIS_URL", sys_config("REDIS_URL")),
-        result_backend=os.environ.get("REDIS_URL", sys_config("REDIS_URL")),
         timezone="UTC",
         task_serializer="json",
         accept_content=["json"],
         result_serializer="json",
+        beat_schedule={
+            "delete_user_account": {
+                "task": "app.tasks.delete_user_account",
+                "schedule": crontab(),
+                "args": (accounts_data_schema.dump(queried_data),)
+            }
+        }
     )
 
     class ContextTask(celery.Task):
         def __call__(self, *args, **kwargs):
-            with app.app_context():
+            with flask_app.app_context():
                 return self.run(*args, **kwargs)
 
     celery.Task = ContextTask
@@ -120,10 +141,10 @@ def create_image_upload_directories():
 def create_app(config):
     app = Flask(__name__, static_folder="base/static")
     app.config.from_object(config)
+    register_extensions(app)
     app.elasticsearch = Elasticsearch([app.config["ELASTICSEARCH_URL"]])
     app.celery = init_celery(app)
     app.app_context().push()
-    register_extensions(app)
     register_blueprints(app)
     configure_database(app)
     create_image_upload_directories()

@@ -12,8 +12,9 @@ from app.base.models import User
 
 # login and registration
 class LoginForm(FlaskForm):
-    username = StringField("Username", id="username_login", validators=[DataRequired()])
-    password = PasswordField("Password", id="pwd_login", validators=[DataRequired()])
+    username = StringField("Username", validators=[DataRequired()])
+    password = PasswordField("Password", validators=[DataRequired()])
+    submit = SubmitField("Sign in")
 
 
 class CreateAccountForm(FlaskForm):
@@ -249,3 +250,18 @@ class SearchForm(FlaskForm):
         if "csrf_token" not in kwargs:
             kwargs["csrf_token"] = False
         super(SearchForm, self).__init__(*args, **kwargs)
+
+
+class ConfirmAccountDeletionForm(FlaskForm):
+    password = PasswordField("Password", validators=[DataRequired(), Length(min=6, max=60)])
+    submit = SubmitField("Continue")
+
+
+class ReactivateAccountForm(FlaskForm):
+    email = StringField(
+        "Your Email", validators=[DataRequired(), Email(), Length(min=2, max=30)]
+    )
+    password = PasswordField(
+        "Your Password", validators=[DataRequired(), Length(min=8, max=60)]
+    )
+    submit = SubmitField("Reactivate Account")

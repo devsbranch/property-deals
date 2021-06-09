@@ -1,0 +1,39 @@
+{% extends "layouts/base-fullscreen.html" %}
+
+{% block title %} Lock Screen {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+    
+    <main>
+        <!-- Section -->
+        <section class="vh-lg-100 bg-soft d-flex align-items-center my-4">
+            <div class="container">
+                <div class="row justify-content-center form-bg-image" data-background-lg="/static/assets/img/illustrations/signin.svg">
+                    <div class="col-12 d-flex align-items-center justify-content-center">
+                        <div class="bg-white shadow-soft border border-light rounded p-4 p-lg-5 w-100 fmxw-500">
+                            <div class="text-center text-md-center mb-4 mt-md-0">
+                                <p class="text-gray">Your account has been scheduled for deletion and will be deleted on
+                                    <strong>{{ date_of_acc_deletion.strftime("%A, %B %d, %Y") }}.</strong> You can can click on the button below you want
+                                    to reactivate your account.</p>
+                            </div>
+                            <div class="col-12 d-flex align-items-center justify-content-center">
+                                <a href="{{ url_for('base_blueprint.reactivate_account') }}" class="btn btn-dark"><i class="fas fa-angle-right me-2"></i>Reactivate my account</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 d-flex align-items-center justify-content-center">
+
+                    </div>
+                </div>
+                <p class="text-center"><a href="{{ url_for('home_blueprint.index') }}" class="text-gray-700"><i class="fas fa-angle-left me-2"></i> Back to homepage</a></p>
+            </div>
+        </section>
+    </main>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

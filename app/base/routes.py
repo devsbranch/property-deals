@@ -1,6 +1,5 @@
-import pdb
-from datetime import datetime
-from flask import render_template, redirect, request, url_for, flash, current_app
+import datetime
+from flask import render_template, redirect, request, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 from app import db, login_manager
@@ -11,13 +10,14 @@ from app.base.forms import (
     UserProfileUpdateForm,
     RequestResetPasswordForm,
     ResetPasswordForm,
+    ConfirmAccountDeletionForm,
+    ReactivateAccountForm
 )
-from app.base.models import User
+from app.base.models import User, DeactivatedUserAccounts
 from app.base.utils import (
     save_image_to_redis,
-    generate_url_token,
     confirm_token,
-    generate_url_and_email_template,
+    generate_url_and_email_template
 )
 from app.tasks import profile_image_process, delete_profile_image, send_email
 from config import IMAGE_UPLOAD_CONFIG
@@ -163,7 +163,7 @@ def verify_email(token):
         flash("Your email is already verified")
     else:
         user.is_verified = True
-        user.date_confirmed = datetime.now()
+        user.date_verified = datetime.datetime.today()
         db.session.commit()
         flash("Your email has been verified.", "success")
         return redirect(url_for("home_blueprint.index"))
@@ -198,6 +198,8 @@ def unverified():
 @login_required
 def user_profile():
     form = UserProfileUpdateForm(obj=current_user)
+    modal = ConfirmAccountDeletionForm()
+
     if request.method == "POST" and form.validate_on_submit():
         if (
             request.files.get("profile_photo").filename != ""
@@ -276,6 +278,7 @@ def user_profile():
     return render_template(
         "accounts/settings.html",
         form=form,
+        modal=modal,
         s3_image_url=s3_image_url,
         profile_image_dir=profile_image_upload_dir,
         cover_image_dir=cover_image_upload_dir,
@@ -286,6 +289,76 @@ def user_profile():
 def logout():
     logout_user()
     return redirect(url_for("base_blueprint.login"))
+
+
+@blueprint.route("/deactivate-account", methods=["GET", "POST"])
+@login_required
+def account_deletion():
+    form = ConfirmAccountDeletionForm()
+
+    if request.method == "POST" and form.validate_on_submit():
+        if check_password_hash(current_user.password,  form.password.data):
+            current_user.acc_deactivated = True
+            date_today = datetime.datetime.today()
+            date_to_delete_acc = date_today + datetime.timedelta(days=14)
+            current_user.date_to_delete_acc = date_to_delete_acc
+
+            # Information of the user account to delete
+            account_to_delete = DeactivatedUserAccounts(
+                email=current_user.email,
+                username=current_user.username,
+                date_deactivated=date_today,
+                date_to_delete_acc=date_to_delete_acc
+
+            )
+
+            db.session.add(account_to_delete)
+            db.session.commit()
+
+            return redirect(url_for("base_blueprint.deactivated_acc_page"))
+        else:
+            flash("The password you entered is incorrect.", "danger")
+            return redirect(url_for("base_blueprint.user_profile"))
+    return redirect(url_for("base_blueprint.user_profile"))
+
+
+@blueprint.route("/account-deactivate")
+@login_required
+def deactivated_acc_page():
+    date_of_acc_deletion = current_user.date_to_delete_acc
+    logout_user()
+    return render_template("accounts/account_deactivated.html", title="Account Deactivated", date_of_acc_deletion=date_of_acc_deletion)
+
+
+@blueprint.route("/reactivate-account", methods=["GET", "POST"])
+def reactivate_account():
+    form = ReactivateAccountForm()
+
+    if request.method == "POST" and form.validate_on_submit():
+        email = form.email.data
+        password = form.password.data
+        user_to_reactivate = User.query.filter_by(email=email).first()
+
+        # Check the password
+        if user_to_reactivate and check_password_hash(user_to_reactivate.password, password):
+            if not user_to_reactivate.acc_deactivated:
+                flash("Your account is already active.", "warning")
+                return redirect(url_for("home_blueprint.index"))
+            user_to_reactivate.acc_deactivated = False
+            # set to a lowest date. Any date lower than the current date is fine to prevent the celery task from
+            # deleting the account should the date match with the current date.
+            user_to_reactivate.date_to_delete_acc = datetime.datetime(1, 1, 1, 0, 0, 0)
+
+            # Remove the user account from the DeactivatedUserAccounts after account reactivation
+            db.session.delete(DeactivatedUserAccounts.query.filter_by(email=user_to_reactivate.email).first())
+            db.session.commit()
+            login_user(user_to_reactivate)
+
+            flash("Your account has been activated. Welcome back!", "success")
+            return redirect(url_for("home_blueprint.index"))
+        else:
+            flash("Invalid email or password.", "danger")
+    return render_template("accounts/reactivate_account.html", form=form)
 
 
 @blueprint.route("/shutdown")

@@ -41,7 +41,7 @@
 
                                 <!-- Form -->
                                 <div class="form-group mb-4">
-                                    <label for="email">Username</label>
+                                    {{ form.username.label }}
                                     <div class="input-group">
                                         <span class="input-group-text" id="basic-addon1"><span class="fas fa-user-circle"></span></span>
                                         {{ form.username(placeholder="Username", class="form-control") }}
@@ -51,7 +51,7 @@
                                 <div class="form-group">
                                     <!-- Form -->
                                     <div class="form-group mb-4">
-                                        <label for="password">Your Password</label>
+                                        {{ form.password.label }}
                                         <div class="input-group">
                                             <span class="input-group-text" id="basic-addon2"><span class="fas fa-unlock-alt"></span></span>
                                             {{ form.password(placeholder="Password", class="form-control", type="password") }}
@@ -76,7 +76,7 @@
                                     </div>
                                 </div>
                                 <div class="d-grid">
-                                    <button type="submit" name="login" class="btn btn-dark">Sign in</button>
+                                    {{ form.submit(class="btn btn-dark") }}
                                 </div>
                             </form>
                             <div class="d-flex justify-content-center align-items-center mt-4">

@@ -8,7 +8,7 @@ from flask_migrate import Migrate
 from sys import exit
 from decouple import config
 
-from config import config_dict
+from config import config_dict, IMAGE_UPLOAD_CONFIG
 from app import create_app, db
 from app.base.models import User
 from app.base.forms import SearchForm
@@ -43,6 +43,7 @@ def before_request():
     passing it in render_template().
     """
     g.search_form = SearchForm()
+    g.amazon_s3_url = IMAGE_UPLOAD_CONFIG["AMAZON_S3"]["S3_URL"]
 
 
 if DEBUG:

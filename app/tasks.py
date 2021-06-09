@@ -2,14 +2,17 @@ import os
 import io
 import shutil
 import json
+from datetime import datetime
 from pathlib import Path
 from flask import current_app
 from PIL import Image
 from decouple import config
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
-from app import s3, redis_client
+from app import db, s3, redis_client
 from config import IMAGE_UPLOAD_CONFIG
+from app.base.models import DeactivatedUserAccounts, User
+
 
 celery = current_app.celery
 aws_bucket_name = IMAGE_UPLOAD_CONFIG["AMAZON_S3"]["S3_BUCKET"]
@@ -238,3 +241,46 @@ def delete_property_listing_images(
         except FileNotFoundError as error:
             print(error)
     return "deletion task completed"
+
+
+@celery.task()
+def delete_user_account(scheduled_acc_for_deletion):
+    current_datetime = datetime.today()
+
+    for user_data in scheduled_acc_for_deletion:
+        try:
+            account_to_delete = User.query.filter_by(email=user_data["email"]).first()
+            if account_to_delete.date_to_delete_acc.strftime("%d/%m/%Y") == current_datetime.strftime("%d/%m/%Y"):
+                # Delete all property listings including images by the user before deleting the account.
+                for property_listing in account_to_delete.user_property_listings:
+                    delete_property_listing_images.delay(
+                        property_listing.photos_location,
+                        property_listing_images_dir,
+                        property_listing.images_folder,
+                        json.loads(property_listing.photos),
+                        IMAGE_UPLOAD_CONFIG["AMAZON_S3"]["S3_BUCKET"],
+                    )
+                    db.session.delete(property_listing)
+                # Delete user profile photo
+                delete_profile_image.delay(
+                    profile_image_upload_dir,
+                    account_to_delete.profile_photo,
+                    s3_bucket_name=aws_bucket_name,
+                )
+                # Delete user cover photo
+                delete_profile_image.delay(
+                    cover_image_upload_dir,
+                    account_to_delete.cover_photo,
+                    s3_bucket_name=aws_bucket_name,
+                )
+
+                db.session.delete(account_to_delete)
+
+                db.session.delete(DeactivatedUserAccounts.query.filter_by(email=user_data["email"]).first())
+                db.session.commit()
+                print(f"The user account <Email: {account_to_delete.email} Username: {account_to_delete.username}> was deleted.")
+        except AttributeError:
+            pass
+        else:
+            print("No account has reached deadline for deletion yet.")
+            continue
