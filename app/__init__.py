@@ -16,7 +16,6 @@ from flask_sqlalchemy import SQLAlchemy
 from importlib import import_module
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
-from elasticsearch import Elasticsearch
 from decouple import config as sys_config
 from config import IMAGE_UPLOAD_CONFIG
 from dotenv import load_dotenv
@@ -76,7 +75,7 @@ def init_celery(flask_app):
         beat_schedule={
             "delete_user_account": {
                 "task": "app.tasks.delete_user_account",
-                "schedule": crontab(),
+                "schedule": crontab(minute=0, hour='*/3'),  # execute every three hours
                 "args": (accounts_data_schema.dump(queried_data),),
             }
         },
@@ -142,7 +141,6 @@ def create_app(config):
     app = Flask(__name__, static_folder="base/static")
     app.config.from_object(config)
     register_extensions(app)
-    app.elasticsearch = Elasticsearch([app.config["ELASTICSEARCH_URL"]])
     app.celery = init_celery(app)
     app.app_context().push()
     register_blueprints(app)

@@ -1,14 +1,22 @@
 import os
+from decouple import config
 from flask import current_app
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Document, Keyword, Text, Search, Integer
 from elasticsearch_dsl.connections import connections
 
+es_http_auth_username = os.environ.get("ELASTICSEARCH_USERNAME", config("ELASTICSEARCH_USERNAME"))
+es_http_auth_password = os.environ.get("ELASTICSEARCH_PASS", config("ELASTICSEARCH_PASS"))
+
+
 # Create global connection to ElasticSearch
-connections.create_connection(hosts=[os.environ.get("ELASTICSEARCH_URL", "localhost")])
+connections.create_connection(hosts=[os.environ.get("ELASTICSEARCH_URL", "localhost")],
+                              http_auth=(es_http_auth_username, es_http_auth_password))
 
 
-es = Elasticsearch()
+es = Elasticsearch([os.environ.get("ELASTICSEARCH_URL", config("ELASTICSEARCH_URL"))],
+                   http_auth=(es_http_auth_username, es_http_auth_password))
+
 s = Search(using=es, index="property_index")
 
 
@@ -49,7 +57,7 @@ def search_docs(search_term, page, per_page):
 
     # Here I use ElasticSearch client instead of ElasticSearch_dsl SDK so that the pagination
     # can be included in the query
-    response = current_app.elasticsearch.search(index="property_index", body=body)
+    response = es.search(index="property_index", body=body)
     ids = [int(hit["_id"]) for hit in response["hits"]["hits"]]
     total_results = response["hits"]["total"]["value"]
     return ids, total_results

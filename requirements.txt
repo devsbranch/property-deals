@@ -26,3 +26,5 @@ numpy==1.20.*
 elasticsearch==7.12.*
 elasticsearch_dsl==7.3.*
 python-dotenv==0.17.*
+pytest==6.2.*
+pytest-flask==1.2.*

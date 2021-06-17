@@ -186,7 +186,7 @@ def delete_listing(listing_id):
         flash("Your Property listing has been deleted", "success")
         return redirect(url_for("home_blueprint.index"))
     else:
-        return
+        return render_template("errors/403.html"), 403
 
 
 @blueprint.route("/search/")
