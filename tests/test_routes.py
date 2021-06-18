@@ -1,3 +1,5 @@
+from werkzeug.security import check_password_hash
+from app.base.models import User
 from tests.conftest import test_user_data
 
 
@@ -31,7 +33,8 @@ def test_registration(test_client):
     GIVEN a Flask application
     WHEN the '/register' page is requested (POST)
     THEN check the response is valid, check that the flash message ("Your account has been created. Check your inbox to
-    verify your email.") attribute is present in the html.
+    verify your email.") attribute is present in the html. We also test that the registered user is in the database and
+    the password is hashed.
     """
     response = test_client.post("/register", data=test_user_data, follow_redirects=True)
 
@@ -41,6 +44,12 @@ def test_registration(test_client):
         b"Your account has been created. Check your inbox to verify your email."
         in response.data
     )
+    registered_user = User.query.filter_by(email=test_user_data["email"]).first()
+    assert registered_user is not None
+    assert registered_user.username == test_user_data["username"]
+    assert registered_user.email == test_user_data["email"]
+    assert registered_user.password != test_user_data["password"]
+    assert check_password_hash(registered_user.password, test_user_data["password"]) is True
 
 
 def test_login(test_client):

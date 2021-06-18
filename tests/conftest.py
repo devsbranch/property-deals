@@ -6,7 +6,6 @@ from decouple import config
 from config import config_dict
 from app import create_app, db
 from app.base.forms import SearchForm
-from app.base.models import User
 
 
 get_config_mode = "Debug" if config("DEBUG", default=False, cast=bool) else "Production"
