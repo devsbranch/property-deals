@@ -11,16 +11,6 @@ from app.base.forms import SearchForm
 get_config_mode = "Debug" if config("DEBUG", default=False, cast=bool) else "Production"
 app_config = config_dict[get_config_mode.capitalize()]  # get app configuration
 
-test_user_data = dict(
-    first_name="test_user",
-    last_name="test_user",
-    gender="Male",
-    phone="123456789",
-    username="test_user",
-    email="test_user123@mail.com",
-    password="pass1234",
-)
-
 
 @pytest.fixture(scope="module")
 def flask_app():
