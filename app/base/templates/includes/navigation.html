@@ -50,7 +50,7 @@
                             {% elif current_user.prof_photo_loc == 'amazon_s3' %}
                             src="{{ 'https://propertydeals-zm.s3.amazonaws.com' + '/' + 'assets/images/user/profile/' + current_user.profile_photo }}" class="user-avatar large-avatar rounded-circle mx-auto mt-n7 mb-4"
                             {% else %}
-                            src="{{ url_for('static', filename='assets/img/' + current_user.profile_photo) }}" class="user-avatar large-avatar rounded-circle mx-auto mt-n7 mb-4"
+                            src="{{ current_user.profile_photo }}" class="user-avatar large-avatar rounded-circle mx-auto mt-n7 mb-4"
                             {% endif %}
                             >
                             <div class="media-body ms-2 text-dark align-items-center d-none d-lg-block">

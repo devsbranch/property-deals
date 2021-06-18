@@ -1,3 +1,5 @@
+import os
+from decouple import config
 from datetime import datetime
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash
@@ -12,19 +14,13 @@ class User(db.Model, UserMixin):
     first_name = db.Column(db.String(30), nullable=False)
     last_name = db.Column(db.String(30), nullable=False)
     other_name = db.Column(db.String(30), nullable=True)
-    birth_date = db.Column(db.DateTime, nullable=False)
     gender = db.Column(db.String(10), nullable=False)
     phone = db.Column(db.String(20), nullable=True)
-    address_1 = db.Column(db.String(200), nullable=False)
-    address_2 = db.Column(db.String(100), nullable=True)
-    city = db.Column(db.String(50), nullable=False)
-    postal_code = db.Column(db.String(20), nullable=True)
-    state = db.Column(db.String(50), nullable=True)
     profile_photo = db.Column(
-        db.String(100), nullable=False, default="assets/img/default.jpg"
+        db.String(100), nullable=False, default=os.environ.get("DEFAULT_PROF_IMG", config("DEFAULT_PROF_IMG"))
     )
     cover_photo = db.Column(
-        db.String(100), nullable=False, default="assets/img/default_cover.jpg"
+        db.String(100), nullable=False, default=os.environ.get("DEFAULT_COVER_IMG", config("DEFAULT_COVER_IMG"))
     )
     prof_photo_loc = db.Column(
         db.String(100), nullable=True

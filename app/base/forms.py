@@ -25,21 +25,10 @@ class CreateAccountForm(FlaskForm):
         "Last Name", validators=[DataRequired(), Length(min=2, max=30)]
     )
     other_name = StringField("Other Name")
-    birth_date = DateField("Birthday", validators=[DataRequired()])
     gender = SelectField(
         "Gender", choices=["Gender", "Male", "Female"], validators=[DataRequired()]
     )
     phone = IntegerField("Phone", validators=[DataRequired()])
-    address_1 = StringField(
-        "Address Line 1", validators=[DataRequired(), Length(min=2, max=150)]
-    )
-    address_2 = StringField(
-        "Address Line 2", validators=[DataRequired(), Length(min=2, max=100)]
-    )
-    city = StringField("City", validators=[DataRequired(), Length(min=2, max=30)])
-    postal_code = StringField(
-        "Postal Code", validators=[DataRequired(), Length(min=2, max=20)]
-    )
     username = StringField(
         "Username", validators=[DataRequired(), Length(min=2, max=20)]
     )

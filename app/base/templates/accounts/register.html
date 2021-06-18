@@ -76,20 +76,6 @@
                                 </div>
                                 <div class="row align-items-center">
                                     <div class="col-md-6 mb-3">
-                                        {{ form.birth_date.label }}
-                                        <div class="input-group">
-                                            <span class="input-group-text"><span class="far fa-calendar-alt"></span></span>
-                                            {% if form.birth_date.errors %}
-                                                {{ form.birth_date(class="form-control is-invalid") }}
-                                                {% for error in form.birth_date.errors %}
-                                                    <small class="text-danger">{{ error }}</small>
-                                                {% endfor %}
-                                            {% else %}
-                                                {{ form.birth_date(class="form-control", placeholder="DD/MM/YYYY") }}
-                                            {% endif%}
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
                                         {{ form.gender.label }}
                                         {% if form.gender.errors %}
                                             {{ form.gender(class="form-control is-invalid") }}
@@ -100,8 +86,6 @@
                                             {{ form.gender(class="form-control", placeholder="Gender") }}
                                         {% endif%}
                                     </div>
-                                </div>
-                                <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <div class="form-group">
                                             {{ form.phone.label }}
@@ -112,64 +96,6 @@
                                                 {% endfor %}
                                             {% else %}
                                                 {{ form.phone(class="form-control", placeholder="XXX XXX XXXX") }}
-                                            {% endif%}
-                                        </div>
-                                    </div>
-                                </div>
-                                <hr>
-                                <h2 class="h5 my-4">Location</h2>
-                                <div class="row">
-                                    <div class="col-sm-9 mb-3">
-                                        <div class="form-group">
-                                            {{ form.address_1.label }}
-                                            {% if form.address_1.errors %}
-                                                {{ form.address_1(class="form-control is-invalid") }}
-                                                {% for error in form.address_1.errors %}
-                                                    <small class="text-danger">{{ error }}</small>
-                                                {% endfor %}
-                                            {% else %}
-                                                {{ form.address_1(class="form-control", placeholder="Address line 1") }}
-                                            {% endif%}
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-9 mb-3">
-                                        <div class="form-group">
-                                            {{ form.address_2.label }}
-                                            {% if form.address_2.errors %}
-                                                {{ form.address_2(class="form-control is-invalid") }}
-                                                {% for error in form.address_2.errors %}
-                                                    <small class="text-danger">{{ error }}</small>
-                                                {% endfor %}
-                                            {% else %}
-                                                {{ form.address_2(class="form-control", placeholder="Address line 2") }}
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-sm-4 mb-3">
-                                        <div class="form-group">
-                                            {{ form.city.label }}
-                                            {% if form.city.errors %}
-                                                    {{ form.city(class="form-control is-invalid") }}
-                                                {% for error in form.city.errors %}
-                                                    <small class="text-danger">{{ error }}</small>
-                                                {% endfor %}
-                                            {% else %}
-                                                {{ form.city(class="form-control", placeholder="City") }}
-                                            {% endif%}
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-4">
-                                        <div class="form-group">
-                                            {{ form.postal_code.label }}
-                                            {% if form.postal_code.errors %}
-                                                {{ form.postal_code(class="form-control is-invalid") }}
-                                                {% for error in form.postal_code.errors %}
-                                                    <small class="text-danger">{{ error }}</small>
-                                                {% endfor %}
-                                            {% else %}
-                                                {{ form.postal_code(class="form-control", placeholder="Postal Code") }}
                                             {% endif%}
                                         </div>
                                     </div>
