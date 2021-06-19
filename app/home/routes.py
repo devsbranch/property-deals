@@ -18,7 +18,9 @@ from app.base.utils import (
 from app.tasks import process_property_listing_images, delete_property_listing_images
 from app.base.models import Property
 from config import IMAGE_UPLOAD_CONFIG
-
+profile_image_upload_dir = IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"][
+    "USER_PROFILE_IMAGES"
+]
 property_listings_images_dir = IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"][
     "PROPERTY_LISTING_IMAGES"
 ]
@@ -37,6 +39,7 @@ def index():
         photos_list=property_listing_photos,
         image_folder=property_listings_images_dir,
         amazon_s3_url=amazon_s3_url,
+        profile_image_dir=profile_image_upload_dir
     )
 
 

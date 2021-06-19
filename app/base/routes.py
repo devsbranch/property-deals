@@ -328,10 +328,12 @@ def account_deletion():
     return redirect(url_for("base_blueprint.user_profile"))
 
 
-@blueprint.route("/account-deactivate")
+@blueprint.route("/deactivated")
 @login_required
 def deactivated_acc_page():
     date_of_acc_deletion = current_user.date_to_delete_acc
+    if date_of_acc_deletion is None or date_of_acc_deletion.strftime("%d/%m/%y") == "01/01/01":
+        return render_template("errors/403.html"), 403
     logout_user()
     return render_template(
         "accounts/account_deactivated.html",

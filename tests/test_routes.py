@@ -1,13 +1,13 @@
-import time
+import datetime
 import os
+import time
 import botocore
 from decouple import config
 from flask import current_app
 from werkzeug.security import check_password_hash
 from app import s3
-from app.base.models import User
+from app.base.models import User, DeactivatedUserAccounts
 from config import IMAGE_UPLOAD_CONFIG
-
 
 PROFILE_IMAGE_DIR = IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"]["USER_PROFILE_IMAGES"]
 COVER_IMAGE_DIR = IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"]["USER_COVER_IMAGES"]
@@ -21,7 +21,7 @@ test_user_data = dict(
     gender="Male",
     phone="123456789",
     username="johndoe",
-    email="johndoe@mail.com",
+    email="johndoe0001234567@mail.com",
     password="pass1234",
 )
 
@@ -31,7 +31,7 @@ test_user_data_2 = dict(
     gender="Male",
     phone="123456789",
     username="janedoe",
-    email="janedoe@mail.com",
+    email="janedoe0001234567@mail.com",
     password="pass1234",
 )
 
@@ -92,8 +92,8 @@ def test_registration(test_client):
     assert response.status_code == 200
     assert b"Sign in" in response.data
     assert (
-        b"Your account has been created. Check your inbox to verify your email."
-        in response.data
+            b"Your account has been created. Check your inbox to verify your email."
+            in response.data
     )
     registered_user = User.query.filter_by(email=test_user_data["email"]).first()
     assert registered_user is not None
@@ -101,8 +101,8 @@ def test_registration(test_client):
     assert registered_user.email == test_user_data["email"]
     assert registered_user.password != test_user_data["password"]
     assert (
-        check_password_hash(registered_user.password, test_user_data["password"])
-        is True
+            check_password_hash(registered_user.password, test_user_data["password"])
+            is True
     )
 
 
@@ -134,9 +134,9 @@ def test_user_unverified_email(test_client):
     response = test_client.get("/create-property", follow_redirects=True)
     assert response.status_code == 200
     assert (
-        b"Unverified Email"
-        and b"You need to verify your email first"
-        and b"Resend" in response.data
+            b"Unverified Email"
+            and b"You need to verify your email first"
+            and b"Resend" in response.data
     )
 
 
@@ -149,9 +149,9 @@ def test_user_profile_page(test_client):
     response = test_client.get("/my-profile")
     assert response.status_code == 200
     assert (
-        b"Sign Out"
-        and b"Select profile photo"
-        and b"Select cover photo" in response.data
+            b"Sign Out"
+            and b"Select profile photo"
+            and b"Select cover photo" in response.data
     )
 
     # Test updating of first name and last_name
@@ -165,8 +165,8 @@ def test_user_profile_page(test_client):
     assert response.status_code == 200
     assert b"Your account information has been updated." in response_2.data
     assert (
-        updated_user.first_name == "test_user_updated"
-        and updated_user.last_name == "test_user_lastname"
+            updated_user.first_name == "test_user_updated"
+            and updated_user.last_name == "test_user_lastname"
     )
 
 
@@ -214,7 +214,7 @@ def test_user_profile_photo_uploads(test_client):
         else check_object_exist_on_s3(
             f"{PROFILE_IMAGE_DIR}{updated_user.profile_photo}"
         )
-        is True
+             is True
     )
 
     # assert if the cover image saved to the app server or Amazon S3 depending on the configurations.
@@ -223,7 +223,7 @@ def test_user_profile_photo_uploads(test_client):
         in os.listdir(f"{current_app.root_path}/base/static/{COVER_IMAGE_DIR}")
         if IMAGE_STORAGE_CONF == "app_server_storage"
         else check_object_exist_on_s3(f"{COVER_IMAGE_DIR}{updated_user.cover_photo}")
-        is True
+             is True
     )
 
 
@@ -241,8 +241,91 @@ def test_username_email_exist_err(test_client):
     test_client.post("/register", data=test_user_data_2, follow_redirects=True)
 
     # Updating the profile of John Doe with the data of Jane Doe. See the assertions below.
-    response = test_client.post("/my-profile", data=test_user_data_2, follow_redirects=True)
+    response = test_client.post(
+        "/my-profile", data=test_user_data_2, follow_redirects=True
+    )
 
     assert response.status_code == 200
-    assert b"The email you entered is already registered. Please try a different one." in response.data
-    assert b"The username is already taken. Please try a different one." in response.data
+    assert (
+            b"The email you entered is already registered. Please try a different one."
+            in response.data
+    )
+    assert (
+            b"The username is already taken. Please try a different one." in response.data
+    )
+
+
+def test_account_deactivate_and_deletion(test_client):
+    """
+    WHEN the '/deactivate-account' page is requested (POST) with a password as the post data,
+    THEN check the response is valid, that response.data has the expected data, account has been scheduled
+    for deletion. and the db models have the expected attributes
+    """
+    date_for_account_deletion = datetime.date.today() + datetime.timedelta(days=14)
+    response = test_client.post(
+        "/deactivate-account",
+        data=dict(password=test_user_data["password"]),
+        follow_redirects=True,
+    )
+
+    user = User.query.filter_by(email=test_user_data["email"]).first()
+
+    assert response.status_code == 200
+    assert (
+            b"Your account has been scheduled for deletion and will be deleted on"
+            in response.data
+    )
+    assert (
+            b"You can can click on the button below"
+            and b"Reactivate my account" in response.data
+    )
+    # asserting the date to delete account has been set 14 days from now.
+    assert user.date_to_delete_acc.strftime(
+        "%d/%m/%y"
+    ) == date_for_account_deletion.strftime("%d/%m/%y")
+
+    # query to check if the user account requested for deletion has been added to the DeactivatedUserAccounts table.
+    acc_to_del = DeactivatedUserAccounts.query.filter_by(
+        email=test_user_data["email"]
+    ).first()
+    assert acc_to_del is not None
+    assert acc_to_del.date_to_delete_acc.strftime("%d/%m/%y") == date_for_account_deletion.strftime("%d/%m/%y")
+
+
+def test_deactivated_acc_page(test_client):
+    """
+    WHEN the "/deactivated" page is requested(GET)
+    THEN check that the response.status_code == 403 (Access Denied), since this page is only accessible through a redirect from the
+    "/deactivate-account" and that the user should have the "date_to_delete_acc" and "acc_deactivated" attributes set
+    from the previous page to complete the deactivation.
+    """
+    response = test_client.get("/deactivated")
+    assert response.status_code == 403 and b"LOGIN" in response.data
+
+
+def test_account_reactivation(test_client):
+    """
+    WHEN the '/reactivate-account' page is requested (POST) with a email and password as the post data,
+    THEN check the response is valid, that response.data has the expected data, the flash message "Your account has
+    been activated. Welcome back!" is in response.data if the reactivation was successful, or the
+    flash message "Your account is already active." is in response.data if the user attribute "acc_deactivated" is False
+    or the flash message "Invalid email or password." is in response.data if the login credentials are invalid.
+    """
+    response = test_client.post("/reactivate-account",
+                                data=dict(
+                                    email=test_user_data["email"],
+                                    password=test_user_data["password"]),
+                                follow_redirects=True)
+    reactivated_user = User.query.filter_by(email=test_user_data["email"]).first()
+    user_in_deleted_acc = DeactivatedUserAccounts.query.filter_by(email=test_user_data["email"]).first()
+    assert response.status_code == 200
+    assert b"Your account has been activated. Welcome back!" in response.data
+    assert reactivated_user.acc_deactivated is False
+    assert user_in_deleted_acc is None
+
+    res = test_client.post("/reactivate-account",
+                           data=dict(
+                               email="user_acc@mail.com",
+                               password="simple_pass"),
+                           follow_redirects=True)
+    assert b"Invalid email or password." in res.data
