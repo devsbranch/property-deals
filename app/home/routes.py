@@ -9,7 +9,7 @@ from jinja2 import TemplateNotFound
 from flask_login import login_required
 from app import redis_client
 from app.home import blueprint
-from app.base.forms import CreatePropertyForm, UpdatePropertyForm
+from app.base.forms import CreatePropertyForm, UpdatePropertyForm, SearchForm
 from app.base.utils import (
     save_property_listing_images_to_redis,
     email_verification_required,
@@ -25,6 +25,16 @@ property_listings_images_dir = IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"][
     "PROPERTY_LISTING_IMAGES"
 ]
 amazon_s3_url = IMAGE_UPLOAD_CONFIG["AMAZON_S3"]["S3_URL"]
+
+
+@blueprint.before_request
+def before_request():
+    """
+    This function make the Search form and the global profile_image_dir(used in the navigation.html) GLOBAL,
+    accessible in any template without passing it in render_template().
+    """
+    g.search_form = SearchForm()
+    g.profile_image_dir = IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"]["USER_PROFILE_IMAGES"]
 
 
 @blueprint.errorhandler(403)

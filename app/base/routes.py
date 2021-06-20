@@ -1,5 +1,5 @@
 import datetime
-from flask import render_template, redirect, request, url_for, flash
+from flask import render_template, redirect, request, url_for, flash, g
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 from app import db, login_manager
@@ -12,6 +12,7 @@ from app.base.forms import (
     ResetPasswordForm,
     ConfirmAccountDeletionForm,
     ReactivateAccountForm,
+    SearchForm
 )
 from app.base.models import User, DeactivatedUserAccounts
 from app.base.utils import (
@@ -33,6 +34,17 @@ cover_image_upload_dir = IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"][
     "USER_COVER_IMAGES"
 ]
 image_server_config = IMAGE_UPLOAD_CONFIG["STORAGE_LOCATION"]
+
+
+@blueprint.before_request
+def before_request():
+    """
+    This function make the Search form and the global profile_image_dir(used in the navigation.html) GLOBAL,
+    accessible in any template without passing it in render_template().
+    """
+    g.search_form = SearchForm()
+    g.profile_image_dir = IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"]["USER_PROFILE_IMAGES"]
+
 
 
 @login_manager.unauthorized_handler

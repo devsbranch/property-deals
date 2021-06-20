@@ -4,6 +4,7 @@ import time
 import botocore
 from decouple import config
 from flask import current_app
+from flask_login import current_user
 from werkzeug.security import check_password_hash
 from app import s3
 from app.base.models import User, DeactivatedUserAccounts
@@ -132,13 +133,12 @@ def test_user_profile_page(test_client):
         data=dict(first_name="test_user_updated", last_name="test_user_lastname"),
         follow_redirects=True,
     )
-    updated_user = User.query.filter_by(email=test_user_data["email"]).first()
 
-    assert response.status_code == 200
+    assert response_2.status_code == 200
     assert b"Your account information has been updated." in response_2.data
     assert (
-            updated_user.first_name == "test_user_updated"
-            and updated_user.last_name == "test_user_lastname"
+            current_user.first_name == "test_user_updated"
+            and current_user.last_name == "test_user_lastname"
     )
 
 
@@ -163,38 +163,37 @@ def test_user_profile_photo_uploads(test_client):
         "/my-profile", data=test_user_data, follow_redirects=True
     )
 
-    updated_user = User.query.filter_by(email=test_user_data["email"]).first()
     assert response.status_code == 200
     assert b"Your account information has been updated." in response.data
 
     assert (
-        updated_user.prof_photo_loc == "app_server_storage"
+        current_user.prof_photo_loc == "app_server_storage"
         if IMAGE_STORAGE_CONF == "app_server_storage"
-        else (updated_user.prof_photo_loc == "amazon_s3")
+        else (current_user.prof_photo_loc == "amazon_s3")
     )
 
     assert (
-        updated_user.cover_photo_loc == "app_server_storage"
+        current_user.cover_photo_loc == "app_server_storage"
         if IMAGE_STORAGE_CONF == "app_server_storage"
-        else updated_user.cover_photo_loc == "amazon_s3"
+        else current_user.cover_photo_loc == "amazon_s3"
     )
     # assert if the profile image saved to the app server or Amazon S3 depending on the configurations.
     assert (
-        updated_user.profile_photo
+        current_user.profile_photo
         in os.listdir(f"{current_app.root_path}/base/static/{PROFILE_IMAGE_DIR}")
         if IMAGE_STORAGE_CONF == "app_server_storage"
         else check_object_exist_on_s3(
-            f"{PROFILE_IMAGE_DIR}{updated_user.profile_photo}"
+            f"{PROFILE_IMAGE_DIR}{current_user.profile_photo}"
         )
              is True
     )
 
     # assert if the cover image saved to the app server or Amazon S3 depending on the configurations.
     assert (
-        updated_user.cover_photo
+        current_user.cover_photo
         in os.listdir(f"{current_app.root_path}/base/static/{COVER_IMAGE_DIR}")
         if IMAGE_STORAGE_CONF == "app_server_storage"
-        else check_object_exist_on_s3(f"{COVER_IMAGE_DIR}{updated_user.cover_photo}")
+        else check_object_exist_on_s3(f"{COVER_IMAGE_DIR}{current_user.cover_photo}")
              is True
     )
 
@@ -288,11 +287,10 @@ def test_account_reactivation(test_client):
                                     email=test_user_data["email"],
                                     password=test_user_data["password"]),
                                 follow_redirects=True)
-    reactivated_user = User.query.filter_by(email=test_user_data["email"]).first()
     user_in_deleted_acc = DeactivatedUserAccounts.query.filter_by(email=test_user_data["email"]).first()
     assert response.status_code == 200
     assert b"Your account has been activated. Welcome back!" in response.data
-    assert reactivated_user.acc_deactivated is False
+    assert current_user.acc_deactivated is False
     assert user_in_deleted_acc is None
 
     res = test_client.post("/reactivate-account",

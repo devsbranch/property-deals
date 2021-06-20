@@ -83,7 +83,5 @@ def test_client(flask_app):
     with flask_app.app_context():
         db.create_all()
         with flask_app.test_request_context(), flask_app.test_client() as client:
-            g.search_form = SearchForm()
-            g.profile_image_dir = IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"]["USER_PROFILE_IMAGES"]
             yield client
         db.drop_all()
