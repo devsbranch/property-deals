@@ -39,10 +39,11 @@ def make_shell_context():
 @app.before_request
 def before_request():
     """
-    This function make the Search form global, accessible in any template without
-    passing it in render_template().
+    This function make the Search form and the global profile_image_dir(used in the navigation.html) GLOBAL,
+    accessible in any template without passing it in render_template().
     """
     g.search_form = SearchForm()
+    g.profile_image_dir = IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"]["USER_PROFILE_IMAGES"]
 
 
 if DEBUG:

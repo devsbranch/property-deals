@@ -1,5 +1,5 @@
 import os
-from wtforms.fields.html5 import DateField, IntegerField
+from wtforms.fields.html5 import IntegerField
 from flask import request
 from flask_login import current_user
 from flask_wtf import FlaskForm
@@ -197,13 +197,12 @@ class CreatePropertyForm(FlaskForm):
     )
     submit = SubmitField("Create")
 
-    def validate_prop_photos(self, photos):
-        ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png"]
+    def validate_photos(self, photos):
         for file in photos.data:
-            if os.path.splitext(file.filename)[1] not in ALLOWED_EXTENSIONS:
+            if not file.filename.endswith(("jpg", "jpeg", "png",)):
                 raise ValidationError("Only Images are allowed e.g jpg, jpeg, png")
 
-    def validate_prop_type(self, type):
+    def validate_type(self, type):
         """
         Checks if the user has selected gender either Male or Female from the Select Field.
         """
@@ -216,10 +215,9 @@ class UpdatePropertyForm(CreatePropertyForm):
         "Upload photos of your property",
     )
 
-    def validate_prop_photos(self, photos):
-        ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png"]
+    def validate_photos(self, photos):
         for file in photos.data:
-            if os.path.splitext(file.filename)[1] not in ALLOWED_EXTENSIONS:
+            if not file.filename.endswith(("jpg", "jpeg", "png",)):
                 raise ValidationError("Only Images are allowed e.g jpg, jpeg, png")
 
     submit = SubmitField("Update")

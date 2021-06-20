@@ -87,7 +87,7 @@
 </div>
 
 
-
+{% if current_user.is_authenticated and current_user.id == property_listing.user_id %}
 <!-- Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -132,6 +132,8 @@
     </div>
 </div>
 <!-- End of Modal Content -->
+{% endif %}
+
 {% block javascripts %}
     <script src="{{url_for('static', filename='assets/js/lightbox-plus-jquery.min.js')}}"></script>
 {% endblock javascripts %}

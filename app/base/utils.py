@@ -130,5 +130,6 @@ def save_property_listing_images_to_redis(image_files):
         _, file_extension = os.path.splitext(image_file.filename)
         new_image_filename = uuid.uuid4().__str__()[:8]
         image_data_dict[f"{new_image_filename}{file_extension}"] = image_file.read()
-    redis_client.hmset(image_files_redis_key, image_data_dict)
+    # update to use redis_client.hset("myKey", mapping=data) as a resolve to deprecated redis_client.hmset()
+    redis_client.hset(image_files_redis_key, mapping=image_data_dict)
     return image_files_redis_key

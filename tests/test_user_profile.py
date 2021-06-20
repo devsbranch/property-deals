@@ -8,42 +8,14 @@ from werkzeug.security import check_password_hash
 from app import s3
 from app.base.models import User, DeactivatedUserAccounts
 from config import IMAGE_UPLOAD_CONFIG
+from .conftest import test_user_data, test_user_data_2, register_user, login_user
+
 
 PROFILE_IMAGE_DIR = IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"]["USER_PROFILE_IMAGES"]
 COVER_IMAGE_DIR = IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"]["USER_COVER_IMAGES"]
 IMAGE_STORAGE_CONF = os.environ.get(
     "IMAGE_STORAGE_LOCATION", config("IMAGE_STORAGE_LOCATION")
 )
-
-test_user_data = dict(
-    first_name="John",
-    last_name="Doe",
-    gender="Male",
-    phone="123456789",
-    username="johndoe",
-    email="johndoe0001234567@mail.com",
-    password="pass1234",
-)
-
-test_user_data_2 = dict(
-    first_name="Jane",
-    last_name="Doe",
-    gender="Male",
-    phone="123456789",
-    username="janedoe",
-    email="janedoe0001234567@mail.com",
-    password="pass1234",
-)
-
-
-def login(test_client, username, password):
-    return test_client.post(
-        "/login", data=dict(username=username, password=password), follow_redirects=True
-    )
-
-
-def logout(test_client):
-    return test_client.get("/logout", follow_redirects=True)
 
 
 def check_object_exist_on_s3(obj_path):
@@ -83,11 +55,11 @@ def test_registration(test_client):
     Test if the registration functionality works.
     GIVEN a Flask application
     WHEN the '/register' page is requested (POST)
-    THEN check the response is valid, check that the flash message ("Your account has been created. Check your inbox to
+    THEN assert the response is valid, check that the flash message ("Your account has been created. Check your inbox to
     verify your email.") attribute is present in the html. We also test that the registered user is in the database and
     the password is hashed.
     """
-    response = test_client.post("/register", data=test_user_data, follow_redirects=True)
+    response = register_user(test_client)
 
     assert response.status_code == 200
     assert b"Sign in" in response.data
@@ -112,7 +84,7 @@ def test_login(test_client):
     WHEN the '/login' page is requested (POST)
     THEN check the response is valid, check that the attributes in the html available to a logged in user are present
     """
-    response = login(
+    response = login_user(
         test_client,
         username=test_user_data["username"],
         password=test_user_data["password"],

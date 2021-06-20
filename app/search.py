@@ -1,6 +1,5 @@
 import os
 from decouple import config
-from flask import current_app
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Document, Keyword, Text, Search, Integer
 from elasticsearch_dsl.connections import connections

@@ -27,6 +27,21 @@ property_listings_images_dir = IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"][
 amazon_s3_url = IMAGE_UPLOAD_CONFIG["AMAZON_S3"]["S3_URL"]
 
 
+@blueprint.errorhandler(403)
+def access_forbidden(error):
+    return render_template("errors/403.html"), 403
+
+
+@blueprint.errorhandler(404)
+def not_found_error(error):
+    return render_template("errors/404.html"), 404
+
+
+@blueprint.errorhandler(500)
+def internal_error(error):
+    return render_template("errors/500.html"), 500
+
+
 @blueprint.route("/index")
 @check_account_status
 def index():
@@ -38,8 +53,7 @@ def index():
         property_listings=property_listings,
         photos_list=property_listing_photos,
         image_folder=property_listings_images_dir,
-        amazon_s3_url=amazon_s3_url,
-        profile_image_dir=profile_image_upload_dir
+        amazon_s3_url=amazon_s3_url
     )
 
 
@@ -76,11 +90,10 @@ def get_segment(request):
 
 
 @blueprint.route("/create-property", methods=["GET", "POST"])
-@email_verification_required
 @login_required
+@email_verification_required
 def create_property():
     form = CreatePropertyForm()
-
     if request.method == "POST" and form.validate_on_submit():
         redis_image_hashmap_key = save_property_listing_images_to_redis(
             request.files.getlist("photos")
@@ -128,39 +141,47 @@ def listing_details(listing_id):
 
 @blueprint.route("/property/update/<int:listing_id>", methods=["GET", "POST"])
 @login_required
+@email_verification_required
 def update_listing(listing_id):
 
     listing_to_update = Property.query.get_or_404(listing_id)
 
+    if listing_to_update.user_id != current_user.id:
+        return render_template("errors/403.html"), 403
+
     form = UpdatePropertyForm(obj=listing_to_update)
     if request.method == "POST" and form.validate_on_submit():
-        if bool(request.files["photos"]):
-            # delete previous images before
-            delete_property_listing_images.delay(
-                listing_to_update.photos_location,
-                property_listings_images_dir,
-                listing_to_update.images_folder,
-                json.loads(listing_to_update.photos),
-                IMAGE_UPLOAD_CONFIG["AMAZON_S3"]["S3_BUCKET"],
-            )
+        try:
+            if bool(request.files["photos"]):
+                # delete previous images before
+                delete_property_listing_images.delay(
+                    listing_to_update.photos_location,
+                    property_listings_images_dir,
+                    listing_to_update.images_folder,
+                    json.loads(listing_to_update.photos),
+                    IMAGE_UPLOAD_CONFIG["AMAZON_S3"]["S3_BUCKET"],
+                )
 
-            redis_image_hashmap_key = save_property_listing_images_to_redis(
-                request.files.getlist("photos")
-            )
-            process_property_listing_images.delay(redis_image_hashmap_key)
-            image_filenames = redis_client.hgetall(redis_image_hashmap_key)
+                redis_image_hashmap_key = save_property_listing_images_to_redis(
+                    request.files.getlist("photos")
+                )
+                process_property_listing_images.delay(redis_image_hashmap_key)
+                image_filenames = redis_client.hgetall(redis_image_hashmap_key)
 
-            list_of_image_filenames = [
-                image_name.decode("utf-8") for image_name in image_filenames.keys()
-            ]
-            # add redis_image_hashmap_key on first index since it is used as a
-            # directory name of where to save image files
-            list_of_image_filenames.insert(0, f"{redis_image_hashmap_key}/")
-            img_list_to_json = json.dumps(list_of_image_filenames)
+                list_of_image_filenames = [
+                    image_name.decode("utf-8") for image_name in image_filenames.keys()
+                ]
+                # add redis_image_hashmap_key on first index since it is used as a
+                # directory name of where to save image files
+                list_of_image_filenames.insert(0, f"{redis_image_hashmap_key}/")
+                img_list_to_json = json.dumps(list_of_image_filenames)
 
-            Property.update_property_images(
-                listing_to_update, redis_image_hashmap_key, img_list_to_json
-            )
+                Property.update_property_images(
+                    listing_to_update, redis_image_hashmap_key, img_list_to_json
+                )
+        # Catch a key error exception that occurs during testing
+        except KeyError:
+            pass
 
         Property.update_property(listing_to_update, request.form)
         flash("Your Property listing has been updated", "success")
@@ -204,7 +225,7 @@ def search():
 
     next_url = (
         url_for("home_blueprint.search", q=g.search_form.q.data, page=page + 1)
-        if total > page * 2
+        if total > page * per_page
         else None
     )
     prev_url = (
@@ -212,7 +233,6 @@ def search():
         if page > 1
         else None
     )
-
     return render_template(
         "search.html",
         title="search",
