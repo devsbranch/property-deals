@@ -82,7 +82,7 @@ class Property(db.Model):
         This method queries for properties in database matching the ids returned by the search_docs().
         """
         ids, total = search_docs(search_term, page, per_page)
-        if total == 0:
+        if total == 0 or isinstance(total, dict):
             return cls.query.filter_by(id=0), 0
         ids_to_query = []
         for i in range(len(ids)):

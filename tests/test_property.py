@@ -212,10 +212,12 @@ def test_deleting_property(test_client):
     a listing of an id provided doesn't exist, assert that only the user who listed that Property can delete it then
     assert that the deletion was successful
     """
+    # Test user can't delete listing without login
     listed_property = Property.query.filter_by(name=property_listing_data["name"]).first()
     response = test_client.get(f"/delete-listing/{listed_property.id}")
     assert response.status_code == 403
 
+    # Test that a http error 404 is returned if the id does not exist
     login_user(test_client, username=test_user_data["username"], password=test_user_data["password"])
     response_2 = test_client.get("/delete-listing/6875")
     assert response_2.status_code == 404
@@ -225,5 +227,6 @@ def test_deleting_property(test_client):
     assert response_3.status_code == 200
     assert b"Your Property listing has been deleted" in response_3.data
 
+    # Test the deleted listing is not in the database
     deleted = Property.query.filter_by(name=property_listing_data["name"]).first()
     assert deleted is None
