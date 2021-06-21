@@ -16,7 +16,6 @@ from flask_sqlalchemy import SQLAlchemy
 from importlib import import_module
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
-from elasticsearch import Elasticsearch
 from decouple import config as sys_config
 from config import IMAGE_UPLOAD_CONFIG
 from dotenv import load_dotenv
@@ -60,6 +59,9 @@ def init_celery(flask_app):
 
     accounts_data_schema = AccountDataSchema(many=True)
     with flask_app.app_context():
+        # check if the table exists. If not then it will be created.
+        if not DeactivatedUserAccounts.__table__.exists(db.session.bind):
+            DeactivatedUserAccounts.__table__.create(db.session.bind)
         queried_data = DeactivatedUserAccounts.query.all()
 
     task_list = [
@@ -76,7 +78,7 @@ def init_celery(flask_app):
         beat_schedule={
             "delete_user_account": {
                 "task": "app.tasks.delete_user_account",
-                "schedule": crontab(),
+                "schedule": crontab(minute=0, hour='*/3'),  # execute every three hours
                 "args": (accounts_data_schema.dump(queried_data),),
             }
         },
@@ -142,10 +144,9 @@ def create_app(config):
     app = Flask(__name__, static_folder="base/static")
     app.config.from_object(config)
     register_extensions(app)
-    app.elasticsearch = Elasticsearch([app.config["ELASTICSEARCH_URL"]])
+    configure_database(app)
     app.celery = init_celery(app)
     app.app_context().push()
     register_blueprints(app)
-    configure_database(app)
     create_image_upload_directories()
     return app, app.celery

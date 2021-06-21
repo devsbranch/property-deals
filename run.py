@@ -36,15 +36,6 @@ def make_shell_context():
     return {"db": db, "User": User}
 
 
-@app.before_request
-def before_request():
-    """
-    This function make the Search form global, accessible in any template without
-    passing it in render_template().
-    """
-    g.search_form = SearchForm()
-
-
 if DEBUG:
     app.logger.info('DEBUG       = ' + str(DEBUG))
     app.logger.info('Environment = ' + get_config_mode)

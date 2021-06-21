@@ -1,5 +1,5 @@
 import datetime
-from flask import render_template, redirect, request, url_for, flash
+from flask import render_template, redirect, request, url_for, flash, g
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 from app import db, login_manager
@@ -12,6 +12,7 @@ from app.base.forms import (
     ResetPasswordForm,
     ConfirmAccountDeletionForm,
     ReactivateAccountForm,
+    SearchForm
 )
 from app.base.models import User, DeactivatedUserAccounts
 from app.base.utils import (
@@ -33,6 +34,17 @@ cover_image_upload_dir = IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"][
     "USER_COVER_IMAGES"
 ]
 image_server_config = IMAGE_UPLOAD_CONFIG["STORAGE_LOCATION"]
+
+
+@blueprint.before_request
+def before_request():
+    """
+    This function make the Search form and the global profile_image_dir(used in the navigation.html) GLOBAL,
+    accessible in any template without passing it in render_template().
+    """
+    g.search_form = SearchForm()
+    g.profile_image_dir = IMAGE_UPLOAD_CONFIG["IMAGE_SAVE_DIRECTORIES"]["USER_PROFILE_IMAGES"]
+
 
 
 @login_manager.unauthorized_handler
@@ -194,42 +206,49 @@ def unverified():
     return render_template("unverified.html")
 
 
-@blueprint.route("/my_profile", methods=["GET", "POST"])
+@blueprint.route("/my-profile", methods=["GET", "POST"])
 @login_required
 def user_profile():
     form = UserProfileUpdateForm(obj=current_user)
     modal = ConfirmAccountDeletionForm()
 
     if request.method == "POST" and form.validate_on_submit():
-        if (
-            request.files.get("profile_photo").filename != ""
-        ):  # Check if a profile image has been uploaded
-            # Delete the previous profile image if it exists
-            delete_profile_image.delay(
-                profile_image_upload_dir,
-                current_user.profile_photo,
-                s3_bucket_name=aws_s3_bucket_name,
-            )
-            file = request.files.get("profile_photo")
-            filename = save_image_to_redis(file)
-            profile_image_process.delay(filename, photo_type="profile")
-            current_user.profile_photo = filename
-            current_user.prof_photo_loc = image_server_config
+        try:
+            if (
+                request.files.get("profile_photo").filename != ""
+            ):  # Check if a profile image has been uploaded
+                # Delete the previous profile image if it exists
+                delete_profile_image.delay(
+                    profile_image_upload_dir,
+                    current_user.profile_photo,
+                    s3_bucket_name=aws_s3_bucket_name,
+                )
+                file = request.files.get("profile_photo")
+                filename = save_image_to_redis(file)
+                profile_image_process.delay(filename, photo_type="profile")
+                current_user.profile_photo = filename
+                current_user.prof_photo_loc = image_server_config
 
-        if (
-            request.files.get("cover_photo").filename != ""
-        ):  # Check if a cover image has been uploaded
-            # Delete the previous profile image if it exists
-            delete_profile_image.delay(
-                cover_image_upload_dir,
-                current_user.cover_photo,
-                s3_bucket_name=aws_s3_bucket_name,
-            )
-            file = request.files.get("cover_photo")
-            filename = save_image_to_redis(file)
-            profile_image_process.delay(filename, photo_type="cover")
-            current_user.cover_photo = filename
-            current_user.cover_photo_loc = image_server_config
+            if (
+                request.files.get("cover_photo").filename != ""
+            ):  # Check if a cover image has been uploaded
+                # Delete the previous profile image if it exists
+                delete_profile_image.delay(
+                    cover_image_upload_dir,
+                    current_user.cover_photo,
+                    s3_bucket_name=aws_s3_bucket_name,
+                )
+                file = request.files.get("cover_photo")
+                filename = save_image_to_redis(file)
+                profile_image_process.delay(filename, photo_type="cover")
+                current_user.cover_photo = filename
+                current_user.cover_photo_loc = image_server_config
+
+        #  AttributeError: 'NoneType' object has no attribute 'filename'. This error can result from the request not
+        #  containing 'profile_photo' and 'cover_photo' stream data in the request body. The error is likely to occur
+        #  testing this route with flask.test_client() and not with a browser.
+        except AttributeError:
+            pass
 
         flash_message, css_class = (
             "Your account information has been updated.",
@@ -321,10 +340,12 @@ def account_deletion():
     return redirect(url_for("base_blueprint.user_profile"))
 
 
-@blueprint.route("/account-deactivate")
+@blueprint.route("/deactivated")
 @login_required
 def deactivated_acc_page():
     date_of_acc_deletion = current_user.date_to_delete_acc
+    if date_of_acc_deletion is None or date_of_acc_deletion.strftime("%d/%m/%y") == "01/01/01":
+        return render_template("errors/403.html"), 403
     logout_user()
     return render_template(
         "accounts/account_deactivated.html",
