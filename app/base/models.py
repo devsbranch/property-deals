@@ -5,6 +5,8 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash
 from app import db, login_manager
 from app.search import add_to_index, delete_from_index, search_docs
+from api.schemas.user_schema import user_schema, users_schema
+from api.schemas.listing_schema import listing_schema, listings_schema
 
 
 class User(db.Model, UserMixin):
@@ -52,6 +54,28 @@ class User(db.Model, UserMixin):
     def __repr__(self):
         return str(f"User <{self.username}")
 
+    def to_json(self):
+        return {
+            "id": self.id,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "other_name": self.other_name,
+            "gender": self.gender,
+            "phone": self.phone,
+            "profile_photo": self.profile_photo,
+            "cover_photo": self.cover_photo,
+            "prof_photo_loc": self.prof_photo_loc,
+            "cover_photo_loc": self.cover_photo_loc,
+            "date_registered": self.date_registered,
+            "is_verified": self.is_verified,
+            "date_verified": self.date_verified,
+            "username": self.username,
+            "email": self.email,
+            "acc_deactivated": self.acc_deactivated,
+            "date_to_delete_acc": self.date_to_delete_acc,
+            "user_property_listings": [listing_schema.dump(p) for p in self.user_property_listings],
+        }
+
 
 class Property(db.Model):
     __tablename__ = "property"
@@ -75,6 +99,24 @@ class Property(db.Model):
 
     def __repr__(self):
         return str(f"Property Listing <{self.name}")
+
+    def to_json(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "desc": self.desc,
+            "date_listed": self.date_listed,
+            "price": self.price,
+            "location": self.location,
+            "images_folder": self.images_folder,
+            "photos": self.photos,
+            "photos_location": self.photos_location,
+            "type": self.type,
+            "is_available": self.is_available,
+            "deal_done": self.deal_done,
+            "user_id": self.user_id,
+            "owner": user_schema.dump(self.owner)
+        }
 
     @classmethod
     def search_property(cls, search_term, page, per_page):
