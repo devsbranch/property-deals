@@ -1,0 +1,34 @@
+swagger: "2.0"
+info:
+  description: This is the swagger specs for this Property Deals project
+  version: "1.0.0"
+  title: Property Deals
+consumes:
+  - application/json
+  - multipart/data
+produces:
+  - application/json
+
+# Paths supported by this application
+paths:
+  /health:
+    get:
+      operationId: api.endpoints.main.health
+      tags:
+        - health
+      summary: Retrieves health status of this application
+      description: Perform health check on this API
+      responses:
+        200:
+          description: Application is functioning normally
+
+  /welcome:
+    get:
+      operationId: api.endpoints.main.welcome
+      tags:
+        - home
+      summary: Retrives welcome message
+      description: Display welcome message
+      responses:
+        200:
+          description: See a welcome message

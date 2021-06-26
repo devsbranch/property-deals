@@ -27,20 +27,20 @@ try:
 except KeyError:
     exit('Error: Invalid <config_mode>. Expected values [Debug, Production] ')
 
-app, celery = create_app(app_config)
-Migrate(app, db)
+connexion_app, celery = create_app(app_config)
+Migrate(connexion_app.app, db)
 
 
-@app.shell_context_processor
+@connexion_app.app.shell_context_processor
 def make_shell_context():
     return {"db": db, "User": User}
 
 
 if DEBUG:
-    app.logger.info('DEBUG       = ' + str(DEBUG))
-    app.logger.info('Environment = ' + get_config_mode)
-    app.logger.info('DBMS        = ' + app_config.SQLALCHEMY_DATABASE_URI)
+    connexion_app.app.logger.info('DEBUG       = ' + str(DEBUG))
+    connexion_app.app.logger.info('Environment = ' + get_config_mode)
+    connexion_app.app.logger.info('DBMS        = ' + app_config.SQLALCHEMY_DATABASE_URI)
 
 
 if __name__ == "__main__":
-    app.run()
+    connexion_app.run()

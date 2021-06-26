@@ -6,6 +6,7 @@ Copyright (c) 2019 - present AppSeed.us
 import os
 import boto3
 import redis
+import connexion
 from pathlib import Path
 from flask import Flask, current_app
 from celery import Celery
@@ -141,12 +142,14 @@ def create_image_upload_directories():
 
 
 def create_app(config):
-    app = Flask(__name__, static_folder="base/static")
-    app.config.from_object(config)
-    register_extensions(app)
-    configure_database(app)
-    app.celery = init_celery(app)
-    app.app_context().push()
-    register_blueprints(app)
+    connexion_app = connexion.FlaskApp(__name__, specification_dir="../openapi")
+    connexion_app.app.static_folder = "base/static"
+    connexion_app.add_api("swagger.yml")
+    connexion_app.app.config.from_object(config)
+    register_extensions(connexion_app.app)
+    configure_database(connexion_app.app)
+    connexion_app.app.celery = init_celery(connexion_app.app)
+    connexion_app.app.app_context().push()
+    register_blueprints(connexion_app.app)
     create_image_upload_directories()
-    return app, app.celery
+    return connexion_app, connexion_app.app.celery
