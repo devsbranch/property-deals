@@ -52,14 +52,14 @@ def internal_error(error):
     return render_template("errors/500.html"), 500
 
 
-@blueprint.route("/index")
+@blueprint.route("/home")
 @check_account_status
-def index():
+def home():
     property_listings = Property.query.all()
     property_listing_photos = [json.loads(p.photos) for p in property_listings]
     return render_template(
-        "index.html",
-        segment="index",
+        "home.html",
+        segment="home",
         property_listings=property_listings,
         photos_list=property_listing_photos,
         image_folder=property_listings_images_dir,
@@ -131,7 +131,7 @@ def create_property():
         }
         Property.add_property(prop_data)
         flash("Your Property has been listed.", "success")
-        return redirect(url_for("home_blueprint.index"))
+        return redirect(url_for("home_blueprint.home"))
     return render_template("create_property.html", form=form)
 
 
@@ -195,7 +195,7 @@ def update_listing(listing_id):
 
         Property.update_property(listing_to_update, request.form)
         flash("Your Property listing has been updated", "success")
-        return redirect(url_for("home_blueprint.index"))
+        return redirect(url_for("home_blueprint.home"))
 
     elif request.method == "GET":
         form.populate_obj(listing_to_update)
@@ -218,7 +218,7 @@ def delete_listing(listing_id):
         )
         Property.delete_property(listing_to_delete)
         flash("Your Property listing has been deleted", "success")
-        return redirect(url_for("home_blueprint.index"))
+        return redirect(url_for("home_blueprint.home"))
     else:
         return render_template("errors/403.html"), 403
 

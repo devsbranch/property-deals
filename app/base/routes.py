@@ -69,7 +69,7 @@ def internal_error(error):
 
 @blueprint.route("/")
 def route_default():
-    return redirect(url_for("home_blueprint.index"))
+    return redirect(url_for("home_blueprint.home"))
 
 
 @blueprint.route("/feedback")
@@ -89,7 +89,7 @@ def login():
         # Check the password
         if user and check_password_hash(user.password, password):
             login_user(user)
-            return redirect(url_for("home_blueprint.index"))
+            return redirect(url_for("home_blueprint.home"))
         else:
             flash("Invalid username or password.", "danger")
 
@@ -140,7 +140,7 @@ def request_password_reset():
         )
         send_email.delay(user.email, subject, email_template)
         flash("An link to reset you password has been sent to your email.", "success")
-        return redirect(url_for("home_blueprint.index"))
+        return redirect(url_for("home_blueprint.home"))
     return render_template("accounts/forgot_password.html", form=form)
 
 
@@ -149,11 +149,11 @@ def password_reset(token):
     form = ResetPasswordForm()
 
     if current_user.is_authenticated:
-        return redirect(url_for("home_blueprint.index"))
+        return redirect(url_for("home_blueprint.home"))
     user_data = confirm_token(token)
     if not user_data or user_data["email_category"] != "password_reset":
         flash("The link is invalid or has expired.", "danger")
-        return redirect(url_for("home_blueprint.index"))
+        return redirect(url_for("home_blueprint.home"))
     user = User.query.filter_by(email=user_data["email"]).first()
 
     if form.validate_on_submit():
@@ -169,7 +169,7 @@ def verify_email(token):
     user_data = confirm_token(token)
     if not user_data or user_data["email_category"] != "verify_email":
         flash("The confirmation email is invalid or has expired")
-        return redirect(url_for("home_blueprint.index"))
+        return redirect(url_for("home_blueprint.home"))
     user = User.query.filter_by(email=user_data["email"]).first()
     if user.is_verified:
         flash("Your email is already verified")
@@ -178,7 +178,7 @@ def verify_email(token):
         user.date_verified = datetime.datetime.today()
         db.session.commit()
         flash("Your email has been verified.", "success")
-        return redirect(url_for("home_blueprint.index"))
+        return redirect(url_for("home_blueprint.home"))
 
 
 @blueprint.route("/resend")
@@ -193,7 +193,7 @@ def resend_verification_email():
     )
     send_email.delay(current_user.email, subject, email_template)
     flash("A new verification email has been sent", "success")
-    return redirect(url_for("home_blueprint.index"))
+    return redirect(url_for("home_blueprint.home"))
 
 
 @blueprint.route("/unverified")
@@ -201,7 +201,7 @@ def resend_verification_email():
 def unverified():
     if current_user.is_verified:
         flash("Your email is already verified", "success")
-        return redirect(url_for("home_blueprint.index"))
+        return redirect(url_for("home_blueprint.home"))
     flash("You need to verify your email first", "warning")
     return render_template("unverified.html")
 
@@ -369,7 +369,7 @@ def reactivate_account():
         ):
             if not user_to_reactivate.acc_deactivated:
                 flash("Your account is already active.", "warning")
-                return redirect(url_for("home_blueprint.index"))
+                return redirect(url_for("home_blueprint.home"))
             user_to_reactivate.acc_deactivated = False
             # set to a lowest date. Any date lower than the current date is fine to prevent the celery task from
             # deleting the account should the date match with the current date.
@@ -385,7 +385,7 @@ def reactivate_account():
             login_user(user_to_reactivate)
 
             flash("Your account has been activated. Welcome back!", "success")
-            return redirect(url_for("home_blueprint.index"))
+            return redirect(url_for("home_blueprint.home"))
         else:
             flash("Invalid email or password.", "danger")
     return render_template("accounts/reactivate_account.html", form=form)
