@@ -127,3 +127,40 @@ paths:
                       type: integer
         404:
           description: User not found.
+
+  /user/add:
+    post:
+      operationId: api.endpoints.user.add_user
+      tags:
+        - users
+      summary: Creates a user
+      description: Creates a single user record
+      parameters:
+        - name: user
+          in: body
+          description: User to create. You can add other_name to the json object if the user has one.
+          required: true
+          schema:
+            type: object
+            properties:
+              first_name:
+                type: string
+              last_name:
+                type: string
+              other_name:
+                type: string
+              gender:
+                type: string
+              phone:
+                type: string
+              username:
+                type: string
+              email:
+                type: string
+              password:
+                type: string
+      responses:
+        201:
+          description: Successfully created user
+        400:
+          description: Invalid request
