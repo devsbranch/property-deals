@@ -5,8 +5,8 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash
 from app import db, login_manager
 from app.search import add_to_index, delete_from_index, search_docs
-from api.schemas.user_schema import user_schema, users_schema
-from api.schemas.listing_schema import listing_schema, listings_schema
+from api.schemas.user_schema import user_schema
+from api.schemas.listing_schema import listing_schema
 
 
 class User(db.Model, UserMixin):
@@ -73,8 +73,20 @@ class User(db.Model, UserMixin):
             "email": self.email,
             "acc_deactivated": self.acc_deactivated,
             "date_to_delete_acc": self.date_to_delete_acc,
-            "user_property_listings": [listing_schema.dump(p) for p in self.user_property_listings],
+            "user_property_listings": [listing_schema.dump(listing) for listing in self.user_property_listings],
         }
+
+    @staticmethod
+    def get_all_users():
+        """
+        Returns a Python dictionary of all users.
+        """
+        return [User.to_json(user) for user in User.query.all()]
+
+    @staticmethod
+    def get_user_by_id(user_id):
+        user = User.query.get(user_id)
+        return user_schema.dump(user)
 
 
 class Property(db.Model):

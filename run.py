@@ -43,4 +43,4 @@ if DEBUG:
 
 
 if __name__ == "__main__":
-    connexion_app.run()
+    connexion_app.run(debug=True)

@@ -7,8 +7,9 @@ import os
 import boto3
 import redis
 import connexion
+from connexion.resolver import RestyResolver
 from pathlib import Path
-from flask import Flask, current_app
+from flask import current_app
 from celery import Celery
 from celery.schedules import crontab
 from flask_marshmallow import Marshmallow

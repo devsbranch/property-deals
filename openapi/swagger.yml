@@ -1,3 +1,4 @@
+basePath: /api
 swagger: "2.0"
 info:
   description: This is the swagger specs for this Property Deals project
@@ -32,3 +33,97 @@ paths:
       responses:
         200:
           description: See a welcome message
+  /user/all:
+    get:
+      operationId: api.endpoints.user.get_users
+      tags:
+        - users
+      summary: Rerieves all the users
+      description: Displays all users and the listings they have listed
+      responses:
+        200:
+          description: See a JSON object of all the users
+
+  /user/{user_id}:
+    get:
+      operationId: api.endpoints.user.get_user_by_id
+      tags:
+        - users
+      summary: Retrieves user by id
+      description: Displays details of user of id provided
+      parameters:
+        - name: user_id
+          in: path
+          description: retrieves user data of id provided
+          type: integer
+          required: true
+      responses:
+        200:
+          description: Successfully display user info
+          schema:
+            type: array
+            items:
+              properties:
+                id:
+                  type: integer
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                other_name:
+                  type: string
+                gender:
+                  type: string
+                phone:
+                  type: string
+                profile_photo:
+                  type: string
+                cover_photo:
+                  type: string
+                prof_photo_loc:
+                  type: string
+                cover_photo_loc:
+                  type: string
+                date_registered:
+                  type: string
+                is_verified:
+                  type: boolean
+                username:
+                  type: string
+                email:
+                  type: string
+                acc_deactivated:
+                  type: boolean
+                date_to_delete_acc:
+                  type: string
+                user_property_listings:
+                  type: array
+                  properties:
+                    id:
+                      type: integer
+                    name:
+                      type: string
+                    desc:
+                      type: string
+                    date_listed:
+                      type: string
+                    price:
+                      type: string
+                    location:
+                      type: string
+                    images_folder:
+                      type: string
+                    photos:
+                      type: string
+                    photos_location:
+                      type: string
+                    type:
+                      type: string
+                    is_available:
+                      type: boolean
+                    deal_done:
+                      type: boolean
+                    user_id:
+                      type: integer
+        404:
+          description: User not found.
