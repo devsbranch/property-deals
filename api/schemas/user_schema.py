@@ -1,26 +1,14 @@
-from app import ma
-from marshmallow import fields
-
-
-class UserSchema(ma.Schema):
-    id = fields.String()
-    first_name = fields.String(required=True)
-    last_name = fields.String(required=True)
-    other_name = fields.String()
-    gender = fields.String(required=True)
-    phone = fields.String(required=True)
-    profile_photo = fields.String()
-    cover_photo = fields.String()
-    prof_photo_loc = fields.String()
-    cover_photo_loc = fields.String()
-    date_registered = fields.DateTime()
-    is_verified = fields.Boolean()
-    date_verified = fields.DateTime()
-    username = fields.String(required=True)
-    email = fields.String(required=True)
-    acc_deactivated = fields.Boolean()
-    date_to_delete_acc = fields.DateTime()
-
-
-user_schema = UserSchema()
-users_schema = UserSchema(many=True)
+add_user_schema = {
+    "type": "object",
+    "properties": {
+        "first_name": {"type": "string", "minLength": 3, "maxLength": 30},
+        "last_name": {"type": "string", "minLength": 3, "maxLength": 30},
+        "other_name": {"type": "string", "minLength": 3, "maxLength": 30},
+        "gender": {"type": "string", "minLength": 4, "maxLength": 7},
+        "phone": {"type": "string", "minLength": 10, "maxLength": 12},
+        "username": {"type": "string", "minLength": 2, "maxLength": 20},
+        "email": {"type": "string", "minLength": 3, "maxLength": 30},
+        "password": {"type": "string", "minLength": 8, "maxLength": 60}
+    },
+    "required": ["first_name", "last_name", "gender", "phone", "username", "email", "password"]
+}

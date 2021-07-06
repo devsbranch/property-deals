@@ -5,8 +5,8 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash
 from app import db, login_manager
 from app.search import add_to_index, delete_from_index, search_docs
-from api.schemas.user_schema import user_schema
-from api.schemas.listing_schema import listing_schema
+from api.model_serializers.user_model_serializer import user_schema
+from api.model_serializers.property_model_serializer import listing_schema
 
 
 class User(db.Model, UserMixin):
