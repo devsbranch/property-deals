@@ -4,6 +4,7 @@ from app import db
 from app.base.models import User
 from api.schemas.user_schema import add_user_schema
 from api.helpers import validate_email, validate_username
+from app.base.utils import generate_url_and_email_template
 
 
 def get_users():
@@ -22,6 +23,7 @@ def get_user_by_id(user_id):
 
 
 def add_user():
+    from app.tasks import send_email
     request_data = request.get_json()
     try:
         jsonschema.validate(request_data, add_user_schema)
@@ -33,6 +35,15 @@ def add_user():
         user = User(**request_data)
         db.session.add(user)
         db.session.commit()
+
+        email_template, subject = generate_url_and_email_template(
+            request_data["email"],
+            request_data["username"],
+            request_data["first_name"],
+            request_data["last_name"],
+            email_category="verify_email",
+        )
+        send_email.delay(request_data["email"], subject, email_template)
 
         response = Response(json.dumps(request_data), 201, mimetype="application/json")
         return response
